@@ -32,6 +32,34 @@ root.AABB = class AABB
     this.pos = pos
     this.half = half
   
+  # Test whether a point is inside the box. Returns a Hit object, or null if
+  # the two do not overlap. If colliding, `hit.pos` will be set to the nearest
+  # edge of the box.
+  intersectPoint: (point) ->
+    # Find the overlap for the X axis.
+    dx = point.x - this.pos.x
+    px = this.half.x - abs(dx)
+    return null if px <= 0
+    # Find the overlap for the Y axis.
+    dy = point.y - this.pos.y
+    py = this.half.y - abs(dy)
+    return null if py <= 0
+    # Use the axis with the smallest overlap.
+    hit = new Hit()
+    if px < py
+      sx = sign(dx)
+      hit.delta.x = px * sx
+      hit.normal.x = sx
+      hit.pos.x = this.pos.x + (this.half.x * sx)
+      hit.pos.y = point.y
+    else
+      sy = sign(dy)
+      hit.delta.y = py * sy
+      hit.normal.y = sy
+      hit.pos.x = point.x
+      hit.pos.y = this.pos.y + (this.half.y * sy)
+    return hit
+    
   # Find the intersection of the box and the given segment. Returns a Hit
   # object (with an extra `time` property), or null if the two do not overlap.
   # `paddingX` and `paddingY` will be added to the radius of the bounding box,
@@ -75,8 +103,10 @@ root.AABB = class AABB
       hit.time = 0
     hit.normal.x = if nearTimeX > nearTimeY then -signX else 0
     hit.normal.y = if nearTimeX > nearTimeY then 0 else -signY
-    hit.pos.x = pos.x + hit.time * delta.x
-    hit.pos.y = pos.y + hit.time * delta.y
+    hit.delta.x = hit.time * delta.x
+    hit.delta.y = hit.time * delta.y
+    hit.pos.x = pos.x + hit.delta.x
+    hit.pos.y = pos.y + hit.delta.y
     return hit
   
   # Find the intersection of the box with another (stationary) box. Returns
@@ -98,16 +128,12 @@ root.AABB = class AABB
     if px < py
       sx = sign(dx)
       hit.delta.x = px * sx
-      hit.delta.y = 0
       hit.normal.x = sx
-      hit.normal.y = 0
       hit.pos.x = this.pos.x + (this.half.x * sx)
       hit.pos.y = box.pos.y
     else
       sy = sign(dy)
-      hit.delta.x = 0
       hit.delta.y = py * sy
-      hit.normal.x = 0
       hit.normal.y = sy
       hit.pos.x = box.pos.x
       hit.pos.y = this.pos.y + (this.half.y * sy)
