@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>intersect.coffee</title>
+  <title>intersect.litcoffee</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -15,7 +15,7 @@
         
           <li id="title">
               <div class="annotation">
-                  <h1>intersect.coffee</h1>
+                  <h1>intersect.litcoffee</h1>
               </div>
           </li>
         
@@ -30,7 +30,7 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre>root = <span class="built_in">exports</span> ? <span class="keyword">this</span> 
+            <div class="content"><div class='highlight'><pre>root = <span class="built_in">exports</span> ? <span class="keyword">this</span>
 
 <span class="function"><span class="title">abs</span> = <span class="params">(value)</span> -&gt;</span>
   <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -value <span class="keyword">else</span> value
@@ -55,10 +55,10 @@
   <span class="attribute">constructor</span>: <span class="function"><span class="params">(x = <span class="number">0</span>, y = <span class="number">0</span>)</span> -&gt;</span>
     this.x = x
     this.y = y
-  
+
   <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
     <span class="keyword">return</span> <span class="keyword">new</span> Point(this.x, this.y)
-  
+
   <span class="attribute">normalize</span>:<span class="function"> -&gt;</span>
     length = this.x * this.x + this.y * this.y
     <span class="keyword">if</span> length &gt; <span class="number">0</span>
@@ -261,7 +261,7 @@ of the segment.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> nearTime &lt; <span class="number">0</span> <span class="keyword">and</span> farTime &lt; <span class="number">0</span>
-    
+
     hit = <span class="keyword">new</span> Hit()
     <span class="keyword">if</span> nearTime &gt;= <span class="number">0</span></pre></div></div>
             
