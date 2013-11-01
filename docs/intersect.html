@@ -1,125 +1,500 @@
-<!DOCTYPE html>  <html> <head>   <title>intersect.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               intersect.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">root = </span><span class="nx">exports</span> <span class="o">?</span> <span class="k">this</span> 
+<!DOCTYPE html>
 
-<span class="nv">abs = </span><span class="nf">(value) -&gt;</span>
-  <span class="k">if</span> <span class="nx">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">then</span> <span class="o">-</span><span class="nx">value</span> <span class="k">else</span> <span class="nx">value</span>
+<html>
+<head>
+  <title>intersect.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>intersect.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>root = <span class="built_in">exports</span> ? <span class="keyword">this</span> 
 
-<span class="nv">sign = </span><span class="nf">(value) -&gt;</span>
-  <span class="k">if</span> <span class="nx">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">then</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>A 2D point.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">root.Point = </span><span class="k">class</span> <span class="nx">Point</span>
-  <span class="nv">constructor: </span><span class="nf">(x = 0, y = 0) -&gt;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">x = </span><span class="nx">x</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">y = </span><span class="nx">y</span>
+<span class="function"><span class="title">abs</span> = <span class="params">(value)</span> -&gt;</span>
+  <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -value <span class="keyword">else</span> value
+
+<span class="function"><span class="title">sign</span> = <span class="params">(value)</span> -&gt;</span>
+  <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -<span class="number">1</span> <span class="keyword">else</span> <span class="number">1</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>A 2D point.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>root.Point = <span class="class"><span class="keyword">class</span> <span class="title">Point</span></span>
+  <span class="attribute">constructor</span>: <span class="function"><span class="params">(x = <span class="number">0</span>, y = <span class="number">0</span>)</span> -&gt;</span>
+    this.x = x
+    this.y = y
   
-  <span class="nv">clone: </span><span class="o">-&gt;</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="nx">Point</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span>
+  <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
+    <span class="keyword">return</span> <span class="keyword">new</span> Point(this.x, this.y)
   
-  <span class="nv">normalize: </span><span class="o">-&gt;</span>
-    <span class="nv">length = </span><span class="k">this</span><span class="p">.</span><span class="nx">x</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">y</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">y</span>
-    <span class="k">if</span> <span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
-      <span class="nv">length = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">length</span><span class="p">)</span>
-      <span class="nv">invLength = </span><span class="mf">1.0</span> <span class="o">/</span> <span class="nx">length</span>
-      <span class="k">this</span><span class="p">.</span><span class="nx">x</span> <span class="o">*=</span> <span class="nx">invLength</span>
-      <span class="k">this</span><span class="p">.</span><span class="nx">y</span> <span class="o">*=</span> <span class="nx">invLength</span>
-    <span class="k">return</span> <span class="nx">length</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>An axis-aligned bounding box. The box is specified by its center and
+  <span class="attribute">normalize</span>:<span class="function"> -&gt;</span>
+    length = this.x * this.x + this.y * this.y
+    <span class="keyword">if</span> length &gt; <span class="number">0</span>
+      length = Math.sqrt(length)
+      invLength = <span class="number">1.0</span> / length
+      this.x *= invLength
+      this.y *= invLength
+    <span class="keyword">return</span> length</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>An axis-aligned bounding box. The box is specified by its center and
 a half-space vector (that is, the radius of the bounding box on the
-x and y axes).</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">root.AABB = </span><span class="k">class</span> <span class="nx">AABB</span>
-  <span class="nv">constructor: </span><span class="nf">(pos, half) -&gt;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">pos = </span><span class="nx">pos</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">half = </span><span class="nx">half</span>
-  </pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>Find the intersection of the box and the given segment. Returns a Hit
+x and y axes).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>root.AABB = <span class="class"><span class="keyword">class</span> <span class="title">AABB</span></span>
+  <span class="attribute">constructor</span>: <span class="function"><span class="params">(pos, half)</span> -&gt;</span>
+    this.pos = pos
+    this.half = half</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Test whether a point is inside the box. Returns a Hit object, or null if
+the two do not overlap. If colliding, <code>hit.pos</code> will be set to the nearest
+edge of the box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="attribute">intersectPoint</span>: <span class="function"><span class="params">(point)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Find the overlap for the X axis.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    dx = point.x - this.pos.x
+    px = this.half.x - abs(dx)
+    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> px &lt;= <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Find the overlap for the Y axis.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    dy = point.y - this.pos.y
+    py = this.half.y - abs(dy)
+    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Use the axis with the smallest overlap.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit()
+    <span class="keyword">if</span> px &lt; py
+      sx = sign(dx)
+      hit.delta.x = px * sx
+      hit.normal.x = sx
+      hit.pos.x = this.pos.x + (this.half.x * sx)
+      hit.pos.y = point.y
+    <span class="keyword">else</span>
+      sy = sign(dy)
+      hit.delta.y = py * sy
+      hit.normal.y = sy
+      hit.pos.x = point.x
+      hit.pos.y = this.pos.y + (this.half.y * sy)
+    <span class="keyword">return</span> hit</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Find the intersection of the box and the given segment. Returns a Hit
 object (with an extra <code>time</code> property), or null if the two do not overlap.
 <code>paddingX</code> and <code>paddingY</code> will be added to the radius of the bounding box,
-if specified.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">intersectSegment: </span><span class="nf">(pos, delta, paddingX = 0, paddingY = 0) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>A segment from point <code>A</code> to point <code>B</code> can be expressed with the equation
+if specified.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="attribute">intersectSegment</span>: <span class="function"><span class="params">(pos, delta, paddingX = <span class="number">0</span>, paddingY = <span class="number">0</span>)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>A segment from point <code>A</code> to point <code>B</code> can be expressed with the equation
 <code>S(t) = A + t * (B - A)</code>, for <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is
 the time along the line, or percentage distance from <code>A</code> to <code>B</code>. This
 code calculates the collision times along the line for each edge
 of the box. This is sometimes called a slab test. Scaling is done using
 multiplication instead of division to deal with floating point issues
-(see <a href="http://www.cs.utah.edu/~awilliam/box/">WilliamsEtAl05</a> for more).</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">scaleX = </span><span class="mf">1.0</span> <span class="o">/</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">x</span>
-    <span class="nv">scaleY = </span><span class="mf">1.0</span> <span class="o">/</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">y</span>
-    <span class="nv">signX = </span><span class="nx">sign</span><span class="p">(</span><span class="nx">scaleX</span><span class="p">)</span>
-    <span class="nv">signY = </span><span class="nx">sign</span><span class="p">(</span><span class="nx">scaleY</span><span class="p">)</span>
-    <span class="nv">nearTimeX = </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">-</span> <span class="nx">signX</span> <span class="o">*</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="nx">paddingX</span><span class="p">)</span> <span class="o">-</span> <span class="nx">pos</span><span class="p">.</span><span class="nx">x</span><span class="p">)</span> <span class="o">*</span> <span class="nx">scaleX</span>
-    <span class="nv">nearTimeY = </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">-</span> <span class="nx">signY</span> <span class="o">*</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="nx">paddingY</span><span class="p">)</span> <span class="o">-</span> <span class="nx">pos</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span> <span class="o">*</span> <span class="nx">scaleY</span>
-    <span class="nv">farTimeX = </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="nx">signX</span> <span class="o">*</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="nx">paddingX</span><span class="p">)</span> <span class="o">-</span> <span class="nx">pos</span><span class="p">.</span><span class="nx">x</span><span class="p">)</span> <span class="o">*</span> <span class="nx">scaleX</span>
-    <span class="nv">farTimeY = </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="nx">signY</span> <span class="o">*</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="nx">paddingY</span><span class="p">)</span> <span class="o">-</span> <span class="nx">pos</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span> <span class="o">*</span> <span class="nx">scaleY</span>
-    <span class="k">return</span> <span class="kc">null</span> <span class="k">if</span> <span class="nx">nearTimeX</span> <span class="o">&gt;</span> <span class="nx">farTimeY</span> <span class="o">or</span> <span class="nx">nearTimeY</span> <span class="o">&gt;</span> <span class="nx">farTimeX</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Find the farthest near value, and the nearest far value.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">nearTime = </span><span class="k">if</span> <span class="nx">nearTimeX</span> <span class="o">&gt;</span> <span class="nx">nearTimeY</span> <span class="k">then</span> <span class="nx">nearTimeX</span> <span class="k">else</span> <span class="nx">nearTimeY</span>
-    <span class="nv">farTime = </span><span class="k">if</span> <span class="nx">farTimeX</span> <span class="o">&lt;</span> <span class="nx">farTimeY</span> <span class="k">then</span> <span class="nx">farTimeX</span> <span class="k">else</span> <span class="nx">farTimeY</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>If the nearest time is greater than one, then the nearest intersection
-did not happen until after the end of the segment.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">return</span> <span class="kc">null</span> <span class="k">if</span> <span class="nx">nearTime</span> <span class="o">&gt;=</span> <span class="mi">1</span>
-    </pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>If both the times are less than zero, then the box is behind the start
-of the segment.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">return</span> <span class="kc">null</span> <span class="k">if</span> <span class="nx">nearTime</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">and</span> <span class="nx">farTime</span> <span class="o">&lt;</span> <span class="mi">0</span>
+(see <a href="http://www.cs.utah.edu/~awilliam/box/">WilliamsEtAl05</a> for more).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    scaleX = <span class="number">1.0</span> / delta.x
+    scaleY = <span class="number">1.0</span> / delta.y
+    signX = sign(scaleX)
+    signY = sign(scaleY)
+    nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX
+    nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY
+    farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX
+    farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY
+    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> nearTimeX &gt; farTimeY <span class="keyword">or</span> nearTimeY &gt; farTimeX</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Find the farthest near value, and the nearest far value.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    nearTime = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> nearTimeX <span class="keyword">else</span> nearTimeY
+    farTime = <span class="keyword">if</span> farTimeX &lt; farTimeY <span class="keyword">then</span> farTimeX <span class="keyword">else</span> farTimeY</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>If the nearest time is greater than one, then the nearest intersection
+did not happen until after the end of the segment.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> nearTime &gt;= <span class="number">1</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>If both the times are less than zero, then the box is behind the start
+of the segment.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> nearTime &lt; <span class="number">0</span> <span class="keyword">and</span> farTime &lt; <span class="number">0</span>
     
-    <span class="nv">hit = </span><span class="k">new</span> <span class="nx">Hit</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nx">nearTime</span> <span class="o">&gt;=</span> <span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>The segment starts outside and is entering the box.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">hit.time = </span><span class="nx">nearTime</span>
-    <span class="k">else</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>The segment starts inside and is exiting the box.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">hit.time = </span><span class="mi">0</span>
-    <span class="nv">hit.normal.x = </span><span class="k">if</span> <span class="nx">nearTimeX</span> <span class="o">&gt;</span> <span class="nx">nearTimeY</span> <span class="k">then</span> <span class="o">-</span><span class="nx">signX</span> <span class="k">else</span> <span class="mi">0</span>
-    <span class="nv">hit.normal.y = </span><span class="k">if</span> <span class="nx">nearTimeX</span> <span class="o">&gt;</span> <span class="nx">nearTimeY</span> <span class="k">then</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="nx">signY</span>
-    <span class="nv">hit.pos.x = </span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="nx">hit</span><span class="p">.</span><span class="nx">time</span> <span class="o">*</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">x</span>
-    <span class="nv">hit.pos.y = </span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="nx">hit</span><span class="p">.</span><span class="nx">time</span> <span class="o">*</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">y</span>
-    <span class="k">return</span> <span class="nx">hit</span>
-  </pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Find the intersection of the box with another (stationary) box. Returns
+    hit = <span class="keyword">new</span> Hit()
+    <span class="keyword">if</span> nearTime &gt;= <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>The segment starts outside and is entering the box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      hit.time = nearTime
+    <span class="keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>The segment starts inside and is exiting the box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      hit.time = <span class="number">0</span>
+    hit.normal.x = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> -signX <span class="keyword">else</span> <span class="number">0</span>
+    hit.normal.y = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> <span class="number">0</span> <span class="keyword">else</span> -signY
+    hit.delta.x = hit.time * delta.x
+    hit.delta.y = hit.time * delta.y
+    hit.pos.x = pos.x + hit.delta.x
+    hit.pos.y = pos.y + hit.delta.y
+    <span class="keyword">return</span> hit</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Find the intersection of the box with another (stationary) box. Returns
 a Hit object, or null if the two do not overlap. This uses the separating
 axis test, and gives the axis of least overlap as the contact point. This
 can cause weird behavior for moving boxes, so you should use <code>sweepAABB</code>
-for moving boxes.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">intersectAABB: </span><span class="nf">(box) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Find the overlap for the X axis.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">dx = </span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span>
-    <span class="nv">px = </span><span class="p">(</span><span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span><span class="p">)</span> <span class="o">-</span> <span class="nx">abs</span><span class="p">(</span><span class="nx">dx</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">null</span> <span class="k">if</span> <span class="nx">px</span> <span class="o">&lt;=</span> <span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>Find the overlap for the Y axis.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">dy = </span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">-</span> <span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span>
-    <span class="nv">py = </span><span class="p">(</span><span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span> <span class="o">-</span> <span class="nx">abs</span><span class="p">(</span><span class="nx">dy</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">null</span> <span class="k">if</span> <span class="nx">py</span> <span class="o">&lt;=</span> <span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>Use the axis with the smallest overlap.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">hit = </span><span class="k">new</span> <span class="nx">Hit</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nx">px</span> <span class="o">&lt;</span> <span class="nx">py</span>
-      <span class="nv">sx = </span><span class="nx">sign</span><span class="p">(</span><span class="nx">dx</span><span class="p">)</span>
-      <span class="nv">hit.delta.x = </span><span class="nx">px</span> <span class="o">*</span> <span class="nx">sx</span>
-      <span class="nv">hit.delta.y = </span><span class="mi">0</span>
-      <span class="nv">hit.normal.x = </span><span class="nx">sx</span>
-      <span class="nv">hit.normal.y = </span><span class="mi">0</span>
-      <span class="nv">hit.pos.x = </span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span> <span class="o">*</span> <span class="nx">sx</span><span class="p">)</span>
-      <span class="nv">hit.pos.y = </span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span>
-    <span class="k">else</span>
-      <span class="nv">sy = </span><span class="nx">sign</span><span class="p">(</span><span class="nx">dy</span><span class="p">)</span>
-      <span class="nv">hit.delta.x = </span><span class="mi">0</span>
-      <span class="nv">hit.delta.y = </span><span class="nx">py</span> <span class="o">*</span> <span class="nx">sy</span>
-      <span class="nv">hit.normal.x = </span><span class="mi">0</span>
-      <span class="nv">hit.normal.y = </span><span class="nx">sy</span>
-      <span class="nv">hit.pos.x = </span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span>
-      <span class="nv">hit.pos.y = </span><span class="k">this</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span> <span class="o">*</span> <span class="nx">sy</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nx">hit</span>
-  </pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>Find the intersection of this box and another moving box, where the
+for moving boxes.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="attribute">intersectAABB</span>: <span class="function"><span class="params">(box)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Find the overlap for the X axis.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    dx = box.pos.x - this.pos.x
+    px = (box.half.x + this.half.x) - abs(dx)
+    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> px &lt;= <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Find the overlap for the Y axis.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    dy = box.pos.y - this.pos.y
+    py = (box.half.y + this.half.y) - abs(dy)
+    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Use the axis with the smallest overlap.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit()
+    <span class="keyword">if</span> px &lt; py
+      sx = sign(dx)
+      hit.delta.x = px * sx
+      hit.normal.x = sx
+      hit.pos.x = this.pos.x + (this.half.x * sx)
+      hit.pos.y = box.pos.y
+    <span class="keyword">else</span>
+      sy = sign(dy)
+      hit.delta.y = py * sy
+      hit.normal.y = sy
+      hit.pos.x = box.pos.x
+      hit.pos.y = this.pos.y + (this.half.y * sy)
+    <span class="keyword">return</span> hit</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Find the intersection of this box and another moving box, where the
 <code>delta</code> argument is a point describing the movement of the box. Returns
 a Sweep object. <code>sweep.hit</code> will be a Hit object if the two collided, or
 null if they did not overlap.</p>
-
 <p>This test is done by inflating this box to include the size of the moving
-box, then colliding the movement as a segment against the inflated box.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">sweepAABB: </span><span class="nf">(box, delta) -&gt;</span>
-    <span class="nv">sweep = </span><span class="k">new</span> <span class="nx">Sweep</span><span class="p">()</span>
-    <span class="k">if</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">x</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">and</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">y</span> <span class="o">==</span> <span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>If the sweep isn't actually moving anywhere, just do a static test.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">sweep.pos = </span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">clone</span><span class="p">()</span>
-      <span class="nv">sweep.hit = </span><span class="k">this</span><span class="p">.</span><span class="nx">intersectAABB</span><span class="p">(</span><span class="nx">box</span><span class="p">)</span>
-      <span class="nv">sweep.hit.time = </span><span class="mi">0</span> <span class="k">if</span> <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="o">?</span>
-    <span class="k">else</span>
-      <span class="nv">sweep.hit = </span><span class="k">this</span><span class="p">.</span><span class="nx">intersectSegment</span><span class="p">(</span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">,</span> <span class="nx">delta</span><span class="p">,</span> <span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span>
-      <span class="k">if</span> <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="o">?</span>
-        <span class="nv">sweep.pos = </span><span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">clone</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Since a segment vs box test was used, the hit pos is the center of
+box, then colliding the movement as a segment against the inflated box.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="attribute">sweepAABB</span>: <span class="function"><span class="params">(box, delta)</span> -&gt;</span>
+    sweep = <span class="keyword">new</span> Sweep()
+    <span class="keyword">if</span> delta.x == <span class="number">0</span> <span class="keyword">and</span> delta.y == <span class="number">0</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>If the sweep isn&#39;t actually moving anywhere, just do a static test.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      sweep.pos = box.pos.clone()
+      sweep.hit = this.intersectAABB(box)
+      sweep.hit.time = <span class="number">0</span> <span class="keyword">if</span> sweep.hit?
+    <span class="keyword">else</span>
+      sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
+      <span class="keyword">if</span> sweep.hit?
+        sweep.pos = sweep.hit.pos.clone()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Since a segment vs box test was used, the hit pos is the center of
 the box. This offsets it to the edge of the box.
-FIXME: Not right, needs to be along delta vector at time + half?</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">-=</span> <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="p">.</span><span class="nx">normal</span><span class="p">.</span><span class="nx">x</span> <span class="o">*</span> <span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">x</span>
-        <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">-=</span> <span class="nx">sweep</span><span class="p">.</span><span class="nx">hit</span><span class="p">.</span><span class="nx">normal</span><span class="p">.</span><span class="nx">y</span> <span class="o">*</span> <span class="nx">box</span><span class="p">.</span><span class="nx">half</span><span class="p">.</span><span class="nx">y</span>
-      <span class="k">else</span>
-        <span class="nv">sweep.pos = </span><span class="k">new</span> <span class="nx">Point</span><span class="p">(</span><span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">x</span> <span class="o">+</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="nx">box</span><span class="p">.</span><span class="nx">pos</span><span class="p">.</span><span class="nx">y</span> <span class="o">+</span> <span class="nx">delta</span><span class="p">.</span><span class="nx">y</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nx">sweep</span>
-  </pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>The result of intersection tests. The <code>hit.pos</code> property contains the
+FIXME: Not right, needs to be along delta vector at time + half?</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x
+        sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y
+      <span class="keyword">else</span>
+        sweep.pos = <span class="keyword">new</span> Point(box.pos.x + delta.x, box.pos.y + delta.y)
+    <span class="keyword">return</span> sweep</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>The result of intersection tests. The <code>hit.pos</code> property contains the
 contact point for the collision. <code>hit.delta</code> contains the overlap for the
-collision, and can be added to the intersecting object's position to
+collision, and can be added to the intersecting object&#39;s position to
 resolve the collision. <code>hit.normal</code> is the surface normal of the hit edge.</p>
-
 <p>In the case of segment intersection, an additional <code>hit.time</code> property will
-be set (a number, from 0 to 1).</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">root.Hit = </span><span class="k">class</span> <span class="nx">Hit</span>
-  <span class="nv">constructor: </span><span class="o">-&gt;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">pos = </span><span class="k">new</span> <span class="nx">Point</span><span class="p">()</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">delta = </span><span class="k">new</span> <span class="nx">Point</span><span class="p">()</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">normal = </span><span class="k">new</span> <span class="nx">Point</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>The result of sweep tests. The <code>sweep.pos</code> property contains the furthest
-position the swept object reached without colliding. If it collided with
-something, <code>sweep.hit</code> property will be set.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">root.Sweep = </span><span class="k">class</span> <span class="nx">Sweep</span>
-  <span class="nv">constructor: </span><span class="o">-&gt;</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">hit = </span><span class="kc">null</span>
-    <span class="k">this</span><span class="p">.</span><span class="nv">pos = </span><span class="k">new</span> <span class="nx">Point</span><span class="p">()</span>
+be set (a number, from 0 to 1).</p>
 
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>root.Hit = <span class="class"><span class="keyword">class</span> <span class="title">Hit</span></span>
+  <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
+    this.pos = <span class="keyword">new</span> Point()
+    this.delta = <span class="keyword">new</span> Point()
+    this.normal = <span class="keyword">new</span> Point()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>The result of sweep tests. The <code>sweep.pos</code> property contains the furthest
+position the swept object reached without colliding. If it collided with
+something, <code>sweep.hit</code> property will be set.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>root.Sweep = <span class="class"><span class="keyword">class</span> <span class="title">Sweep</span></span>
+  <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
+    this.hit = <span class="literal">null</span>
+    this.pos = <span class="keyword">new</span> Point()</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

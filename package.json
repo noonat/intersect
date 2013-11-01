@@ -1,0 +1,18 @@
+{
+  "name": "intersect",
+  "version": "0.1.0",
+  "description": "Example code for simple collision detection",
+  "homepage": "https://github.com/noonat/intersect",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noonat/intersect.git"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.3",
+    "docco": "~0.6.2"
+  },
+  "scripts": {
+    "prepublish": "cake build"
+  },
+  "main": "lib/intersect.js"
+}
