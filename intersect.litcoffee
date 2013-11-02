@@ -28,7 +28,7 @@ fairly readable.
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
 [CoffeeScript]: http://jashkenas.github.com/coffee-script/
-[compiled]: https://github.com/noonat/intersect/blob/master/lib/intersect.js
+[compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
 
 
 <a name="helpers"></a>
