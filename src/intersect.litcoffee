@@ -1,3 +1,28 @@
+Intersection Tests in 2D
+========================
+
+This library is a collection of common 2D collision detection tests. Hopefully
+this saves you from the pain of hunting them down yourself, or trying to rip
+them out of physics libraries.
+
+If you're looking for further reading, you are hurting yourself if you don't
+buy [Real-Time Collision Detection]. It is easily the best purchase you could
+make if you are learning about collision detection. There is also an excellent
+[list of different algorithms here][algorithms].
+
+The code is written in [CoffeeScript], but it's simple and should be easily
+portable to your language of choice.
+
+[Real-Time Collision Detection]: http://realtimecollisiondetection.net/
+[algorithms]: http://www.realtimerendering.com/intersections.html
+[CoffeeScript]: http://jashkenas.github.com/coffee-script/
+
+
+Helpers
+-------
+
+Let's define a couple helpers that we'll use through the code.
+
     root = exports ? this
 
     abs = (value) ->
@@ -6,7 +31,13 @@
     sign = (value) ->
       if value < 0 then -1 else 1
 
-A 2D point.
+
+Points
+------
+
+We'll also need a 2D point. We could just use a literal `{x: 0, y: 0}` object,
+but you have to normalize and copy things quite a bit when doing collision
+detection, so it makes things a bit more readable to formalize it as a class.
 
     root.Point = class Point
       constructor: (x = 0, y = 0) ->
@@ -26,18 +57,94 @@ A 2D point.
         return length
 
 
-An axis-aligned bounding box. The box is specified by its center and
-a half-space vector (that is, the radius of the bounding box on the
-x and y axes).
+Types of Tests
+--------------
+
+Collision and physics libraries generally assign things to two categories:
+static objects at rest, and dynamic moving objects. Full physics libraries often
+solve things in more complicated (and more efficient) ways, and optimize for
+cases of many objects moving at once and colliding against one another.
+
+But, for most simple 2D games, it's usually enough to do a collision test
+between the object you're moving now (while moving it in the code), and the rest
+of the world. The world for this type of game rarely contains so many objects
+that this hurts your performance, and it makes the problem far easier to solve.
+It also makes it easier to fine tune the physics system, which is often very
+important for platformers.
+
+As such, the functions in this code are all written for *static vs static* or
+*moving vs static* object tests, to keep things simple.
+
+
+Intersection Tests
+------------------
+
+Intersection tests are a *static vs static* test. They check whether two static
+objects are overlapping. They have a boolean result (colliding or not), with a
+vector which tells you how you could move the objects so that they're no longer
+overlapping.
+
+Intersection tests will return a Hit object when a collision occurs:
+
+    root.Hit = class Hit
+      constructor: ->
+        this.pos = new Point()
+        this.delta = new Point()
+        this.normal = new Point()
+
+- **hit.pos** is the point of contact between the two objects.
+- **hit.normal** is the surface normal at the point of contact.
+- **hit.delta** is the overlap between the two objects, and is a vector that
+  can be added to the colliding object's position to move it back to a
+  non-colliding state.
+- **hit.time** is defined for segment and sweep intersections, a fraction from
+  0 to 1 indicating how far along the line the collision occurred. (This is
+  the `t` value for the line equation `L(t) = A + t * (B - A)`)
+
+
+Sweep Tests
+-----------
+
+Sweep tests are a *moving vs static* test. They take two objects, sweep one
+along a line of movement, and determine when it first collides with the other
+object along that path of movement.
+
+Sweep tests return a `Sweep` object:
+
+    root.Sweep = class Sweep
+      constructor: ->
+        this.hit = null
+        this.pos = new Point()
+
+- **sweep.hit** is a Hit object if there was a collision, or null if not.
+- **sweep.pos** is the furthest point the object reached along the swept path
+  before it hit something.
+
+
+Axis-Aligned Bounding Boxes
+---------------------------
+
+Axis-aligned bounding boxes (AABBs) are bounding rectangles that do not rotate.
+This means that their edges are always aligned with the main X and Y axes, which
+makes collision detection much simpler. These examples specify an AABB via a
+center point and box's half size for each axis (that is, the box's "radius" on
+each axis).
 
     root.AABB = class AABB
       constructor: (pos, half) ->
         this.pos = pos
         this.half = half
 
-Test whether a point is inside the box. Returns a Hit object, or null if
-the two do not overlap. If colliding, `hit.pos` will be set to the nearest
-edge of the box.
+The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
+AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.
+
+
+### AABB vs Point
+
+This test is very simple, but I've included it for completeness. If a point is
+behind all of the edges of the box, it's colliding. The function returns a Hit
+object, or null if the two do not collide. `hit.pos` and `hit.delta` will be
+set to the nearest edge of the box.
 
       intersectPoint: (point) ->
 
@@ -67,21 +174,34 @@ edge of the box.
           hit.pos.y = this.pos.y + (this.half.y * sy)
         return hit
 
-Find the intersection of the box and the given segment. Returns a Hit
-object (with an extra `time` property), or null if the two do not overlap.
-`paddingX` and `paddingY` will be added to the radius of the bounding box,
-if specified.
+
+### AABB vs Segment
+
+Games use segment intersection tests all the time, for everything from line of
+sight to checking whether a bullet hit a monster. This is the most complicated
+of the four AABB tests, and is commonly known as a [slab test]. It finds the
+time of the line's intersection with the near and far edges of each axis of the
+AABB. If they overlap, the segment is intersecting. For further reading, I
+recommend [IRT p.65,104] and [WilliamsEtAl05].
+
+You might notice that we haven't defined a segment class. A segment from point
+`A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
+for `0 <= t <= 1`. In this equation, `t` is the time along the line, or
+percentage distance from `A` to `B`. Instead of formalizing the concept of a segment, we use this equation and
+describe it it as a start `pos` and a `delta` vector to the end of the line.
+
+The function calculates the collision times along the line for each edge of
+the box. It returns a Hit object (with an extra `time` property), or null if
+the two do not overlap. `paddingX` and `paddingY` will be added to the radius
+of the bounding box, if specified.
+
+[IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+[WilliamsEtAl05]: http://www.cs.utah.edu/~awilliam/box/
 
       intersectSegment: (pos, delta, paddingX = 0, paddingY = 0) ->
 
-A segment from point `A` to point `B` can be expressed with the equation
-`S(t) = A + t * (B - A)`, for `0 <= t <= 1`. In this equation, `t` is
-the time along the line, or percentage distance from `A` to `B`. This
-code calculates the collision times along the line for each edge
-of the box. This is sometimes called a slab test. Scaling is done using
-multiplication instead of division to deal with floating point issues
-(see [WilliamsEtAl05](http://www.cs.utah.edu/~awilliam/box/) for more).
-
+        # Scaling is done here using multiplication instead of division to
+        # deal with floating point issues.
         scaleX = 1.0 / delta.x
         scaleY = 1.0 / delta.y
         signX = sign(scaleX)
@@ -119,11 +239,20 @@ multiplication instead of division to deal with floating point issues
         hit.pos.y = pos.y + hit.delta.y
         return hit
 
-Find the intersection of the box with another (stationary) box. Returns
-a Hit object, or null if the two do not overlap. This uses the separating
-axis test, and gives the axis of least overlap as the contact point. This
-can cause weird behavior for moving boxes, so you should use `sweepAABB`
-for moving boxes.
+
+### AABB vs AABB
+
+This test uses a [separating axis test], which checks for overlaps between the
+two boxes on each axis. If either axis is *not* overlapping, the boxes aren't
+colliding.
+
+The function returns a Hit object, or null if the two static boxes do not
+overlap, and gives the axis of least overlap as the contact point. That is, it
+sets `hit.delta` so that the colliding box will be pushed out of the nearest
+edge. This can cause weird behavior for moving boxes, so you should use
+`sweepAABB` instead for moving boxes.
+
+[separating axis test]: http://www.metanetsoftware.com/technique/tutorialA.html#section1
 
       intersectAABB: (box) ->
 
@@ -153,13 +282,21 @@ for moving boxes.
           hit.pos.y = this.pos.y + (this.half.y * sy)
         return hit
 
-Find the intersection of this box and another moving box, where the
-`delta` argument is a point describing the movement of the box. Returns
+
+### AABB vs Swept AABB
+
+Swept volume tests are awesome -- they tell you whether object A hits object
+B at any point along a movement path. This problem seems hard, until someone
+tells you the magic word: [Minkowski]. If you inflate the static box by the
+size of the moving box, you can just test the movement *segment* against the
+padded static box.
+
+`sweepAABB` finds the intersection of this box and another moving box, where
+the `delta` argument is a point describing the movement of the box. It returns
 a Sweep object. `sweep.hit` will be a Hit object if the two collided, or
 null if they did not overlap.
 
-This test is done by inflating this box to include the size of the moving
-box, then colliding the movement as a segment against the inflated box.
+[Minkowski]: http://physics2d.com/content/gjk-algorithm
 
       sweepAABB: (box, delta) ->
         sweep = new Sweep()
@@ -180,28 +317,3 @@ box, then colliding the movement as a segment against the inflated box.
           else
             sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y)
         return sweep
-
-
-The result of intersection tests. The `hit.pos` property contains the
-contact point for the collision. `hit.delta` contains the overlap for the
-collision, and can be added to the intersecting object's position to
-resolve the collision. `hit.normal` is the surface normal of the hit edge.
-
-In the case of segment intersection, an additional `hit.time` property will
-be set (a number, from 0 to 1).
-
-    root.Hit = class Hit
-      constructor: ->
-        this.pos = new Point()
-        this.delta = new Point()
-        this.normal = new Point()
-
-
-The result of sweep tests. The `sweep.pos` property contains the furthest
-position the swept object reached without colliding. If it collided with
-something, `sweep.hit` property will be set.
-
-    root.Sweep = class Sweep
-      constructor: ->
-        this.hit = null
-        this.pos = new Point()

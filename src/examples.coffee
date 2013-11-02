@@ -2,7 +2,7 @@ class Example
   constructor: (@context, @width, @height) ->
     @origin = new Point(@width * 0.5, @height * 0.5)
     @infiniteLength = Math.sqrt(@width * @width + @height * @height)
-  
+
   drawAABB: (box, color = '#fff', thickness = 1) ->
     x1 = Math.floor(@origin.x + box.pos.x - box.half.x)
     y1 = Math.floor(@origin.y + box.pos.y - box.half.y)
@@ -18,7 +18,7 @@ class Example
     @context.lineWidth = thickness
     @context.strokeStyle = color
     @context.stroke()
-  
+
   drawCircle: (circle, color = '#fff', thickness = 1) ->
     x = Math.floor(@origin.x + circle.pos.x)
     y = Math.floor(@origin.y + circle.pos.y)
@@ -28,7 +28,7 @@ class Example
     @context.lineWidth = thickness
     @context.strokeStyle = color
     @context.stroke()
-  
+
   drawPoint: (point, color = '#fff', text = '', thickness = 1) ->
     x = Math.floor(@origin.x + point.x - (thickness / 2))
     y = Math.floor(@origin.y + point.y - (thickness / 2))
@@ -38,7 +38,7 @@ class Example
     @context.fillRect(x, y, thickness, thickness)
     @context.strokeRect(x, y, thickness, thickness)
     @context.fillText(text, x + thickness * 4, y + thickness * 2) if text
-  
+
   drawRay: (pos, dir, length, color = '#fff', arrow = true, thickness = 1) ->
     pos2 = new Point(pos.x + dir.x * length, pos.y + dir.y * length)
     @drawSegment(pos, pos2, color, thickness)
@@ -50,7 +50,7 @@ class Example
       pos2.x = pos.x - dir.x * 4 - dir.y * 4
       pos2.y = pos.y - dir.y * 4 + dir.x * 4
       @drawSegment(pos, pos2, color, thickness)
-  
+
   drawSegment: (point1, point2, color = '#fff', thickness = 1) ->
     x1 = Math.floor(@origin.x + point1.x)
     y1 = Math.floor(@origin.y + point1.y)
@@ -63,9 +63,9 @@ class Example
     @context.lineWidth = thickness
     @context.strokeStyle = color
     @context.stroke()
-  
+
   tick: (mouseX, mouseY, elapsed) ->
-    
+
 class AABBSegmentExample extends Example
   constructor: ->
     super
@@ -96,7 +96,7 @@ class AABBAABBExample extends Example
     @angle = 0
     @box1 = new AABB(new Point(0, 0), new Point(64, 16))
     @box2 = new AABB(new Point(0, 0), new Point(16, 16))
-  
+
   tick: (mouseX, mouseY, elapsed) ->
     @angle += 0.2 * Math.PI * elapsed
     @box2.pos.x = Math.cos(@angle) * 96
@@ -128,7 +128,7 @@ class AABBSweptAABBExample extends Example
       new Point(0, 48),
       new Point(0, 112)]
     @tempBox = new AABB(new Point(0, 0), new Point(16, 16))
-  
+
   tick: (mouseX, mouseY, elapsed) ->
     @angle += 0.5 * Math.PI * elapsed
     @drawAABB(@staticBox, '#666')
@@ -167,18 +167,18 @@ $(document).ready ->
   context.translate(0.5, 0.5)
   mouseX = 0
   mouseY = 0
-  
+
   examples = [
     new AABBSegmentExample(context, width, height),
     new AABBAABBExample(context, width, height),
     new AABBSweptAABBExample(context, width, height),
   ]
-  
+
   $(window).mousemove (event) ->
     mouseX = event.pageX - canvas.offsetLeft
     mouseY = event.pageY - canvas.offsetTop
     return undefined
-  
+
   setInterval(->
     context.fillStyle = '#000'
     context.fillRect(0, 0, width, height)
