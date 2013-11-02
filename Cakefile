@@ -10,7 +10,7 @@ task 'watch', 'continually build the library with --watch', ->
 
 task 'doc', 'rebuild the documentation', ->
   exec([
-    'docco src/intersect.litcoffee'
+    'docco --layout linear src/intersect.litcoffee'
   ].join(' && '), (err) ->
     throw err if err
   )
