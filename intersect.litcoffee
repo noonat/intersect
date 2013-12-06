@@ -39,6 +39,8 @@ Let's define a couple helpers that we'll use through the code.
 
     root = exports ? this
 
+    epsilon = 1e-8
+
     abs = (value) ->
       if value < 0 then -value else value
 
@@ -217,8 +219,10 @@ percentage distance from `A` to `B`. Instead of formalizing the concept of a
 segment, we use this equation and describe it it as a start `pos` and a `delta`
 vector to the end of the line.
 
-Scaling is done here using multiplication instead of division to deal with
-floating point issues.
+Find the distance, along the line, from the start point to the nearest and
+furthest edges of the AABB, and convert it to a time along the line by scaling
+by the length of the line. Scaling is done here using multiplication instead of
+division to deal with floating point issues.
 
         scaleX = 1.0 / delta.x
         scaleY = 1.0 / delta.y
@@ -234,34 +238,39 @@ closest time of collision on either axis is further than the far time, we can't
 be colliding. Otherwise, find the greater of the near times, and the lesser of
 the far times -- we want the times that got closest to the slab.
 
-If the nearest time is greater than one, then the nearest intersection did not
-happen until after the end of the segment -- remember that a valid segment has
-a time of `0 <= t <= 1` in the equation above. If both of the times are less
-than zero, then the whole box is behind the start of the segment. In either of
-these cases, a collision is not possible
+Remember that in the line equation, a time of 0 is the start of the line, and a
+time of 1 is the end of the line. If a time of intersection is between 0 and 1,
+it occurs on the segment. If its less than 0, it occurs before the start of the
+segment. If it's greater than 1, it occurs after the end of the segment.
+
+If the near time is greater than or equal to 1, the line starts in front of the
+nearest edge, but finishes before it reaches it. That is, it means it further
+than a whole segment length away. Similarly, if the far time is less than or
+equal to 0, the line starts in front of the far side of the box, and points away
+from the box.
 
         if nearTimeX > farTimeY or nearTimeY > farTimeX
           return null
 
         nearTime = if nearTimeX > nearTimeY then nearTimeX else nearTimeY
         farTime = if farTimeX < farTimeY then farTimeX else farTimeY
-        if nearTime >= 1
-          return null
-        if nearTime < 0 and farTime < 0
+        if nearTime >= 1 or farTime <= 0
           return null
 
 If we've gotten this far a collision of some sort is happening. If the near time
-is greater than or equal to zero, the segment starts outside and is entering the
-box. Otherwise, the segment starts inside the box, and is exiting it. If we're
+is greater than zero, the segment starts outside and is entering the box.
+Otherwise, the segment starts inside the box, and is exiting it. If we're
 entering the box, we can set the hit time to the near time, since that's the
 point along the segment at which it collided. If it's inside, it's colliding at
 the very starting of the line, so just set the hit time to zero.
 
         hit = new Hit()
-        if nearTime >= 0
-          hit.time = nearTime
-        else
+        if nearTime <= 0
           hit.time = 0
+        else
+          hit.time = nearTime - epsilon
+          if hit.time < 0
+            hit.time = 0
         hit.normal.x = if nearTimeX > nearTimeY then -signX else 0
         hit.normal.y = if nearTimeX > nearTimeY then 0 else -signY
         hit.delta.x = hit.time * delta.x
