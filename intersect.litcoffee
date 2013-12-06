@@ -52,7 +52,7 @@ but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.
 
     root.Point = class Point
-      constructor: (x = 0, y = 0) ->
+      constructor: (x=0, y=0) ->
         this.x = x
         this.y = y
 
@@ -100,7 +100,8 @@ overlapping.
 Intersection tests will return a Hit object when a collision occurs:
 
     root.Hit = class Hit
-      constructor: ->
+      constructor: (collider) ->
+        this.collider = collider
         this.pos = new Point()
         this.delta = new Point()
         this.normal = new Point()
@@ -176,7 +177,7 @@ on the edge of the box.
         py = this.half.y - abs(dy)
         return null if py <= 0
 
-        hit = new Hit()
+        hit = new Hit(this)
         if px < py
           sx = sign(dx)
           hit.delta.x = px * sx
@@ -210,7 +211,7 @@ of the bounding box, if specified.
 [IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 [WilliamsEtAl05]: http://www.cs.utah.edu/~awilliam/box/
 
-      intersectSegment: (pos, delta, paddingX = 0, paddingY = 0) ->
+      intersectSegment: (pos, delta, paddingX=0, paddingY=0) ->
 
 You might notice we haven't defined a segment argument. A segment from point
 `A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
@@ -264,7 +265,7 @@ entering the box, we can set the hit time to the near time, since that's the
 point along the segment at which it collided. If it's inside, it's colliding at
 the very starting of the line, so just set the hit time to zero.
 
-        hit = new Hit()
+        hit = new Hit(this)
         if nearTime <= 0
           hit.time = 0
         else
@@ -307,7 +308,7 @@ This code is very similar to the `intersectPoint` function above.
         py = (box.half.y + this.half.y) - abs(dy)
         return null if py <= 0
 
-        hit = new Hit()
+        hit = new Hit(this)
         if px < py
           sx = sign(dx)
           hit.delta.x = px * sx
@@ -348,7 +349,10 @@ and will give us a better result for that case.
         if delta.x == 0 and delta.y == 0
           sweep.pos = box.pos.clone()
           sweep.hit = this.intersectAABB(box)
-          sweep.hit.time = 0 if sweep.hit?
+          if sweep.hit?
+            sweep.time = sweep.hit.time = 0
+          else
+            sweep.time = 1
 
 Otherwise, call into `intersectSegment` instead, where the segment is the center
 of the moving box, with the same delta. We pass the moving box's half size as
@@ -363,6 +367,8 @@ of the box.
             # FIXME: Not right, needs to be along delta vector at time + half?
             sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x
             sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y
+            sweep.time = sweep.hit.time
           else
             sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y)
+            sweep.time = 1
         return sweep

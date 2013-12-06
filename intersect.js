@@ -55,7 +55,8 @@
   })();
 
   root.Hit = Hit = (function() {
-    function Hit() {
+    function Hit(collider) {
+      this.collider = collider;
       this.pos = new Point();
       this.delta = new Point();
       this.normal = new Point();
@@ -93,7 +94,7 @@
       if (py <= 0) {
         return null;
       }
-      hit = new Hit();
+      hit = new Hit(this);
       if (px < py) {
         sx = sign(dx);
         hit.delta.x = px * sx;
@@ -134,7 +135,7 @@
       if (nearTime >= 1 || farTime <= 0) {
         return null;
       }
-      hit = new Hit();
+      hit = new Hit(this);
       if (nearTime <= 0) {
         hit.time = 0;
       } else {
@@ -164,7 +165,7 @@
       if (py <= 0) {
         return null;
       }
-      hit = new Hit();
+      hit = new Hit(this);
       if (px < py) {
         sx = sign(dx);
         hit.delta.x = px * sx;
@@ -188,7 +189,9 @@
         sweep.pos = box.pos.clone();
         sweep.hit = this.intersectAABB(box);
         if (sweep.hit != null) {
-          sweep.hit.time = 0;
+          sweep.time = sweep.hit.time = 0;
+        } else {
+          sweep.time = 1;
         }
       } else {
         sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
@@ -196,8 +199,10 @@
           sweep.pos = sweep.hit.pos.clone();
           sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x;
           sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y;
+          sweep.time = sweep.hit.time;
         } else {
           sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y);
+          sweep.time = 1;
         }
       }
       return sweep;
