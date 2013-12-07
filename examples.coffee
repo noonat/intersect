@@ -1,6 +1,6 @@
 class Example
-  constructor: (@context, @width, @height) ->
-    @origin = new Point(@width * 0.5, @height * 0.5)
+  constructor: (@context, @width, @height, offset) ->
+    @origin = new Point(@width * 0.5, @height * 0.5 + offset)
     @infiniteLength = Math.sqrt(@width * @width + @height * @height)
 
   drawAABB: (box, color = '#fff', thickness = 1) ->
@@ -66,10 +66,10 @@ class Example
 
   tick: (mouseX, mouseY, elapsed) ->
 
+
 class AABBSegmentExample extends Example
   constructor: ->
     super
-    @origin.y -= 192
     @angle = 0
     @box = new AABB(new Point(0, 0), new Point(16, 16))
 
@@ -89,6 +89,7 @@ class AABBSegmentExample extends Example
       @drawRay(hit.pos, hit.normal, 6, '#ff0', false)
     else
       @drawRay(pos1, dir, length, '#0f0')
+
 
 class AABBAABBExample extends Example
   constructor: ->
@@ -116,7 +117,6 @@ class AABBAABBExample extends Example
 class AABBSweptAABBExample extends Example
   constructor: ->
     super
-    @origin.y += 192
     @angle = 0
     @staticBox = new AABB(new Point(0, 0), new Point(112, 16))
     @sweepBoxes = [
@@ -159,6 +159,42 @@ class AABBSweptAABBExample extends Example
         @drawAABB(@tempBox, '#0f0')
         @drawRay(box.pos, dir, length, '#0f0')
 
+
+class MultipleAABBSweptAABBExample extends Example
+  constructor: ->
+    super
+    @delta = new Point
+    @velocity = new Point(48, 48)
+    @movingBox = new AABB(new Point(0, 0), new Point(16, 16))
+    @staticBoxes = [
+      new AABB(new Point(-96, 0), new Point(16, 48))
+      new AABB(new Point( 96, 0), new Point(16, 48))
+      new AABB(new Point(0, -64), new Point(112, 16))
+      new AABB(new Point(0,  64), new Point(112, 16))]
+
+  reflect: (velocity, normal, out) ->
+    dot = velocity.x * normal.x + velocity.y * normal.y
+    ux = normal.x * dot
+    uy = normal.y * dot
+    wx = velocity.x - ux
+    wy = velocity.y - uy
+    out.x = wx - ux
+    out.y = wy - uy
+
+  tick: (mouseX, mouseY, elapsed) ->
+    @delta.x = @velocity.x * elapsed
+    @delta.y = @velocity.y * elapsed
+    nearest = undefined
+    for staticBox in @staticBoxes
+      @drawAABB(staticBox, '#666')
+      sweep = staticBox.sweepAABB(@movingBox, @delta)
+      nearest = sweep if !nearest? or sweep.time < nearest.time
+    if nearest.hit
+      @reflect(@velocity, nearest.hit.normal, @velocity)
+    @movingBox.pos = nearest.pos
+    @drawAABB(@movingBox, '#0f0')
+
+
 $(document).ready ->
   canvas = document.body.appendChild(document.createElement('canvas'))
   canvas.width = width = +window.innerWidth
@@ -169,9 +205,10 @@ $(document).ready ->
   mouseY = 0
 
   examples = [
-    new AABBSegmentExample(context, width, height),
-    new AABBAABBExample(context, width, height),
-    new AABBSweptAABBExample(context, width, height),
+    new AABBSegmentExample(context, width, height, -216)
+    new AABBAABBExample(context, width, height, -72)
+    new AABBSweptAABBExample(context, width, height, 72)
+    new MultipleAABBSweptAABBExample(context, width, height, 216)
   ]
 
   $(window).mousemove (event) ->
