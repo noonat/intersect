@@ -235,7 +235,7 @@ division to deal with floating point issues.
 Now we have to compare these times to see if a collision is possible. If the
 closest time of collision on either axis is further than the far time, we can't
 be colliding. Otherwise, find the greater of the near times, and the lesser of
-the far times -- we want the times that got closest to the slab.
+the far times &mdash; we want the times that got closest to the slab.
 
 Remember that in the line equation, a time of 0 is the start of the line, and a
 time of 1 is the end of the line. If a time of intersection is between 0 and 1,
@@ -323,10 +323,10 @@ This code is very similar to the `intersectPoint` function above.
 
 ### AABB vs Swept AABB
 
-Swept volume tests are awesome -- they tell you whether object A hits object
-B at any point along a movement path. This problem seems hard, until someone
-tells you the magic word: [Minkowski]. If you inflate the static box by the
-size of the moving box, you can just test the movement *segment* against the
+Swept volume tests are awesome &mdash; they tell you whether object A hits
+object B at any point along a movement path. This problem seems hard, until
+someone tells you the magic word: [Minkowski]. If you inflate the static box by
+the size of the moving box, you can just test the movement *segment* against the
 padded static box.
 
 `sweepAABB` finds the intersection of this box and another moving box, where
@@ -376,7 +376,7 @@ of the box, along the segment of movement.
 So, let's say we have an AABB we want to move from one point to another, without
 allowing it to collide with a list of static AABBs. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
-least distance -- that is, the nearest collision to the start of the path.
+least distance &mdash; that is, the nearest collision to the start of the path.
 
       sweepInto: (staticColliders, delta) ->
         nearest = new Sweep()
@@ -401,6 +401,6 @@ efficiently requires two steps:
    colliding, the earliest point at which the moving object collided with one
    of the items.
 
-The first step is out of scope for this library, but intersect is great for
-solving the second step. You can usually get away without a broad phase,
-however, if you aren't colliding against a huge number of objects.
+The first step is out of scope for this library, but these tests are great for
+solving the narrow phase. You can usually get away without a broad phase for
+simple games, however, if you aren't colliding against a huge number of objects.

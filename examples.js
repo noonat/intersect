@@ -314,13 +314,17 @@
       if (sweep.hit) {
         this.reflect(this.velocity, sweep.hit.normal, this.velocity);
       }
-      this.movingBox.pos = sweep.pos;
       _ref = this.staticBoxes;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         staticBox = _ref[_i];
-        this.drawAABB(staticBox, '#666');
+        if (sweep.hit && sweep.hit.collider === staticBox) {
+          this.drawAABB(staticBox, '#aaa');
+        } else {
+          this.drawAABB(staticBox, '#666');
+        }
       }
-      return this.drawAABB(this.movingBox, '#0f0');
+      this.movingBox.pos = sweep.pos;
+      return this.drawAABB(this.movingBox, sweep.hit ? '#ff0' : '#0f0');
     };
 
     return MultipleAABBSweptAABBExample;

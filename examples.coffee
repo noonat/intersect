@@ -215,10 +215,13 @@ class MultipleAABBSweptAABBExample extends Example
       # This should really attempt to slide along the hit normal, and use up
       # the rest of the velocity, but that's a bit much for this example
       @reflect(@velocity, sweep.hit.normal, @velocity)
-    @movingBox.pos = sweep.pos
     for staticBox in @staticBoxes
-      @drawAABB(staticBox, '#666')
-    @drawAABB(@movingBox, '#0f0')
+      if sweep.hit and sweep.hit.collider == staticBox
+        @drawAABB(staticBox, '#aaa')
+      else
+        @drawAABB(staticBox, '#666')
+    @movingBox.pos = sweep.pos
+    @drawAABB(@movingBox, if sweep.hit then '#ff0' else '#0f0')
 
 
 ready = (callback) ->
