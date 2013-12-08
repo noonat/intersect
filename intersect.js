@@ -70,6 +70,7 @@
     function Sweep() {
       this.hit = null;
       this.pos = new Point();
+      this.time = 1;
     }
 
     return Sweep;
@@ -183,7 +184,7 @@
     };
 
     AABB.prototype.sweepAABB = function(box, delta) {
-      var sweep;
+      var direction, sweep;
       sweep = new Sweep();
       if (delta.x === 0 && delta.y === 0) {
         sweep.pos = box.pos.clone();
@@ -197,8 +198,10 @@
         sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
         if (sweep.hit != null) {
           sweep.pos = sweep.hit.pos.clone();
-          sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x;
-          sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y;
+          direction = delta.clone();
+          direction.normalize();
+          sweep.hit.pos.x += direction.x * box.half.x;
+          sweep.hit.pos.y += direction.y * box.half.y;
           sweep.time = sweep.hit.time;
         } else {
           sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y);
@@ -206,6 +209,22 @@
         }
       }
       return sweep;
+    };
+
+    AABB.prototype.sweepInto = function(staticColliders, delta) {
+      var collider, nearest, sweep, _i, _len;
+      nearest = new Sweep();
+      nearest.time = 1;
+      nearest.pos.x = this.pos.x + delta.x;
+      nearest.pos.y = this.pos.y + delta.y;
+      for (_i = 0, _len = staticColliders.length; _i < _len; _i++) {
+        collider = staticColliders[_i];
+        sweep = collider.sweepAABB(this, delta);
+        if (sweep.time < nearest.time) {
+          nearest = sweep;
+        }
+      }
+      return nearest;
     };
 
     return AABB;

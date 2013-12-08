@@ -1,9 +1,9 @@
 class Example
-  constructor: (@context, @width, @height, offset) ->
-    @origin = new Point(@width * 0.5, @height * 0.5 + offset)
+  constructor: (@context, @width, @height) ->
+    @origin = new Point(@width * 0.5, @height * 0.5)
     @infiniteLength = Math.sqrt(@width * @width + @height * @height)
 
-  drawAABB: (box, color = '#fff', thickness = 1) ->
+  drawAABB: (box, color='#fff', thickness=1) ->
     x1 = Math.floor(@origin.x + box.pos.x - box.half.x)
     y1 = Math.floor(@origin.y + box.pos.y - box.half.y)
     x2 = Math.floor(@origin.x + box.pos.x + box.half.x)
@@ -19,7 +19,7 @@ class Example
     @context.strokeStyle = color
     @context.stroke()
 
-  drawCircle: (circle, color = '#fff', thickness = 1) ->
+  drawCircle: (circle, color='#fff', thickness=1) ->
     x = Math.floor(@origin.x + circle.pos.x)
     y = Math.floor(@origin.y + circle.pos.y)
     @context.beginPath()
@@ -29,7 +29,7 @@ class Example
     @context.strokeStyle = color
     @context.stroke()
 
-  drawPoint: (point, color = '#fff', text = '', thickness = 1) ->
+  drawPoint: (point, color='#fff', text='', thickness=1) ->
     x = Math.floor(@origin.x + point.x - (thickness / 2))
     y = Math.floor(@origin.y + point.y - (thickness / 2))
     @context.lineWidth = thickness
@@ -39,7 +39,7 @@ class Example
     @context.strokeRect(x, y, thickness, thickness)
     @context.fillText(text, x + thickness * 4, y + thickness * 2) if text
 
-  drawRay: (pos, dir, length, color = '#fff', arrow = true, thickness = 1) ->
+  drawRay: (pos, dir, length, color='#fff', arrow=true, thickness=1) ->
     pos2 = new Point(pos.x + dir.x * length, pos.y + dir.y * length)
     @drawSegment(pos, pos2, color, thickness)
     if arrow
@@ -51,7 +51,7 @@ class Example
       pos2.y = pos.y - dir.y * 4 + dir.x * 4
       @drawSegment(pos, pos2, color, thickness)
 
-  drawSegment: (point1, point2, color = '#fff', thickness = 1) ->
+  drawSegment: (point1, point2, color='#fff', thickness=1) ->
     x1 = Math.floor(@origin.x + point1.x)
     y1 = Math.floor(@origin.y + point1.y)
     x2 = Math.floor(@origin.x + point2.x)
@@ -64,7 +64,30 @@ class Example
     @context.strokeStyle = color
     @context.stroke()
 
-  tick: (mouseX, mouseY, elapsed) ->
+  tick: (elapsed) ->
+    @context.fillStyle = '#000'
+    @context.fillRect(0, 0, @width, @height)
+
+
+class AABBPointExample extends Example
+  constructor: ->
+    super
+    @angle = 0
+    @pos = new Point()
+    @box = new AABB(new Point(0, 0), new Point(16, 16))
+
+  tick: (elapsed) ->
+    super
+    @angle += 0.5 * Math.PI * elapsed
+    @pos.x = Math.cos(@angle * 0.4) * 32
+    @pos.y = Math.sin(@angle) * 12
+    hit = @box.intersectPoint(@pos)
+    @drawAABB(@box, '#666')
+    if hit
+      @drawPoint(@pos, '#f00')
+      @drawPoint(hit.pos, '#ff0')
+    else
+      @drawPoint(@pos, '#0f0')
 
 
 class AABBSegmentExample extends Example
@@ -73,7 +96,8 @@ class AABBSegmentExample extends Example
     @angle = 0
     @box = new AABB(new Point(0, 0), new Point(16, 16))
 
-  tick: (mouseX, mouseY, elapsed) ->
+  tick: (elapsed) ->
+    super
     @angle += 0.5 * Math.PI * elapsed
     pos1 = new Point(Math.cos(@angle) * 64, Math.sin(@angle) * 64)
     pos2 = new Point(Math.sin(@angle) * 32, Math.cos(@angle) * 32)
@@ -98,7 +122,8 @@ class AABBAABBExample extends Example
     @box1 = new AABB(new Point(0, 0), new Point(64, 16))
     @box2 = new AABB(new Point(0, 0), new Point(16, 16))
 
-  tick: (mouseX, mouseY, elapsed) ->
+  tick: (elapsed) ->
+    super
     @angle += 0.2 * Math.PI * elapsed
     @box2.pos.x = Math.cos(@angle) * 96
     @box2.pos.y = Math.sin(@angle * 2.4) * 24
@@ -114,22 +139,22 @@ class AABBAABBExample extends Example
     else
       @drawAABB(@box2, '#0f0')
 
+
 class AABBSweptAABBExample extends Example
   constructor: ->
     super
     @angle = 0
     @staticBox = new AABB(new Point(0, 0), new Point(112, 16))
     @sweepBoxes = [
-      new AABB(new Point(-64, -64), new Point(16, 16)),
-      new AABB(new Point(  0, -64), new Point(16, 16)),
-      new AABB(new Point( 64, -64), new Point(16, 16))]
+      new AABB(new Point(-152, 24), new Point(16, 16)),
+      new AABB(new Point(128, -48), new Point(16, 16))]
     @sweepDeltas = [
-      new Point(0, 24),
-      new Point(0, 48),
-      new Point(0, 112)]
+      new Point(64, -12),
+      new Point(-32, 96)]
     @tempBox = new AABB(new Point(0, 0), new Point(16, 16))
 
-  tick: (mouseX, mouseY, elapsed) ->
+  tick: (elapsed) ->
+    super
     @angle += 0.5 * Math.PI * elapsed
     @drawAABB(@staticBox, '#666')
     factor = ((Math.cos(@angle) + 1) * 0.5) || 1e-8
@@ -165,12 +190,12 @@ class MultipleAABBSweptAABBExample extends Example
     super
     @delta = new Point
     @velocity = new Point(48, 48)
-    @movingBox = new AABB(new Point(0, 0), new Point(16, 16))
+    @movingBox = new AABB(new Point(0, 0), new Point(8, 8))
     @staticBoxes = [
-      new AABB(new Point(-96, 0), new Point(16, 48))
-      new AABB(new Point( 96, 0), new Point(16, 48))
-      new AABB(new Point(0, -64), new Point(112, 16))
-      new AABB(new Point(0,  64), new Point(112, 16))]
+      new AABB(new Point(-96, 0), new Point(8, 48))
+      new AABB(new Point( 96, 0), new Point(8, 48))
+      new AABB(new Point(0, -56), new Point(104, 8))
+      new AABB(new Point(0,  56), new Point(104, 8))]
 
   reflect: (velocity, normal, out) ->
     dot = velocity.x * normal.x + velocity.y * normal.y
@@ -181,44 +206,53 @@ class MultipleAABBSweptAABBExample extends Example
     out.x = wx - ux
     out.y = wy - uy
 
-  tick: (mouseX, mouseY, elapsed) ->
+  tick: (elapsed) ->
+    super
     @delta.x = @velocity.x * elapsed
     @delta.y = @velocity.y * elapsed
-    nearest = undefined
+    sweep = @movingBox.sweepInto(@staticBoxes, @delta)
+    if sweep.hit
+      # This should really attempt to slide along the hit normal, and use up
+      # the rest of the velocity, but that's a bit much for this example
+      @reflect(@velocity, sweep.hit.normal, @velocity)
+    @movingBox.pos = sweep.pos
     for staticBox in @staticBoxes
       @drawAABB(staticBox, '#666')
-      sweep = staticBox.sweepAABB(@movingBox, @delta)
-      nearest = sweep if !nearest? or sweep.time < nearest.time
-    if nearest.hit
-      @reflect(@velocity, nearest.hit.normal, @velocity)
-    @movingBox.pos = nearest.pos
     @drawAABB(@movingBox, '#0f0')
 
 
-$(document).ready ->
-  canvas = document.body.appendChild(document.createElement('canvas'))
-  canvas.width = width = +window.innerWidth
-  canvas.height = height = +window.innerHeight
-  context = canvas.getContext('2d')
-  context.translate(0.5, 0.5)
-  mouseX = 0
-  mouseY = 0
+ready = (callback) ->
+  if document.readyState == 'complete'
+    setTimeout(callback, 1)
+  else
+    handler = ->
+      document.removeEventListener('DOMContentLoaded', handler, false)
+      callback()
+    document.addEventListener('DOMContentLoaded', handler, false)
 
-  examples = [
-    new AABBSegmentExample(context, width, height, -216)
-    new AABBAABBExample(context, width, height, -72)
-    new AABBSweptAABBExample(context, width, height, 72)
-    new MultipleAABBSweptAABBExample(context, width, height, 216)
-  ]
 
-  $(window).mousemove (event) ->
-    mouseX = event.pageX - canvas.offsetLeft
-    mouseY = event.pageY - canvas.offsetTop
-    return undefined
+ready ->
+  exampleIds =
+    'aabb-vs-point': AABBPointExample
+    'aabb-vs-segment': AABBSegmentExample
+    'aabb-vs-aabb': AABBAABBExample
+    'aabb-vs-swept-aabb': AABBSweptAABBExample
+    'sweeping-an-aabb-through-multiple-objects': MultipleAABBSweptAABBExample
+
+  examples = []
+  for id, exampleConstructor of exampleIds
+    anchor = document.getElementById(id)
+    continue unless anchor
+    canvas = document.createElement('canvas')
+    anchor.parentNode.insertBefore(canvas, anchor.nextSibling)
+    width = canvas.width = 640
+    height = canvas.height = 160
+    context = canvas.getContext('2d')
+    context.translate(0.5, 0.5)
+    example = new exampleConstructor(context, width, height)
+    examples.push(example) if example
 
   setInterval(->
-    context.fillStyle = '#000'
-    context.fillRect(0, 0, width, height)
     for example in examples
-      example.tick(mouseX, mouseY, 1 / 30)
+      example.tick(1 / 30)
   , 1000 / 30)

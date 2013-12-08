@@ -24,6 +24,7 @@ fairly readable.
    2. [AABB vs Segment](#aabb-vs-segment)
    3. [AABB vs AABB](#aabb-vs-aabb)
    4. [AABB vs Swept AABB](#aabb-vs-swept-aabb)
+4. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
 
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -31,7 +32,6 @@ fairly readable.
 [compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
 
 
-<a name="helpers"></a>
 Helpers
 -------
 
@@ -69,7 +69,6 @@ detection, so it makes things a bit more readable to formalize it as a class.
         return length
 
 
-<a name="types-of-tests"></a>
 Types of Tests
 --------------
 
@@ -89,7 +88,6 @@ As such, the functions in this code are all written for *static vs static* or
 *moving vs static* object tests, to keep things simple.
 
 
-<a name="intersection-tests"></a>
 ### Intersection Tests
 
 Intersection tests are a *static vs static* test. They check whether two static
@@ -106,17 +104,17 @@ Intersection tests will return a Hit object when a collision occurs:
         this.delta = new Point()
         this.normal = new Point()
 
-- **hit.pos** is the point of contact between the two objects.
+- **hit.pos** is the point of contact between the two objects (or an
+  estimation of it, in some sweep tests).
 - **hit.normal** is the surface normal at the point of contact.
 - **hit.delta** is the overlap between the two objects, and is a vector that
   can be added to the colliding object's position to move it back to a
   non-colliding state.
-- **hit.time** is defined for segment and sweep intersections, a fraction from
-  0 to 1 indicating how far along the line the collision occurred. (This is
-  the `t` value for the line equation `L(t) = A + t * (B - A)`)
+- **hit.time** is only defined for segment and sweep intersections, and is
+  fraction from 0 to 1 indicating how far along the line the collision occurred.
+  (This is the `t` value for the line equation `L(t) = A + t * (B - A)`)
 
 
-<a name="sweep-tests"></a>
 ### Sweep Tests
 
 Sweep tests are a *moving vs static* test. They take two objects, sweep one
@@ -129,13 +127,15 @@ Sweep tests return a `Sweep` object:
       constructor: ->
         this.hit = null
         this.pos = new Point()
+        this.time = 1
 
 - **sweep.hit** is a Hit object if there was a collision, or null if not.
 - **sweep.pos** is the furthest point the object reached along the swept path
   before it hit something.
+- **sweep.time** is a copy of `sweep.hit.time`, or 1 if the object didn't hit
+  anything during the sweep.
 
 
-<a name="axis-aligned-bounding-boxes"></a>
 Axis-Aligned Bounding Boxes
 ---------------------------
 
@@ -154,7 +154,6 @@ The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
 AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.
 
 
-<a name="aabb-vs-point"></a>
 ### AABB vs Point
 
 This test is very simple, but I've included it for completeness. If a point is
@@ -193,7 +192,6 @@ on the edge of the box.
         return hit
 
 
-<a name="aabb-vs-segment"></a>
 ### AABB vs Segment
 
 Games use segment intersection tests all the time, for everything from line of
@@ -281,7 +279,6 @@ the very starting of the line, so just set the hit time to zero.
         return hit
 
 
-<a name="aabb-vs-aabb"></a>
 ### AABB vs AABB
 
 This test uses a [separating axis test], which checks for overlaps between the
@@ -324,7 +321,6 @@ This code is very similar to the `intersectPoint` function above.
         return hit
 
 
-<a name="aabb-vs-swept-aabb"></a>
 ### AABB vs Swept AABB
 
 Swept volume tests are awesome -- they tell you whether object A hits object
@@ -358,17 +354,53 @@ Otherwise, call into `intersectSegment` instead, where the segment is the center
 of the moving box, with the same delta. We pass the moving box's half size as
 padding. If we get a hit, we need to adjust the hit pos. Since a segment vs box
 test was used, the hit pos is the center of the box. This offsets it to the edge
-of the box.
+of the box, along the segment of movement.
 
         else
           sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
           if sweep.hit?
             sweep.pos = sweep.hit.pos.clone()
-            # FIXME: Not right, needs to be along delta vector at time + half?
-            sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x
-            sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y
+            direction = delta.clone()
+            direction.normalize()
+            sweep.hit.pos.x += direction.x * box.half.x
+            sweep.hit.pos.y += direction.y * box.half.y
             sweep.time = sweep.hit.time
           else
             sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y)
             sweep.time = 1
         return sweep
+
+
+### Sweeping an AABB Through Multiple Objects
+
+So, let's say we have an AABB we want to move from one point to another, without
+allowing it to collide with a list of static AABBs. To do this, we need to call
+`sweepAABB` on each static object, and keep track of the sweep that moved the
+least distance -- that is, the nearest collision to the start of the path.
+
+      sweepInto: (staticColliders, delta) ->
+        nearest = new Sweep()
+        nearest.time = 1
+        nearest.pos.x = this.pos.x + delta.x
+        nearest.pos.y = this.pos.y + delta.y
+        for collider in staticColliders
+          sweep = collider.sweepAABB(this, delta)
+          if sweep.time < nearest.time
+            nearest = sweep
+        return nearest
+
+It's a common use case to have a single object that needs to move through a
+world, colliding with many other objects. Note that solving this problem
+efficiently requires two steps:
+
+1. A broad phase, which does not do precise collision detection, but which can
+   very quickly reject large chunks of the world which are not likely to be
+   colliding. That is, you don't have to try to calculate how two objects are
+   colliding if you know they're in entirely different rooms.
+2. A narrow phase, which finds, given a set of items which are likely to be
+   colliding, the earliest point at which the moving object collided with one
+   of the items.
+
+The first step is out of scope for this library, but intersect is great for
+solving the second step. You can usually get away without a broad phase,
+however, if you aren't colliding against a huge number of objects.

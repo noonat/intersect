@@ -8,9 +8,15 @@ task 'build', 'build the library', (options) ->
   coffee.stderr.on 'data', (data) -> console.log data.toString().trim()
 
 task 'doc', 'rebuild the documentation', ->
+  expressions = [
+    '-e "s~public/~docs/public/~"'
+    '-e "s~docco.css~docs/docco.css~"'
+    '-e "s~</body>~<script src="intersect.js"></script><script src="examples.js"></script></body>~"'
+  ]
   exec([
-    'docco --layout linear intersect.litcoffee',
-    'sed -e "s~public/~docs/public/~" -e "s~docco.css~docs/docco.css~" < docs/intersect.html > index.html'
+    'docco --layout linear intersect.litcoffee'
+    "sed #{expressions.join(" ")} < docs/intersect.html > index.html"
+    'rm docs/intersect.html'
   ].join(' && '), (err) ->
     throw err if err
   )

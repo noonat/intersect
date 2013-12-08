@@ -14,7 +14,7 @@
       <div class="header">
         
           
-          <h1>Intersection Tests in 2D</h1>
+          <h1 id="intersection-tests-in-2d">Intersection Tests in 2D</h1>
 
           
         
@@ -49,9 +49,9 @@ fairly readable.</p>
 <li><a href="#aabb-vs-swept-aabb">AABB vs Swept AABB</a></li>
 </ol>
 </li>
+<li><a href="#sweeping-an-aabb-through-multiple-objects">Sweeping an AABB Through Multiple Objects</a></li>
 </ol>
-<p><a name="helpers"></a></p>
-<h2>Helpers</h2>
+<h2 id="helpers">Helpers</h2>
 
         
       
@@ -60,6 +60,8 @@ fairly readable.</p>
 
         
           <div class='highlight'><pre>root = <span class="built_in">exports</span> ? <span class="keyword">this</span>
+
+epsilon = <span class="number">1e-8</span>
 
 <span class="function"><span class="title">abs</span> = <span class="params">(value)</span> -&gt;</span>
   <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -value <span class="keyword">else</span> value
@@ -75,7 +77,7 @@ detection, so it makes things a bit more readable to formalize it as a class.</p
 
         
           <div class='highlight'><pre>root.Point = <span class="class"><span class="keyword">class</span> <span class="title">Point</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(x = <span class="number">0</span>, y = <span class="number">0</span>)</span> -&gt;</span>
+  <span class="attribute">constructor</span>: <span class="function"><span class="params">(x=<span class="number">0</span>, y=<span class="number">0</span>)</span> -&gt;</span>
     this.x = x
     this.y = y
 
@@ -93,8 +95,7 @@ detection, so it makes things a bit more readable to formalize it as a class.</p
         
       
         
-        <p><a name="types-of-tests"></a></p>
-<h2>Types of Tests</h2>
+        <h2 id="types-of-tests">Types of Tests</h2>
 
         
       
@@ -111,8 +112,7 @@ It also makes it easier to fine tune the physics system, which is often very
 important for platformers.</p>
 <p>As such, the functions in this code are all written for <em>static vs static</em> or
 <em>moving vs static</em> object tests, to keep things simple.</p>
-<p><a name="intersection-tests"></a></p>
-<h3>Intersection Tests</h3>
+<h3 id="intersection-tests">Intersection Tests</h3>
 <p>Intersection tests are a <em>static vs static</em> test. They check whether two static
 objects are overlapping. They have a boolean result (colliding or not), with a
 vector which tells you how you could move the objects so that they&#39;re no longer
@@ -121,7 +121,8 @@ overlapping.</p>
 
         
           <div class='highlight'><pre>root.Hit = <span class="class"><span class="keyword">class</span> <span class="title">Hit</span></span>
-  <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
+  <span class="attribute">constructor</span>: <span class="function"><span class="params">(collider)</span> -&gt;</span>
+    this.collider = collider
     this.pos = <span class="keyword">new</span> Point()
     this.delta = <span class="keyword">new</span> Point()
     this.normal = <span class="keyword">new</span> Point()</pre></div>
@@ -129,17 +130,17 @@ overlapping.</p>
       
         
         <ul>
-<li><strong>hit.pos</strong> is the point of contact between the two objects.</li>
+<li><strong>hit.pos</strong> is the point of contact between the two objects (or an
+estimation of it, in some sweep tests).</li>
 <li><strong>hit.normal</strong> is the surface normal at the point of contact.</li>
 <li><strong>hit.delta</strong> is the overlap between the two objects, and is a vector that
 can be added to the colliding object&#39;s position to move it back to a
 non-colliding state.</li>
-<li><strong>hit.time</strong> is defined for segment and sweep intersections, a fraction from
-0 to 1 indicating how far along the line the collision occurred. (This is
-the <code>t</code> value for the line equation <code>L(t) = A + t * (B - A)</code>)</li>
+<li><strong>hit.time</strong> is only defined for segment and sweep intersections, and is
+fraction from 0 to 1 indicating how far along the line the collision occurred.
+(This is the <code>t</code> value for the line equation <code>L(t) = A + t * (B - A)</code>)</li>
 </ul>
-<p><a name="sweep-tests"></a></p>
-<h3>Sweep Tests</h3>
+<h3 id="sweep-tests">Sweep Tests</h3>
 <p>Sweep tests are a <em>moving vs static</em> test. They take two objects, sweep one
 along a line of movement, and determine when it first collides with the other
 object along that path of movement.</p>
@@ -149,7 +150,8 @@ object along that path of movement.</p>
           <div class='highlight'><pre>root.Sweep = <span class="class"><span class="keyword">class</span> <span class="title">Sweep</span></span>
   <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
     this.hit = <span class="literal">null</span>
-    this.pos = <span class="keyword">new</span> Point()</pre></div>
+    this.pos = <span class="keyword">new</span> Point()
+    this.time = <span class="number">1</span></pre></div>
         
       
         
@@ -157,9 +159,10 @@ object along that path of movement.</p>
 <li><strong>sweep.hit</strong> is a Hit object if there was a collision, or null if not.</li>
 <li><strong>sweep.pos</strong> is the furthest point the object reached along the swept path
 before it hit something.</li>
+<li><strong>sweep.time</strong> is a copy of <code>sweep.hit.time</code>, or 1 if the object didn&#39;t hit
+anything during the sweep.</li>
 </ul>
-<p><a name="axis-aligned-bounding-boxes"></a></p>
-<h2>Axis-Aligned Bounding Boxes</h2>
+<h2 id="axis-aligned-bounding-boxes">Axis-Aligned Bounding Boxes</h2>
 
         
       
@@ -180,8 +183,7 @@ each axis).</p>
         
         <p>The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
 AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.</p>
-<p><a name="aabb-vs-point"></a></p>
-<h3>AABB vs Point</h3>
+<h3 id="aabb-vs-point">AABB vs Point</h3>
 <p>This test is very simple, but I&#39;ve included it for completeness. If a point is
 behind all of the edges of the box, it&#39;s colliding. The function returns a Hit
 object, or null if the two do not collide. <code>hit.pos</code> and <code>hit.delta</code> will be
@@ -202,7 +204,7 @@ on the edge of the box.</p>
     py = this.half.y - abs(dy)
     <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span>
 
-    hit = <span class="keyword">new</span> Hit()
+    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
     <span class="keyword">if</span> px &lt; py
       sx = sign(dx)
       hit.delta.x = px * sx
@@ -219,8 +221,7 @@ on the edge of the box.</p>
         
       
         
-        <p><a name="aabb-vs-segment"></a></p>
-<h3>AABB vs Segment</h3>
+        <h3 id="aabb-vs-segment">AABB vs Segment</h3>
 <p>Games use segment intersection tests all the time, for everything from line of
 sight to checking whether a bullet hit a monster. This is the most complicated
 of the four AABB tests, and is commonly known as a [slab test]. It finds the
@@ -233,7 +234,7 @@ the two do not overlap. <code>paddingX</code> and <code>paddingY</code> will be 
 of the bounding box, if specified.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">intersectSegment</span>: <span class="function"><span class="params">(pos, delta, paddingX = <span class="number">0</span>, paddingY = <span class="number">0</span>)</span> -&gt;</span></pre></div>
+          <div class='highlight'><pre>  <span class="attribute">intersectSegment</span>: <span class="function"><span class="params">(pos, delta, paddingX=<span class="number">0</span>, paddingY=<span class="number">0</span>)</span> -&gt;</span></pre></div>
         
       
         
@@ -243,8 +244,10 @@ for <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is the time
 percentage distance from <code>A</code> to <code>B</code>. Instead of formalizing the concept of a
 segment, we use this equation and describe it it as a start <code>pos</code> and a <code>delta</code>
 vector to the end of the line.</p>
-<p>Scaling is done here using multiplication instead of division to deal with
-floating point issues.</p>
+<p>Find the distance, along the line, from the start point to the nearest and
+furthest edges of the AABB, and convert it to a time along the line by scaling
+by the length of the line. Scaling is done here using multiplication instead of
+division to deal with floating point issues.</p>
 
         
           <div class='highlight'><pre>    scaleX = <span class="number">1.0</span> / delta.x
@@ -262,11 +265,15 @@ floating point issues.</p>
 closest time of collision on either axis is further than the far time, we can&#39;t
 be colliding. Otherwise, find the greater of the near times, and the lesser of
 the far times -- we want the times that got closest to the slab.</p>
-<p>If the nearest time is greater than one, then the nearest intersection did not
-happen until after the end of the segment -- remember that a valid segment has
-a time of <code>0 &lt;= t &lt;= 1</code> in the equation above. If both of the times are less
-than zero, then the whole box is behind the start of the segment. In either of
-these cases, a collision is not possible</p>
+<p>Remember that in the line equation, a time of 0 is the start of the line, and a
+time of 1 is the end of the line. If a time of intersection is between 0 and 1,
+it occurs on the segment. If its less than 0, it occurs before the start of the
+segment. If it&#39;s greater than 1, it occurs after the end of the segment.</p>
+<p>If the near time is greater than or equal to 1, the line starts in front of the
+nearest edge, but finishes before it reaches it. That is, it means it further
+than a whole segment length away. Similarly, if the far time is less than or
+equal to 0, the line starts in front of the far side of the box, and points away
+from the box.</p>
 
         
           <div class='highlight'><pre>    <span class="keyword">if</span> nearTimeX &gt; farTimeY <span class="keyword">or</span> nearTimeY &gt; farTimeX
@@ -274,26 +281,26 @@ these cases, a collision is not possible</p>
 
     nearTime = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> nearTimeX <span class="keyword">else</span> nearTimeY
     farTime = <span class="keyword">if</span> farTimeX &lt; farTimeY <span class="keyword">then</span> farTimeX <span class="keyword">else</span> farTimeY
-    <span class="keyword">if</span> nearTime &gt;= <span class="number">1</span>
-      <span class="keyword">return</span> <span class="literal">null</span>
-    <span class="keyword">if</span> nearTime &lt; <span class="number">0</span> <span class="keyword">and</span> farTime &lt; <span class="number">0</span>
+    <span class="keyword">if</span> nearTime &gt;= <span class="number">1</span> <span class="keyword">or</span> farTime &lt;= <span class="number">0</span>
       <span class="keyword">return</span> <span class="literal">null</span></pre></div>
         
       
         
         <p>If we&#39;ve gotten this far a collision of some sort is happening. If the near time
-is greater than or equal to zero, the segment starts outside and is entering the
-box. Otherwise, the segment starts inside the box, and is exiting it. If we&#39;re
+is greater than zero, the segment starts outside and is entering the box.
+Otherwise, the segment starts inside the box, and is exiting it. If we&#39;re
 entering the box, we can set the hit time to the near time, since that&#39;s the
 point along the segment at which it collided. If it&#39;s inside, it&#39;s colliding at
 the very starting of the line, so just set the hit time to zero.</p>
 
         
-          <div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit()
-    <span class="keyword">if</span> nearTime &gt;= <span class="number">0</span>
-      hit.time = nearTime
-    <span class="keyword">else</span>
+          <div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
+    <span class="keyword">if</span> nearTime &lt;= <span class="number">0</span>
       hit.time = <span class="number">0</span>
+    <span class="keyword">else</span>
+      hit.time = nearTime - epsilon
+      <span class="keyword">if</span> hit.time &lt; <span class="number">0</span>
+        hit.time = <span class="number">0</span>
     hit.normal.x = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> -signX <span class="keyword">else</span> <span class="number">0</span>
     hit.normal.y = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> <span class="number">0</span> <span class="keyword">else</span> -signY
     hit.delta.x = hit.time * delta.x
@@ -304,8 +311,7 @@ the very starting of the line, so just set the hit time to zero.</p>
         
       
         
-        <p><a name="aabb-vs-aabb"></a></p>
-<h3>AABB vs AABB</h3>
+        <h3 id="aabb-vs-aabb">AABB vs AABB</h3>
 <p>This test uses a <a href="http://www.metanetsoftware.com/technique/tutorialA.html#section1">separating axis test</a>, which checks for overlaps between the
 two boxes on each axis. If either axis is <em>not</em> overlapping, the boxes aren&#39;t
 colliding.</p>
@@ -327,7 +333,7 @@ edge. This can cause weird behavior for moving boxes, so you should use
     py = (box.half.y + this.half.y) - abs(dy)
     <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span>
 
-    hit = <span class="keyword">new</span> Hit()
+    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
     <span class="keyword">if</span> px &lt; py
       sx = sign(dx)
       hit.delta.x = px * sx
@@ -344,8 +350,7 @@ edge. This can cause weird behavior for moving boxes, so you should use
         
       
         
-        <p><a name="aabb-vs-swept-aabb"></a></p>
-<h3>AABB vs Swept AABB</h3>
+        <h3 id="aabb-vs-swept-aabb">AABB vs Swept AABB</h3>
 <p>Swept volume tests are awesome -- they tell you whether object A hits object
 B at any point along a movement path. This problem seems hard, until someone
 tells you the magic word: <a href="http://physics2d.com/content/gjk-algorithm">Minkowski</a>. If you inflate the static box by the
@@ -369,7 +374,10 @@ and will give us a better result for that case.</p>
           <div class='highlight'><pre>    <span class="keyword">if</span> delta.x == <span class="number">0</span> <span class="keyword">and</span> delta.y == <span class="number">0</span>
       sweep.pos = box.pos.clone()
       sweep.hit = this.intersectAABB(box)
-      sweep.hit.time = <span class="number">0</span> <span class="keyword">if</span> sweep.hit?</pre></div>
+      <span class="keyword">if</span> sweep.hit?
+        sweep.time = sweep.hit.time = <span class="number">0</span>
+      <span class="keyword">else</span>
+        sweep.time = <span class="number">1</span></pre></div>
         
       
         
@@ -377,28 +385,65 @@ and will give us a better result for that case.</p>
 of the moving box, with the same delta. We pass the moving box&#39;s half size as
 padding. If we get a hit, we need to adjust the hit pos. Since a segment vs box
 test was used, the hit pos is the center of the box. This offsets it to the edge
-of the box.</p>
+of the box, along the segment of movement.</p>
 
         
           <div class='highlight'><pre>    <span class="keyword">else</span>
       sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
       <span class="keyword">if</span> sweep.hit?
-        sweep.pos = sweep.hit.pos.clone()</pre></div>
+        sweep.pos = sweep.hit.pos.clone()
+        direction = delta.clone()
+        direction.normalize()
+        sweep.hit.pos.x += direction.x * box.half.x
+        sweep.hit.pos.y += direction.y * box.half.y
+        sweep.time = sweep.hit.time
+      <span class="keyword">else</span>
+        sweep.pos = <span class="keyword">new</span> Point(box.pos.x + delta.x, box.pos.y + delta.y)
+        sweep.time = <span class="number">1</span>
+    <span class="keyword">return</span> sweep</pre></div>
         
       
         
-        <p>FIXME: Not right, needs to be along delta vector at time + half?</p>
+        <h3 id="sweeping-an-aabb-through-multiple-objects">Sweeping an AABB Through Multiple Objects</h3>
+<p>So, let&#39;s say we have an AABB we want to move from one point to another, without
+allowing it to collide with a list of static AABBs. To do this, we need to call
+<code>sweepAABB</code> on each static object, and keep track of the sweep that moved the
+least distance -- that is, the nearest collision to the start of the path.</p>
 
         
-          <div class='highlight'><pre>        sweep.hit.pos.x -= sweep.hit.normal.x * box.half.x
-        sweep.hit.pos.y -= sweep.hit.normal.y * box.half.y
-      <span class="keyword">else</span>
-        sweep.pos = <span class="keyword">new</span> Point(box.pos.x + delta.x, box.pos.y + delta.y)
-    <span class="keyword">return</span> sweep</pre></div>
+          <div class='highlight'><pre>  <span class="attribute">sweepInto</span>: <span class="function"><span class="params">(staticColliders, delta)</span> -&gt;</span>
+    nearest = <span class="keyword">new</span> Sweep()
+    nearest.time = <span class="number">1</span>
+    nearest.pos.x = this.pos.x + delta.x
+    nearest.pos.y = this.pos.y + delta.y
+    <span class="keyword">for</span> collider <span class="keyword">in</span> staticColliders
+      sweep = collider.sweepAABB(<span class="keyword">this</span>, delta)
+      <span class="keyword">if</span> sweep.time &lt; nearest.time
+        nearest = sweep
+    <span class="keyword">return</span> nearest</pre></div>
+        
+      
+        
+        <p>It&#39;s a common use case to have a single object that needs to move through a
+world, colliding with many other objects. Note that solving this problem
+efficiently requires two steps:</p>
+<ol>
+<li>A broad phase, which does not do precise collision detection, but which can
+very quickly reject large chunks of the world which are not likely to be
+colliding. That is, you don&#39;t have to try to calculate how two objects are
+colliding if you know they&#39;re in entirely different rooms.</li>
+<li>A narrow phase, which finds, given a set of items which are likely to be
+colliding, the earliest point at which the moving object collided with one
+of the items.</li>
+</ol>
+<p>The first step is out of scope for this library, but intersect is great for
+solving the second step. You can usually get away without a broad phase,
+however, if you aren&#39;t colliding against a huge number of objects.</p>
+
         
       
       <div class="fleur">h</div>
     </div>
   </div>
-</body>
+<script src=intersect.js></script><script src=examples.js></script></body>
 </html>
