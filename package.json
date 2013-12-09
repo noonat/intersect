@@ -9,10 +9,12 @@
   },
   "devDependencies": {
     "coffee-script": "~1.6.3",
-    "docco": "~0.6.2"
+    "docco": "~0.6.2",
+    "nodeunit": "~0.7.4"
   },
   "scripts": {
-    "prepublish": "cake build"
+    "prepublish": "cake build",
+    "test": "nodeunit test"
   },
   "main": "lib/intersect.js"
 }
