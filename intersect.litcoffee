@@ -37,14 +37,22 @@ Helpers
 
 Let's define a couple helpers that we'll use through the code.
 
-    root = exports ? this
+    root = exports ? (this.intersect ?= {})
 
-    epsilon = 1e-8
+    root.epsilon = epsilon = 1e-8
 
-    abs = (value) ->
+    root.abs = abs = (value) ->
       if value < 0 then -value else value
 
-    sign = (value) ->
+    root.clamp = clamp = (value, min, max) ->
+      if value < min
+        min
+      else if value > max
+        max
+      else
+        value
+
+    root.sign = sign = (value) ->
       if value < 0 then -1 else 1
 
 We'll also need a 2D point. We could just use a literal `{x: 0, y: 0}` object,
@@ -63,9 +71,9 @@ detection, so it makes things a bit more readable to formalize it as a class.
         length = this.x * this.x + this.y * this.y
         if length > 0
           length = Math.sqrt(length)
-          invLength = 1.0 / length
-          this.x *= invLength
-          this.y *= invLength
+          inverseLength = 1.0 / length
+          this.x *= inverseLength
+          this.y *= inverseLength
         return length
 
 
@@ -167,7 +175,6 @@ axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.
 
       intersectPoint: (point) ->
-
         dx = point.x - this.pos.x
         px = this.half.x - abs(dx)
         return null if px <= 0
@@ -296,7 +303,6 @@ This code is very similar to the `intersectPoint` function above.
 [separating axis test]: http://www.metanetsoftware.com/technique/tutorialA.html#section1
 
       intersectAABB: (box) ->
-
         dx = box.pos.x - this.pos.x
         px = (box.half.x + this.half.x) - abs(dx)
         return null if px <= 0
