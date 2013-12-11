@@ -4,7 +4,7 @@
 option '-w', '--watch', 'continually build the library'
 
 build = ({callback, watch}) ->
-  files = file for file in readdirSync(__dirname) when file.match(/\.(lit)?coffee$/i)
+  files = (fn for fn in readdirSync(__dirname) when fn.match(/\.(lit)?coffee$/i))
   coffee = spawn 'coffee', ['-c' + (if watch then 'w' else '')].concat(files)
   coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
   coffee.stderr.on 'data', (data) -> console.log data.toString().trim()
