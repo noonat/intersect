@@ -76,7 +76,7 @@ module.exports =
     hit = aabb.intersectSegment(point, delta)
     assert.notEqual(hit, null)
     assert.ok(hit instanceof intersect.Hit)
-    time = 0.25 - 1e-8
+    time = 0.25
     assert.equal(hit.collider, aabb)
     assert.almostEqual(hit.time, time)
     assert.almostEqual(hit.pos.x, point.x + delta.x * time)
@@ -107,7 +107,7 @@ module.exports =
     delta = new Point(32, 0)
     padding = 4
     hit = aabb.intersectSegment(point, delta, padding, padding)
-    time = 0.125 - 1e-8
+    time = 0.125
     assert.equal(hit.collider, aabb)
     assert.almostEqual(hit.time, time)
     assert.almostEqual(hit.pos.x, point.x + delta.x * time)
@@ -248,7 +248,7 @@ module.exports =
     aabb2 = new AABB(new Point(0, -64), new Point(8, 8))
     delta = new Point(0, 128)
     sweep = aabb1.sweepAABB(aabb2, delta)
-    time = 0.3125 - 1e-8
+    time = 0.3125 - intersect.epsilon
     assert.almostEqual(sweep.time, time)
     assert.almostEqual(sweep.pos.x, aabb2.pos.x + delta.x * time)
     assert.almostEqual(sweep.pos.y, aabb2.pos.y + delta.y * time)
@@ -259,7 +259,7 @@ module.exports =
     aabb2 = new AABB(new Point(0, -64), new Point(8, 8))
     delta = new Point(0, 128)
     sweep = aabb1.sweepAABB(aabb2, delta)
-    time = 0.3125 - 1e-8
+    time = 0.3125
     direction = delta.clone()
     direction.normalize()
     assert.almostEqual(sweep.hit.time, time)

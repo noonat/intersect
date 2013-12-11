@@ -147,16 +147,14 @@
         return null;
       }
       hit = new Hit(this);
-      if (nearTime <= 0) {
-        hit.time = 0;
+      hit.time = clamp(nearTime, 0, 1);
+      if (nearTimeX > nearTimeY) {
+        hit.normal.x = -signX;
+        hit.normal.y = 0;
       } else {
-        hit.time = nearTime - epsilon;
-        if (hit.time < 0) {
-          hit.time = 0;
-        }
+        hit.normal.x = 0;
+        hit.normal.y = -signY;
       }
-      hit.normal.x = nearTimeX > nearTimeY ? -signX : 0;
-      hit.normal.y = nearTimeX > nearTimeY ? 0 : -signY;
       hit.delta.x = hit.time * delta.x;
       hit.delta.y = hit.time * delta.y;
       hit.pos.x = pos.x + hit.delta.x;
@@ -197,7 +195,8 @@
       var direction, sweep;
       sweep = new Sweep();
       if (delta.x === 0 && delta.y === 0) {
-        sweep.pos = box.pos.clone();
+        sweep.pos.x = box.pos.x;
+        sweep.pos.y = box.pos.y;
         sweep.hit = this.intersectAABB(box);
         if (sweep.hit != null) {
           sweep.time = sweep.hit.time = 0;
@@ -207,14 +206,16 @@
       } else {
         sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
         if (sweep.hit != null) {
-          sweep.pos = sweep.hit.pos.clone();
+          sweep.time = clamp(sweep.hit.time - epsilon, 0, 1);
+          sweep.pos.x = box.pos.x + delta.x * sweep.time;
+          sweep.pos.y = box.pos.y + delta.y * sweep.time;
           direction = delta.clone();
           direction.normalize();
           sweep.hit.pos.x += direction.x * box.half.x;
           sweep.hit.pos.y += direction.y * box.half.y;
-          sweep.time = sweep.hit.time;
         } else {
-          sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y);
+          sweep.pos.x = box.pos.x + delta.x;
+          sweep.pos.y = box.pos.y + delta.y;
           sweep.time = 1;
         }
       }
