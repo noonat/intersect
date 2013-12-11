@@ -1,3 +1,5 @@
+{AABB, Point} = intersect
+
 class Example
   constructor: (@context, @width, @height) ->
     @origin = new Point(@width * 0.5, @height * 0.5)
@@ -245,15 +247,15 @@ ready ->
   examples = []
   for id, exampleConstructor of exampleIds
     anchor = document.getElementById(id)
-    continue unless anchor
-    canvas = document.createElement('canvas')
-    anchor.parentNode.insertBefore(canvas, anchor.nextSibling)
-    width = canvas.width = 640
-    height = canvas.height = 160
-    context = canvas.getContext('2d')
-    context.translate(0.5, 0.5)
-    example = new exampleConstructor(context, width, height)
-    examples.push(example) if example
+    if anchor
+      canvas = document.createElement('canvas')
+      anchor.parentNode.insertBefore(canvas, anchor.nextSibling)
+      width = canvas.width = 640
+      height = canvas.height = 160
+      context = canvas.getContext('2d')
+      context.translate(0.5, 0.5)
+      example = new exampleConstructor(context, width, height)
+      examples.push(example) if example
 
   setInterval(->
     for example in examples
