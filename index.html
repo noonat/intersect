@@ -302,14 +302,13 @@ the very starting of the line, so just set the hit time to zero.</p>
 
         
           <div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
-    <span class="keyword">if</span> nearTime &lt;= <span class="number">0</span>
-      hit.time = <span class="number">0</span>
+    hit.time = clamp(nearTime, <span class="number">0</span>, <span class="number">1</span>)
+    <span class="keyword">if</span> nearTimeX &gt; nearTimeY
+      hit.normal.x = -signX
+      hit.normal.y = <span class="number">0</span>
     <span class="keyword">else</span>
-      hit.time = nearTime - epsilon
-      <span class="keyword">if</span> hit.time &lt; <span class="number">0</span>
-        hit.time = <span class="number">0</span>
-    hit.normal.x = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> -signX <span class="keyword">else</span> <span class="number">0</span>
-    hit.normal.y = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> <span class="number">0</span> <span class="keyword">else</span> -signY
+      hit.normal.x = <span class="number">0</span>
+      hit.normal.y = -signY
     hit.delta.x = hit.time * delta.x
     hit.delta.y = hit.time * delta.y
     hit.pos.x = pos.x + hit.delta.x
@@ -378,7 +377,8 @@ and will give us a better result for that case.</p>
 
         
           <div class='highlight'><pre>    <span class="keyword">if</span> delta.x == <span class="number">0</span> <span class="keyword">and</span> delta.y == <span class="number">0</span>
-      sweep.pos = box.pos.clone()
+      sweep.pos.x = box.pos.x
+      sweep.pos.y = box.pos.y
       sweep.hit = this.intersectAABB(box)
       <span class="keyword">if</span> sweep.hit?
         sweep.time = sweep.hit.time = <span class="number">0</span>
@@ -397,14 +397,16 @@ of the box, along the segment of movement.</p>
           <div class='highlight'><pre>    <span class="keyword">else</span>
       sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
       <span class="keyword">if</span> sweep.hit?
-        sweep.pos = sweep.hit.pos.clone()
+        sweep.time = clamp(sweep.hit.time - epsilon, <span class="number">0</span>, <span class="number">1</span>)
+        sweep.pos.x = box.pos.x + delta.x * sweep.time
+        sweep.pos.y = box.pos.y + delta.y * sweep.time
         direction = delta.clone()
         direction.normalize()
         sweep.hit.pos.x += direction.x * box.half.x
         sweep.hit.pos.y += direction.y * box.half.y
-        sweep.time = sweep.hit.time
       <span class="keyword">else</span>
-        sweep.pos = <span class="keyword">new</span> Point(box.pos.x + delta.x, box.pos.y + delta.y)
+        sweep.pos.x = box.pos.x + delta.x
+        sweep.pos.y = box.pos.y + delta.y
         sweep.time = <span class="number">1</span>
     <span class="keyword">return</span> sweep</pre></div>
         

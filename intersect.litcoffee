@@ -271,14 +271,13 @@ point along the segment at which it collided. If it's inside, it's colliding at
 the very starting of the line, so just set the hit time to zero.
 
         hit = new Hit(this)
-        if nearTime <= 0
-          hit.time = 0
+        hit.time = clamp(nearTime, 0, 1)
+        if nearTimeX > nearTimeY
+          hit.normal.x = -signX
+          hit.normal.y = 0
         else
-          hit.time = nearTime - epsilon
-          if hit.time < 0
-            hit.time = 0
-        hit.normal.x = if nearTimeX > nearTimeY then -signX else 0
-        hit.normal.y = if nearTimeX > nearTimeY then 0 else -signY
+          hit.normal.x = 0
+          hit.normal.y = -signY
         hit.delta.x = hit.time * delta.x
         hit.delta.y = hit.time * delta.y
         hit.pos.x = pos.x + hit.delta.x
@@ -349,7 +348,8 @@ If the sweep isn't actually moving anywhere, just do a static test. It's faster
 and will give us a better result for that case.
 
         if delta.x == 0 and delta.y == 0
-          sweep.pos = box.pos.clone()
+          sweep.pos.x = box.pos.x
+          sweep.pos.y = box.pos.y
           sweep.hit = this.intersectAABB(box)
           if sweep.hit?
             sweep.time = sweep.hit.time = 0
@@ -365,14 +365,16 @@ of the box, along the segment of movement.
         else
           sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
           if sweep.hit?
-            sweep.pos = sweep.hit.pos.clone()
+            sweep.time = clamp(sweep.hit.time - epsilon, 0, 1)
+            sweep.pos.x = box.pos.x + delta.x * sweep.time
+            sweep.pos.y = box.pos.y + delta.y * sweep.time
             direction = delta.clone()
             direction.normalize()
             sweep.hit.pos.x += direction.x * box.half.x
             sweep.hit.pos.y += direction.y * box.half.y
-            sweep.time = sweep.hit.time
           else
-            sweep.pos = new Point(box.pos.x + delta.x, box.pos.y + delta.y)
+            sweep.pos.x = box.pos.x + delta.x
+            sweep.pos.y = box.pos.y + delta.y
             sweep.time = 1
         return sweep
 
