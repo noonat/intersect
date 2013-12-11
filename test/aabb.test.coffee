@@ -118,6 +118,18 @@ module.exports =
     assert.almostEqual(hit.normal.y, 0)
     test.done()
 
+  'intersectSegment should have consistent results in both directions': (test) ->
+    # If moving from far away to the near edge of the box doesn't cause a
+    # collision, then moving away from the near edge shouldn't either.
+    aabb = new AABB(new Point(0, 0), new Point(32, 32))
+    farPos = new Point(64, 0)
+    farToNearDelta = new Point(-32, 0)
+    assert.equal(aabb.intersectSegment(farPos, farToNearDelta), null)
+    nearPos = new Point(32, 0)
+    nearToFarDelta = new Point(32, 0)
+    assert.equal(aabb.intersectSegment(nearPos, nearToFarDelta), null)
+    test.done()
+
   'intersectAABB should return null when not colliding': (test) ->
     aabb1 = new AABB(new Point(0, 0), new Point(8, 8))
     aabb2 = new AABB(new Point(32, 0), new Point(8, 8))
