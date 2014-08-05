@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "coffee-script": "~1.6.3",
-    "docco": "~0.6.2",
+    "docco": "~0.6.3",
     "nodeunit": "~0.7.4"
   },
   "scripts": {
