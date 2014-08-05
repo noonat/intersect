@@ -37,14 +37,14 @@ Helpers
 
 Let's define a couple helpers that we'll use through the code.
 
-    root = exports ? (this.intersect ?= {})
+    intersect = exports ? (this.intersect ?= {})
 
-    root.epsilon = epsilon = 1e-8
+    intersect.epsilon = epsilon = 1e-8
 
-    root.abs = abs = (value) ->
+    intersect.abs = abs = (value) ->
       if value < 0 then -value else value
 
-    root.clamp = clamp = (value, min, max) ->
+    intersect.clamp = clamp = (value, min, max) ->
       if value < min
         min
       else if value > max
@@ -52,14 +52,14 @@ Let's define a couple helpers that we'll use through the code.
       else
         value
 
-    root.sign = sign = (value) ->
+    intersect.sign = sign = (value) ->
       if value < 0 then -1 else 1
 
 We'll also need a 2D point. We could just use a literal `{x: 0, y: 0}` object,
 but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.
 
-    root.Point = class Point
+    intersect.Point = class Point
       constructor: (x=0, y=0) ->
         this.x = x
         this.y = y
@@ -110,7 +110,7 @@ overlapping.
 
 Intersection tests will return a Hit object when a collision occurs:
 
-    root.Hit = class Hit
+    intersect.Hit = class Hit
       constructor: (collider) ->
         this.collider = collider
         this.pos = new Point()
@@ -155,7 +155,7 @@ and stop objects from ever moving into other objects.
 
 Sweep tests return a `Sweep` object:
 
-    root.Sweep = class Sweep
+    intersect.Sweep = class Sweep
       constructor: ->
         this.hit = null
         this.pos = new Point()
@@ -177,7 +177,7 @@ makes collision detection much simpler. These examples specify an AABB via a
 center point and box's half size for each axis (that is, the box's "radius" on
 each axis).
 
-    root.AABB = class AABB
+    intersect.AABB = class AABB
       constructor: (pos, half) ->
         this.pos = pos
         this.half = half
