@@ -130,6 +130,18 @@ module.exports =
     assert.equal(aabb.intersectSegment(nearPos, nearToFarDelta), null)
     test.done()
 
+  'intersectSegment should work when segment is axis aligned': (test) ->
+    # When the segment is axis aligned, it will cause the near and far values
+    # to be Infinity and -Infinity. Make sure that this case works.
+    aabb = new AABB(new Point(0, 0), new Point(16, 16))
+    pos = new Point(-32, 0)
+    delta = new Point(64, 0)
+    hit = aabb.intersectSegment(pos, delta)
+    assert.equal(hit.time, 0.25)
+    assert.equal(hit.normal.x, -1)
+    assert.equal(hit.normal.y, 0)
+    test.done()
+
   'intersectAABB should return null when not colliding': (test) ->
     aabb1 = new AABB(new Point(0, 0), new Point(8, 8))
     aabb2 = new AABB(new Point(32, 0), new Point(8, 8))
