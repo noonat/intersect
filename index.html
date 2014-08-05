@@ -6,6 +6,7 @@
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <link rel="stylesheet" media="all" href="docs/public/stylesheets/normalize.css" />
   <link rel="stylesheet" media="all" href="docs/docco.css" />
+  <link rel="stylesheet" media="all" href="docs/intersect.css" />
 </head>
 <body>
   <div class="container">
@@ -121,6 +122,11 @@ important for platformers.</p>
 <p>As such, the functions in this code are all written for <em>static vs static</em> or
 <em>moving vs static</em> object tests, to keep things simple.</p>
 <h3 id="intersection-tests">Intersection Tests</h3>
+<figure class="right">
+  <img src="./docs/svg/box-intersection-test.svg" class="small"/>
+  <figcaption>A intersects with B and needs to be pushed out</figcaption>
+</figure>
+
 <p>Intersection tests are a <em>static vs static</em> test. They check whether two static
 objects are overlapping. They have a boolean result (colliding or not), with a
 vector which tells you how you could move the objects so that they&#39;re no longer
@@ -152,6 +158,22 @@ fraction from 0 to 1 indicating how far along the line the collision occurred.
 <p>Sweep tests are a <em>moving vs static</em> test. They take two objects, sweep one
 along a line of movement, and determine when it first collides with the other
 object along that path of movement.</p>
+<figure class="right">
+  <img src="./docs/svg/box-bad-intersection-test.svg" class="small"/>
+  <figcaption>A intersects both B and C, and is incorrectly pushed <em>into</em> a bad state</figcaption>
+</figure>
+
+<p>Normal intersection tests are helpful for static objects, but they aren&#39;t the
+best choice to collide a moving object. If you are trying to collide an object
+A against two objects, B and C, you can easily get into an ambigious situation
+where the collision isn&#39;t as easy to resolve.</p>
+<p>Our intersection tests can only determine what the best way to resolve a
+collision with an object is for that one object, independent of any other
+objects you want to collide with. This means that correcting for a collision
+with object B moves you into a state where are colliding with object C, and
+the same thing happens with object C.</p>
+<p>Instead, you can use a sweep test to take the path of movement into account,
+and stop objects from ever moving into other objects.</p>
 <p>Sweep tests return a <code>Sweep</code> object:</p>
 
         
@@ -251,10 +273,27 @@ for <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is the time
 percentage distance from <code>A</code> to <code>B</code>. Instead of formalizing the concept of a
 segment, we use this equation and describe it it as a start <code>pos</code> and a <code>delta</code>
 vector to the end of the line.</p>
-<p>Find the distance, along the line, from the start point to the nearest and
-furthest edges of the AABB, and convert it to a time along the line by scaling
-by the length of the line. Scaling is done here using multiplication instead of
-division to deal with floating point issues.</p>
+<p>Next, we need to find the linear time at which point the segment intersects
+with the box&#39;s near and far edges.</p>
+<figure class="right">
+  <img src="./docs/svg/box-near-far-x.svg" class="small"/>
+  <figcaption>Near x is greater than far y</figcaption>
+</figure>
+<figure class="right">
+  <img src="./docs/svg/box-near-far-y.svg" class="small"/>
+  <figcaption>Near x is greater than far y</figcaption>
+</figure>
+
+<p>What are the near and far edges? Well, in our examples to the right, the
+direction of the segment is from the top left to the bottom right. This means
+that the near edges of the box are the top and left edges, and the far edges of
+the box are the bottom and right edges.</p>
+<p>Note that the intersection points might not actually be on the box or the
+segment. They will be at the intersection of the infinite lines of the box&#39;s
+edges and the infinte line of the segment.</p>
+<p>We can calculate this by subtracting the position of the edge from the segment&#39;s
+start position, then dividing by the segment&#39;s delta. Scaling is done here using
+multiplication instead of division to deal with floating point issues.</p>
 
         
           <div class='highlight'><pre>    scaleX = <span class="number">1.0</span> / delta.x
@@ -268,19 +307,35 @@ division to deal with floating point issues.</p>
         
       
         
-        <p>Now we have to compare these times to see if a collision is possible. If the
-closest time of collision on either axis is further than the far time, we can&#39;t
-be colliding. Otherwise, find the greater of the near times, and the lesser of
-the far times &mdash; we want the times that got closest to the slab.</p>
-<p>Remember that in the line equation, a time of 0 is the start of the line, and a
-time of 1 is the end of the line. If a time of intersection is between 0 and 1,
-it occurs on the segment. If its less than 0, it occurs before the start of the
-segment. If it&#39;s greater than 1, it occurs after the end of the segment.</p>
-<p>If the near time is greater than or equal to 1, the line starts in front of the
-nearest edge, but finishes before it reaches it. That is, it means it further
-than a whole segment length away. Similarly, if the far time is less than or
-equal to 0, the line starts in front of the far side of the box, and points away
-from the box.</p>
+        <p>Now we have to compare these times to see if a collision is possible.</p>
+<figure class="right">
+  <img src="./docs/svg/box-outside.svg" class="small"/>
+  <figcaption>Near x is greater than far y</figcaption>
+</figure>
+
+<p><strong>If the closest time of collision on either axis is further than the far
+time on the opposite axis, we can&#39;t be colliding.</strong> For instance, in the example
+to the right, because the segment&#39;s infinite line intersected the infinite line
+of the box&#39;s top edge, before it ever hit the line for the left edge, we know
+the intersection occurred before the segment ever reached the box. We don&#39;t
+need to do any more checks, because we know a collision isn&#39;t possible.</p>
+<p>Otherwise, find the greater of the near times, and the lesser of the far times
+&mdash; we want the times that got closest to the slab. We can check these two
+times to determine whether the collision occurred on the segment.</p>
+<figure class="right">
+  <img src="./docs/svg/box-behind.svg" class="small"/>
+  <figcaption>Behind the segment</figcaption>
+</figure>
+<figure class="right">
+  <img src="./docs/svg/box-front.svg" class="small"/>
+  <figcaption>In front of the segment</figcaption>
+</figure>
+
+<p>If the <strong>near time is greater than or equal to 1</strong>, the line starts in front
+of the nearest edge, but finishes before it reaches it. That is, it means it
+further than a whole segment length away. If the <strong>far time is less than or
+equal to 0</strong>, the line starts in front of the far side of the box, and points
+away from the box.</p>
 
         
           <div class='highlight'><pre>    <span class="keyword">if</span> nearTimeX &gt; farTimeY <span class="keyword">or</span> nearTimeY &gt; farTimeX
@@ -356,11 +411,23 @@ edge. This can cause weird behavior for moving boxes, so you should use
       
         
         <h3 id="aabb-vs-swept-aabb">AABB vs Swept AABB</h3>
+<div class="figure-row right">
+<figure>
+  <img src="./docs/svg/box-sweep-test.svg" class="small"/>
+  <figcaption>The sweep test prevents A from moving into B</figcaption>
+</figure>
+<figure>
+  <img src="./docs/svg/box-sweep-padded-test.svg" class="small"/>
+  <figcaption>If B is padded with the size of A, this segment test is the same as sweeping A.</figcaption>
+</figure>
+</div>
+
 <p>Swept volume tests are awesome &mdash; they tell you whether object A hits
 object B at any point along a movement path. This problem seems hard, until
 someone tells you the magic word: <a href="http://physics2d.com/content/gjk-algorithm">Minkowski</a>. If you inflate the static box by
-the size of the moving box, you can just test the movement <em>segment</em> against the
-padded static box.</p>
+the size of the moving box, you can just test the movement <em>segment</em> against
+the padded static box. The point at which the segment intersects the padded box
+tells you where the moving box first collided with the static box.</p>
 <p><code>sweepAABB</code> finds the intersection of this box and another moving box, where
 the <code>delta</code> argument is a point describing the movement of the box. It returns
 a Sweep object. <code>sweep.hit</code> will be a Hit object if the two collided, or
@@ -453,5 +520,7 @@ simple games, however, if you aren&#39;t colliding against a huge number of obje
       <div class="fleur">h</div>
     </div>
   </div>
-<script src=intersect.js></script><script src=examples.js></script></body>
+  <script src="intersect.js"></script>
+  <script src="examples.js"></script>
+</body>
 </html>

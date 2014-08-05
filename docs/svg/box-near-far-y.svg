@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="250" height="250">
+    <rect id="background" x="0" y="0" width="100%" height="100%"/>
+    <g transform="translate(25, 25)">
+        <!-- box -->
+        <line class="static-edge" x1="20" y1="60" x2="180" y2="60"/>
+        <line class="static-edge" x1="20" y1="140" x2="180" y2="140"/>
+        <rect class="static" x="60" y="60" width="80" height="80"/>
+        <!-- segment -->
+        <line class="segment" x1="70" y1="20" x2="150" y2="180"/>
+        <!-- near and far points -->
+        <circle class="hit" cx="90" cy="60" r="3"/>
+        <circle class="hit" cx="130" cy="140" r="3"/>
+        <text class="hit" x="93" y="55">near y</text>
+        <text class="hit" x="105" y="155">far y</text>
+    </g>
+    <defs>
+        <style type="text/css"><![CDATA[
+            #background {
+                fill: #000;
+            }
+            #line-arrow {
+                fill: #0ff;
+            }
+            #line-circle {
+                fill: #0ff;
+            }
+            .hit {
+                fill: #ff0;
+                font-family: Arial;
+                font-size: 12px;
+                stroke-width: 0;
+            }
+            .segment {
+                marker-start: url(#line-circle);
+                marker-end: url(#line-arrow);
+                stroke: #0ff;
+                stroke-width: 2;
+            }
+            .segment.no-start {
+                marker-start: none;
+            }
+            .segment.no-end {
+                marker-end: none;
+            }
+            .static {
+                fill-opacity: 0;
+                stroke: #fff;
+                stroke-width: 2;
+            }
+            .static-edge {
+                stroke: #666;
+                stroke-width: 2;
+            }
+            .static-text {
+                fill: #fff;
+                font-family: Arial;
+                font-size: 12px;
+            }
+            .bad {
+                fill: #f00;
+                stroke: #f00;
+            }
+            .good {
+                fill: #0f0;
+                stroke: #0f0;
+            }
+            .quiet {
+                fill: #999;
+                stroke: #999;
+            }
+        ]]></style>
+        <marker id="line-arrow" orient="auto" markerWidth="3" markerHeight="6" refX="0.1" refY="3">
+            <path d="M0,0 V6 L3,3 Z"/>
+        </marker>
+        <marker id="line-circle" orient="auto" markerWidth="4" markerHeight="4" refX="2" refY="2">
+            <circle cx="2" cy="2" r="2"/>
+        </marker>
+    </defs>
+</svg>
