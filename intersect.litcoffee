@@ -231,14 +231,16 @@ of the four AABB tests, and is commonly known as a slab test. It finds the
 time of the line's intersection with the near and far edges of each axis of the
 AABB. If they overlap, the segment is intersecting.
 
-<figure class="right">
+<div class="figure-row right">
+<figure>
   <img src="./docs/svg/box-near-far-x.svg" class="small"/>
   <figcaption>Near x is greater than far y</figcaption>
 </figure>
-<figure class="right">
+<figure>
   <img src="./docs/svg/box-near-far-y.svg" class="small"/>
   <figcaption>Near x is greater than far y</figcaption>
 </figure>
+</div>
 
 What are the near and far edges? Well, in our examples to the right, the
 direction of the segment is from the top left to the bottom right. This means
@@ -299,18 +301,26 @@ of the box's top edge, before it ever hit the line for the left edge, we know
 the intersection occurred before the segment ever reached the box. We don't
 need to do any more checks, because we know a collision isn't possible.
 
+        if nearTimeX > farTimeY or nearTimeY > farTimeX
+          return null
+
 Otherwise, find the greater of the near times, and the lesser of the far times
 &mdash; we want the times that got closest to the slab. We can check these two
 times to determine whether the collision occurred on the segment.
 
-<figure class="right">
+        nearTime = if nearTimeX > nearTimeY then nearTimeX else nearTimeY
+        farTime = if farTimeX < farTimeY then farTimeX else farTimeY
+
+<div class="figure-row right">
+<figure>
   <img src="./docs/svg/box-behind.svg" class="small"/>
   <figcaption>Behind the segment</figcaption>
 </figure>
-<figure class="right">
+<figure>
   <img src="./docs/svg/box-front.svg" class="small"/>
   <figcaption>In front of the segment</figcaption>
 </figure>
+</div>
 
 If the **near time is greater than or equal to 1**, the line starts in front
 of the nearest edge, but finishes before it reaches it. That is, it means it
@@ -318,11 +328,6 @@ further than a whole segment length away. If the **far time is less than or
 equal to 0**, the line starts in front of the far side of the box, and points
 away from the box.
 
-        if nearTimeX > farTimeY or nearTimeY > farTimeX
-          return null
-
-        nearTime = if nearTimeX > nearTimeY then nearTimeX else nearTimeY
-        farTime = if farTimeX < farTimeY then farTimeX else farTimeY
         if nearTime >= 1 or farTime <= 0
           return null
 

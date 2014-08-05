@@ -1,3 +1,12 @@
+h1 {
+  margin-bottom: 1.5em;
+}
+h1:after {
+  display: none;
+}
+.fleur {
+  display: none;
+}
 figure {
   float: right;
   line-height: 1.2;
@@ -14,15 +23,16 @@ figure figcaption {
 .figure-row {
   border-spacing: 1em 0;
   display: table;
-  margin: 0 auto;
+  margin: 0.4em auto 0;
 }
 .figure-row.right {
   float: right;
   margin-left: 0;
   margin-right: 0;
 }
-canvas + .figure-row {
-  margin-top: 26px;
+canvas + .figure-row,
+.highlight + .figure-row {
+  margin-top: 2em;
 }
 .figure-row figure {
   display: table-cell;
