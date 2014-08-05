@@ -384,3 +384,7 @@
   });
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=examples.map
+*/
