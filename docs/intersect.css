@@ -1,0 +1,31 @@
+figure {
+  float: right;
+  line-height: 1.2;
+  margin: 8px 0 1em 1em;
+}
+figure img.small {
+  width: 150px;
+}
+figure figcaption {
+  font-size: 12px;
+  width: 150px;
+  text-align: center;
+}
+.figure-row {
+  border-spacing: 1em 0;
+  display: table;
+  margin: 0 auto;
+}
+.figure-row.right {
+  float: right;
+  margin-left: 0;
+  margin-right: 0;
+}
+canvas + .figure-row {
+  margin-top: 26px;
+}
+.figure-row figure {
+  display: table-cell;
+  float: none;
+  margin: 0;
+}

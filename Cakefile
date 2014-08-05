@@ -17,9 +17,9 @@ task 'build', 'build the library', (options) ->
 task 'doc', 'rebuild the documentation', ->
   build callback: ->
     expressions = [
-      '-e "s~public/~docs/public/~"'
-      '-e "s~docco.css~docs/docco.css~"'
-      '-e "s~</body>~<script src="intersect.js"></script><script src="examples.js"></script></body>~"'
+      '-e \'s~public/~docs/public/~\''
+      '-e \'s~docco.css" />~docs/docco.css" />\\\n  <link rel="stylesheet" media="all" href="docs/intersect.css" />~\''
+      '-e \'s~</body>~  <script src="intersect.js"></script>\\\n  <script src="examples.js"></script>\\\n</body>~\''
     ]
     exec([
       './node_modules/.bin/docco --layout linear intersect.litcoffee'
