@@ -227,30 +227,9 @@ on the edge of the box.
 
 Games use segment intersection tests all the time, for everything from line of
 sight to checking whether a bullet hit a monster. This is the most complicated
-of the four AABB tests, and is commonly known as a [slab test]. It finds the
+of the four AABB tests, and is commonly known as a slab test. It finds the
 time of the line's intersection with the near and far edges of each axis of the
-AABB. If they overlap, the segment is intersecting. For further reading, I
-recommend [IRT p.65,104] and [WilliamsEtAl05].
-
-The function calculates the collision times along the line for each edge of
-the box. It returns a Hit object (with an extra `time` property), or null if
-the two do not overlap. `paddingX` and `paddingY` will be added to the radius
-of the bounding box, if specified.
-
-[IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
-[WilliamsEtAl05]: http://www.cs.utah.edu/~awilliam/box/
-
-      intersectSegment: (pos, delta, paddingX=0, paddingY=0) ->
-
-You might notice we haven't defined a segment argument. A segment from point
-`A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
-for `0 <= t <= 1`. In this equation, `t` is the time along the line, or
-percentage distance from `A` to `B`. Instead of formalizing the concept of a
-segment, we use this equation and describe it it as a start `pos` and a `delta`
-vector to the end of the line.
-
-Next, we need to find the linear time at which point the segment intersects
-with the box's near and far edges.
+AABB. If they overlap, the segment is intersecting.
 
 <figure class="right">
   <img src="./docs/svg/box-near-far-x.svg" class="small"/>
@@ -269,6 +248,29 @@ the box are the bottom and right edges.
 Note that the intersection points might not actually be on the box or the
 segment. They will be at the intersection of the infinite lines of the box's
 edges and the infinte line of the segment.
+
+This is a weird concept, so don't feel bad if it takes a while for it to sink
+in. For further reading, I recommend [IRT p.65,104] and [WilliamsEtAl05].
+
+The function calculates the collision times along the line for each edge of
+the box. It returns a Hit object (with an extra `time` property), or null if
+the two do not overlap. `paddingX` and `paddingY` will be added to the radius
+of the bounding box, if specified.
+
+[IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+[WilliamsEtAl05]: https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/
+
+      intersectSegment: (pos, delta, paddingX=0, paddingY=0) ->
+
+You might notice we haven't defined a segment argument. A segment from point
+`A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
+for `0 <= t <= 1`. In this equation, `t` is the time along the line, or
+percentage distance from `A` to `B`. Instead of formalizing the concept of a
+segment, we use this equation and describe it it as a start `pos` and a `delta`
+vector to the end of the line.
+
+Next, we need to find the linear time at which point the segment intersects
+with the box's near and far edges.
 
 We can calculate this by subtracting the position of the edge from the segment's
 start position, then dividing by the segment's delta. Scaling is done here using
