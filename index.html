@@ -28,13 +28,13 @@
         <p>This library is a collection of common 2D collision detection tests. Hopefully
 this saves you from the pain of hunting them down yourself, or trying to rip
 them out of physics libraries.</p>
-<p>If you&#39;re looking for further reading, you are hurting yourself if you don&#39;t
+<p>If you’re looking for further reading, you are hurting yourself if you don’t
 buy <a href="http://realtimecollisiondetection.net/">Real-Time Collision Detection</a>. It is easily the best purchase you could
 make if you are learning about collision detection. There is also an excellent
 <a href="http://www.realtimerendering.com/intersections.html">list of different algorithms here</a>.</p>
-<p>The code is written in <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>, but it&#39;s simple and should be easily
+<p>The code is written in <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>, but it’s simple and should be easily
 portable to your language of choice. If you just want to see the code, take
-a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js">the compiled JS file</a>. It&#39;s stripped of comments and
+a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js">the compiled JS file</a>. It’s stripped of comments and
 fairly readable.</p>
 <ol>
 <li><a href="#helpers">Helpers</a></li>
@@ -57,50 +57,50 @@ fairly readable.</p>
         
       
         
-        <p>Let&#39;s define a couple helpers that we&#39;ll use through the code.</p>
+        <p>Let’s define a couple helpers that we’ll use through the code.</p>
 
         
-          <div class='highlight'><pre>intersect = <span class="built_in">exports</span> ? (this.intersect ?= {})
+          <div class='highlight'><pre>intersect = exports ? (<span class="hljs-keyword">this</span>.intersect ?= {})
 
-intersect.epsilon = epsilon = <span class="number">1e-8</span>
+intersect.epsilon = epsilon = <span class="hljs-number">1e-8</span>
 
-intersect.abs = <span class="function"><span class="title">abs</span> = <span class="params">(value)</span> -&gt;</span>
-  <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -value <span class="keyword">else</span> value
+intersect.abs = <span class="hljs-function"><span class="hljs-title">abs</span> = <span class="hljs-params">(value)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> value &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> -value <span class="hljs-keyword">else</span> value
 
-intersect.clamp = <span class="function"><span class="title">clamp</span> = <span class="params">(value, min, max)</span> -&gt;</span>
-  <span class="keyword">if</span> value &lt; min
+intersect.clamp = <span class="hljs-function"><span class="hljs-title">clamp</span> = <span class="hljs-params">(value, min, max)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> value &lt; min
     min
-  <span class="keyword">else</span> <span class="keyword">if</span> value &gt; max
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> value &gt; max
     max
-  <span class="keyword">else</span>
+  <span class="hljs-keyword">else</span>
     value
 
-intersect.sign = <span class="function"><span class="title">sign</span> = <span class="params">(value)</span> -&gt;</span>
-  <span class="keyword">if</span> value &lt; <span class="number">0</span> <span class="keyword">then</span> -<span class="number">1</span> <span class="keyword">else</span> <span class="number">1</span></pre></div>
+intersect.sign = <span class="hljs-function"><span class="hljs-title">sign</span> = <span class="hljs-params">(value)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> value &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span></pre></div>
         
       
         
-        <p>We&#39;ll also need a 2D point. We could just use a literal <code>{x: 0, y: 0}</code> object,
+        <p>We’ll also need a 2D point. We could just use a literal <code>{x: 0, y: 0}</code> object,
 but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.</p>
 
         
-          <div class='highlight'><pre>intersect.Point = <span class="class"><span class="keyword">class</span> <span class="title">Point</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(x=<span class="number">0</span>, y=<span class="number">0</span>)</span> -&gt;</span>
-    this.x = x
-    this.y = y
+          <div class='highlight'><pre>intersect.Point = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Point</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(x=<span class="hljs-number">0</span>, y=<span class="hljs-number">0</span>)</span> -&gt;</span>
+    <span class="hljs-keyword">this</span>.x = x
+    <span class="hljs-keyword">this</span>.y = y
 
-  <span class="attribute">clone</span>:<span class="function"> -&gt;</span>
-    <span class="keyword">return</span> <span class="keyword">new</span> Point(this.x, this.y)
+  <span class="hljs-attribute">clone</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.x, <span class="hljs-keyword">this</span>.y)
 
-  <span class="attribute">normalize</span>:<span class="function"> -&gt;</span>
-    length = this.x * this.x + this.y * this.y
-    <span class="keyword">if</span> length &gt; <span class="number">0</span>
+  <span class="hljs-attribute">normalize</span>:<span class="hljs-function"> -&gt;</span>
+    length = <span class="hljs-keyword">this</span>.x * <span class="hljs-keyword">this</span>.x + <span class="hljs-keyword">this</span>.y * <span class="hljs-keyword">this</span>.y
+    <span class="hljs-keyword">if</span> length &gt; <span class="hljs-number">0</span>
       length = Math.sqrt(length)
-      inverseLength = <span class="number">1.0</span> / length
-      this.x *= inverseLength
-      this.y *= inverseLength
-    <span class="keyword">return</span> length</pre></div>
+      inverseLength = <span class="hljs-number">1.0</span> / length
+      <span class="hljs-keyword">this</span>.x *= inverseLength
+      <span class="hljs-keyword">this</span>.y *= inverseLength
+    <span class="hljs-keyword">return</span> length</pre></div>
         
       
         
@@ -113,8 +113,8 @@ detection, so it makes things a bit more readable to formalize it as a class.</p
 static objects at rest, and dynamic moving objects. Full physics libraries often
 solve things in more complicated (and more efficient) ways, and optimize for
 cases of many objects moving at once and colliding against one another.</p>
-<p>But, for most simple 2D games, it&#39;s usually enough to do a collision test
-between the object you&#39;re moving now (while moving it in the code), and the rest
+<p>But, for most simple 2D games, it’s usually enough to do a collision test
+between the object you’re moving now (while moving it in the code), and the rest
 of the world. The world for this type of game rarely contains so many objects
 that this hurts your performance, and it makes the problem far easier to solve.
 It also makes it easier to fine tune the physics system, which is often very
@@ -129,17 +129,17 @@ important for platformers.</p>
 
 <p>Intersection tests are a <em>static vs static</em> test. They check whether two static
 objects are overlapping. They have a boolean result (colliding or not), with a
-vector which tells you how you could move the objects so that they&#39;re no longer
+vector which tells you how you could move the objects so that they’re no longer
 overlapping.</p>
 <p>Intersection tests will return a Hit object when a collision occurs:</p>
 
         
-          <div class='highlight'><pre>intersect.Hit = <span class="class"><span class="keyword">class</span> <span class="title">Hit</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(collider)</span> -&gt;</span>
-    this.collider = collider
-    this.pos = <span class="keyword">new</span> Point()
-    this.delta = <span class="keyword">new</span> Point()
-    this.normal = <span class="keyword">new</span> Point()</pre></div>
+          <div class='highlight'><pre>intersect.Hit = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Hit</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(collider)</span> -&gt;</span>
+    <span class="hljs-keyword">this</span>.collider = collider
+    <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point()
+    <span class="hljs-keyword">this</span>.delta = <span class="hljs-keyword">new</span> Point()
+    <span class="hljs-keyword">this</span>.normal = <span class="hljs-keyword">new</span> Point()</pre></div>
         
       
         
@@ -148,7 +148,7 @@ overlapping.</p>
 estimation of it, in some sweep tests).</li>
 <li><strong>hit.normal</strong> is the surface normal at the point of contact.</li>
 <li><strong>hit.delta</strong> is the overlap between the two objects, and is a vector that
-can be added to the colliding object&#39;s position to move it back to a
+can be added to the colliding object’s position to move it back to a
 non-colliding state.</li>
 <li><strong>hit.time</strong> is only defined for segment and sweep intersections, and is
 fraction from 0 to 1 indicating how far along the line the collision occurred.
@@ -163,10 +163,10 @@ object along that path of movement.</p>
   <figcaption>A intersects both B and C, and is incorrectly pushed <em>into</em> a bad state</figcaption>
 </figure>
 
-<p>Normal intersection tests are helpful for static objects, but they aren&#39;t the
+<p>Normal intersection tests are helpful for static objects, but they aren’t the
 best choice to collide a moving object. If you are trying to collide an object
 A against two objects, B and C, you can easily get into an ambigious situation
-where the collision isn&#39;t as easy to resolve.</p>
+where the collision isn’t as easy to resolve.</p>
 <p>Our intersection tests can only determine what the best way to resolve a
 collision with an object is for that one object, independent of any other
 objects you want to collide with. This means that correcting for a collision
@@ -177,11 +177,11 @@ and stop objects from ever moving into other objects.</p>
 <p>Sweep tests return a <code>Sweep</code> object:</p>
 
         
-          <div class='highlight'><pre>intersect.Sweep = <span class="class"><span class="keyword">class</span> <span class="title">Sweep</span></span>
-  <span class="attribute">constructor</span>:<span class="function"> -&gt;</span>
-    this.hit = <span class="literal">null</span>
-    this.pos = <span class="keyword">new</span> Point()
-    this.time = <span class="number">1</span></pre></div>
+          <div class='highlight'><pre>intersect.Sweep = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sweep</span></span>
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">this</span>.hit = <span class="hljs-literal">null</span>
+    <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point()
+    <span class="hljs-keyword">this</span>.time = <span class="hljs-number">1</span></pre></div>
         
       
         
@@ -189,7 +189,7 @@ and stop objects from ever moving into other objects.</p>
 <li><strong>sweep.hit</strong> is a Hit object if there was a collision, or null if not.</li>
 <li><strong>sweep.pos</strong> is the furthest point the object reached along the swept path
 before it hit something.</li>
-<li><strong>sweep.time</strong> is a copy of <code>sweep.hit.time</code>, or 1 if the object didn&#39;t hit
+<li><strong>sweep.time</strong> is a copy of <code>sweep.hit.time</code>, or 1 if the object didn’t hit
 anything during the sweep.</li>
 </ul>
 <h2 id="axis-aligned-bounding-boxes">Axis-Aligned Bounding Boxes</h2>
@@ -200,22 +200,22 @@ anything during the sweep.</li>
         <p>Axis-aligned bounding boxes (AABBs) are bounding rectangles that do not rotate.
 This means that their edges are always aligned with the main X and Y axes, which
 makes collision detection much simpler. These examples specify an AABB via a
-center point and box&#39;s half size for each axis (that is, the box&#39;s &quot;radius&quot; on
+center point and box’s half size for each axis (that is, the box’s “radius” on
 each axis).</p>
 
         
-          <div class='highlight'><pre>intersect.AABB = <span class="class"><span class="keyword">class</span> <span class="title">AABB</span></span>
-  <span class="attribute">constructor</span>: <span class="function"><span class="params">(pos, half)</span> -&gt;</span>
-    this.pos = pos
-    this.half = half</pre></div>
+          <div class='highlight'><pre>intersect.AABB = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AABB</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(pos, half)</span> -&gt;</span>
+    <span class="hljs-keyword">this</span>.pos = pos
+    <span class="hljs-keyword">this</span>.half = half</pre></div>
         
       
         
         <p>The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
 AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.</p>
 <h3 id="aabb-vs-point">AABB vs Point</h3>
-<p>This test is very simple, but I&#39;ve included it for completeness. If a point is
-behind all of the edges of the box, it&#39;s colliding. The function returns a Hit
+<p>This test is very simple, but I’ve included it for completeness. If a point is
+behind all of the edges of the box, it’s colliding. The function returns a Hit
 object, or null if the two do not collide. <code>hit.pos</code> and <code>hit.delta</code> will be
 set to the nearest edge of the box.</p>
 <p>This code first finds the overlap on the X and Y axis. If the overlap is less
@@ -224,29 +224,29 @@ axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">intersectPoint</span>: <span class="function"><span class="params">(point)</span> -&gt;</span>
-    dx = point.x - this.pos.x
-    px = this.half.x - abs(dx)
-    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> px &lt;= <span class="number">0</span>
+          <div class='highlight'><pre>  <span class="hljs-attribute">intersectPoint</span>: <span class="hljs-function"><span class="hljs-params">(point)</span> -&gt;</span>
+    dx = point.x - <span class="hljs-keyword">this</span>.pos.x
+    px = <span class="hljs-keyword">this</span>.half.x - abs(dx)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> px &lt;= <span class="hljs-number">0</span>
 
-    dy = point.y - this.pos.y
-    py = this.half.y - abs(dy)
-    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span>
+    dy = point.y - <span class="hljs-keyword">this</span>.pos.y
+    py = <span class="hljs-keyword">this</span>.half.y - abs(dy)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> py &lt;= <span class="hljs-number">0</span>
 
-    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
-    <span class="keyword">if</span> px &lt; py
+    hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>)
+    <span class="hljs-keyword">if</span> px &lt; py
       sx = sign(dx)
       hit.delta.x = px * sx
       hit.normal.x = sx
-      hit.pos.x = this.pos.x + (this.half.x * sx)
+      hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + (<span class="hljs-keyword">this</span>.half.x * sx)
       hit.pos.y = point.y
-    <span class="keyword">else</span>
+    <span class="hljs-keyword">else</span>
       sy = sign(dy)
       hit.delta.y = py * sy
       hit.normal.y = sy
       hit.pos.x = point.x
-      hit.pos.y = this.pos.y + (this.half.y * sy)
-    <span class="keyword">return</span> hit</pre></div>
+      hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + (<span class="hljs-keyword">this</span>.half.y * sy)
+    <span class="hljs-keyword">return</span> hit</pre></div>
         
       
         
@@ -254,25 +254,27 @@ on the edge of the box.</p>
 <p>Games use segment intersection tests all the time, for everything from line of
 sight to checking whether a bullet hit a monster. This is the most complicated
 of the four AABB tests, and is commonly known as a slab test. It finds the
-time of the line&#39;s intersection with the near and far edges of each axis of the
+time of the line’s intersection with the near and far edges of each axis of the
 AABB. If they overlap, the segment is intersecting.</p>
-<figure class="right">
+<div class="figure-row right">
+<figure>
   <img src="./docs/svg/box-near-far-x.svg" class="small"/>
   <figcaption>Near x is greater than far y</figcaption>
 </figure>
-<figure class="right">
+<figure>
   <img src="./docs/svg/box-near-far-y.svg" class="small"/>
   <figcaption>Near x is greater than far y</figcaption>
 </figure>
+</div>
 
 <p>What are the near and far edges? Well, in our examples to the right, the
 direction of the segment is from the top left to the bottom right. This means
 that the near edges of the box are the top and left edges, and the far edges of
 the box are the bottom and right edges.</p>
 <p>Note that the intersection points might not actually be on the box or the
-segment. They will be at the intersection of the infinite lines of the box&#39;s
+segment. They will be at the intersection of the infinite lines of the box’s
 edges and the infinte line of the segment.</p>
-<p>This is a weird concept, so don&#39;t feel bad if it takes a while for it to sink
+<p>This is a weird concept, so don’t feel bad if it takes a while for it to sink
 in. For further reading, I recommend <a href="http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm">IRT p.65,104</a> and <a href="https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/">WilliamsEtAl05</a>.</p>
 <p>The function calculates the collision times along the line for each edge of
 the box. It returns a Hit object (with an extra <code>time</code> property), or null if
@@ -280,31 +282,31 @@ the two do not overlap. <code>paddingX</code> and <code>paddingY</code> will be 
 of the bounding box, if specified.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">intersectSegment</span>: <span class="function"><span class="params">(pos, delta, paddingX=<span class="number">0</span>, paddingY=<span class="number">0</span>)</span> -&gt;</span></pre></div>
+          <div class='highlight'><pre>  <span class="hljs-attribute">intersectSegment</span>: <span class="hljs-function"><span class="hljs-params">(pos, delta, paddingX=<span class="hljs-number">0</span>, paddingY=<span class="hljs-number">0</span>)</span> -&gt;</span></pre></div>
         
       
         
-        <p>You might notice we haven&#39;t defined a segment argument. A segment from point
+        <p>You might notice we haven’t defined a segment argument. A segment from point
 <code>A</code> to point <code>B</code> can be expressed with the equation <code>S(t) = A + t * (B - A)</code>,
 for <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is the time along the line, or
 percentage distance from <code>A</code> to <code>B</code>. Instead of formalizing the concept of a
 segment, we use this equation and describe it it as a start <code>pos</code> and a <code>delta</code>
 vector to the end of the line.</p>
 <p>Next, we need to find the linear time at which point the segment intersects
-with the box&#39;s near and far edges.</p>
-<p>We can calculate this by subtracting the position of the edge from the segment&#39;s
-start position, then dividing by the segment&#39;s delta. Scaling is done here using
+with the box’s near and far edges.</p>
+<p>We can calculate this by subtracting the position of the edge from the segment’s
+start position, then dividing by the segment’s delta. Scaling is done here using
 multiplication instead of division to deal with floating point issues.</p>
 
         
-          <div class='highlight'><pre>    scaleX = <span class="number">1.0</span> / delta.x
-    scaleY = <span class="number">1.0</span> / delta.y
+          <div class='highlight'><pre>    scaleX = <span class="hljs-number">1.0</span> / delta.x
+    scaleY = <span class="hljs-number">1.0</span> / delta.y
     signX = sign(scaleX)
     signY = sign(scaleY)
-    nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX
-    nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY
-    farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX
-    farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY</pre></div>
+    nearTimeX = (<span class="hljs-keyword">this</span>.pos.x - signX * (<span class="hljs-keyword">this</span>.half.x + paddingX) - pos.x) * scaleX
+    nearTimeY = (<span class="hljs-keyword">this</span>.pos.y - signY * (<span class="hljs-keyword">this</span>.half.y + paddingY) - pos.y) * scaleY
+    farTimeX = (<span class="hljs-keyword">this</span>.pos.x + signX * (<span class="hljs-keyword">this</span>.half.x + paddingX) - pos.x) * scaleX
+    farTimeY = (<span class="hljs-keyword">this</span>.pos.y + signY * (<span class="hljs-keyword">this</span>.half.y + paddingY) - pos.y) * scaleY</pre></div>
         
       
         
@@ -315,22 +317,38 @@ multiplication instead of division to deal with floating point issues.</p>
 </figure>
 
 <p><strong>If the closest time of collision on either axis is further than the far
-time on the opposite axis, we can&#39;t be colliding.</strong> For instance, in the example
-to the right, because the segment&#39;s infinite line intersected the infinite line
-of the box&#39;s top edge, before it ever hit the line for the left edge, we know
-the intersection occurred before the segment ever reached the box. We don&#39;t
-need to do any more checks, because we know a collision isn&#39;t possible.</p>
-<p>Otherwise, find the greater of the near times, and the lesser of the far times
+time on the opposite axis, we can’t be colliding.</strong> For instance, in the example
+to the right, because the segment’s infinite line intersected the infinite line
+of the box’s top edge, before it ever hit the line for the left edge, we know
+the intersection occurred before the segment ever reached the box. We don’t
+need to do any more checks, because we know a collision isn’t possible.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">if</span> nearTimeX &gt; farTimeY <span class="hljs-keyword">or</span> nearTimeY &gt; farTimeX
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span></pre></div>
+        
+      
+        
+        <p>Otherwise, find the greater of the near times, and the lesser of the far times
 &mdash; we want the times that got closest to the slab. We can check these two
 times to determine whether the collision occurred on the segment.</p>
-<figure class="right">
+
+        
+          <div class='highlight'><pre>    nearTime = <span class="hljs-keyword">if</span> nearTimeX &gt; nearTimeY <span class="hljs-keyword">then</span> nearTimeX <span class="hljs-keyword">else</span> nearTimeY
+    farTime = <span class="hljs-keyword">if</span> farTimeX &lt; farTimeY <span class="hljs-keyword">then</span> farTimeX <span class="hljs-keyword">else</span> farTimeY</pre></div>
+        
+      
+        
+        <div class="figure-row right">
+<figure>
   <img src="./docs/svg/box-behind.svg" class="small"/>
   <figcaption>Behind the segment</figcaption>
 </figure>
-<figure class="right">
+<figure>
   <img src="./docs/svg/box-front.svg" class="small"/>
   <figcaption>In front of the segment</figcaption>
 </figure>
+</div>
 
 <p>If the <strong>near time is greater than or equal to 1</strong>, the line starts in front
 of the nearest edge, but finishes before it reaches it. That is, it means it
@@ -339,43 +357,38 @@ equal to 0</strong>, the line starts in front of the far side of the box, and po
 away from the box.</p>
 
         
-          <div class='highlight'><pre>    <span class="keyword">if</span> nearTimeX &gt; farTimeY <span class="keyword">or</span> nearTimeY &gt; farTimeX
-      <span class="keyword">return</span> <span class="literal">null</span>
-
-    nearTime = <span class="keyword">if</span> nearTimeX &gt; nearTimeY <span class="keyword">then</span> nearTimeX <span class="keyword">else</span> nearTimeY
-    farTime = <span class="keyword">if</span> farTimeX &lt; farTimeY <span class="keyword">then</span> farTimeX <span class="keyword">else</span> farTimeY
-    <span class="keyword">if</span> nearTime &gt;= <span class="number">1</span> <span class="keyword">or</span> farTime &lt;= <span class="number">0</span>
-      <span class="keyword">return</span> <span class="literal">null</span></pre></div>
+          <div class='highlight'><pre>    <span class="hljs-keyword">if</span> nearTime &gt;= <span class="hljs-number">1</span> <span class="hljs-keyword">or</span> farTime &lt;= <span class="hljs-number">0</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span></pre></div>
         
       
         
-        <p>If we&#39;ve gotten this far a collision of some sort is happening. If the near time
+        <p>If we’ve gotten this far a collision of some sort is happening. If the near time
 is greater than zero, the segment starts outside and is entering the box.
-Otherwise, the segment starts inside the box, and is exiting it. If we&#39;re
-entering the box, we can set the hit time to the near time, since that&#39;s the
-point along the segment at which it collided. If it&#39;s inside, it&#39;s colliding at
+Otherwise, the segment starts inside the box, and is exiting it. If we’re
+entering the box, we can set the hit time to the near time, since that’s the
+point along the segment at which it collided. If it’s inside, it’s colliding at
 the very starting of the line, so just set the hit time to zero.</p>
 
         
-          <div class='highlight'><pre>    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
-    hit.time = clamp(nearTime, <span class="number">0</span>, <span class="number">1</span>)
-    <span class="keyword">if</span> nearTimeX &gt; nearTimeY
+          <div class='highlight'><pre>    hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>)
+    hit.time = clamp(nearTime, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>)
+    <span class="hljs-keyword">if</span> nearTimeX &gt; nearTimeY
       hit.normal.x = -signX
-      hit.normal.y = <span class="number">0</span>
-    <span class="keyword">else</span>
-      hit.normal.x = <span class="number">0</span>
+      hit.normal.y = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">else</span>
+      hit.normal.x = <span class="hljs-number">0</span>
       hit.normal.y = -signY
     hit.delta.x = hit.time * delta.x
     hit.delta.y = hit.time * delta.y
     hit.pos.x = pos.x + hit.delta.x
     hit.pos.y = pos.y + hit.delta.y
-    <span class="keyword">return</span> hit</pre></div>
+    <span class="hljs-keyword">return</span> hit</pre></div>
         
       
         
         <h3 id="aabb-vs-aabb">AABB vs AABB</h3>
 <p>This test uses a <a href="http://www.metanetsoftware.com/technique/tutorialA.html#section1">separating axis test</a>, which checks for overlaps between the
-two boxes on each axis. If either axis is <em>not</em> overlapping, the boxes aren&#39;t
+two boxes on each axis. If either axis is <em>not</em> overlapping, the boxes aren’t
 colliding.</p>
 <p>The function returns a Hit object, or null if the two static boxes do not
 overlap, and gives the axis of least overlap as the contact point. That is, it
@@ -385,29 +398,29 @@ edge. This can cause weird behavior for moving boxes, so you should use
 <p>This code is very similar to the <code>intersectPoint</code> function above.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">intersectAABB</span>: <span class="function"><span class="params">(box)</span> -&gt;</span>
-    dx = box.pos.x - this.pos.x
-    px = (box.half.x + this.half.x) - abs(dx)
-    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> px &lt;= <span class="number">0</span>
+          <div class='highlight'><pre>  <span class="hljs-attribute">intersectAABB</span>: <span class="hljs-function"><span class="hljs-params">(box)</span> -&gt;</span>
+    dx = box.pos.x - <span class="hljs-keyword">this</span>.pos.x
+    px = (box.half.x + <span class="hljs-keyword">this</span>.half.x) - abs(dx)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> px &lt;= <span class="hljs-number">0</span>
 
-    dy = box.pos.y - this.pos.y
-    py = (box.half.y + this.half.y) - abs(dy)
-    <span class="keyword">return</span> <span class="literal">null</span> <span class="keyword">if</span> py &lt;= <span class="number">0</span>
+    dy = box.pos.y - <span class="hljs-keyword">this</span>.pos.y
+    py = (box.half.y + <span class="hljs-keyword">this</span>.half.y) - abs(dy)
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> py &lt;= <span class="hljs-number">0</span>
 
-    hit = <span class="keyword">new</span> Hit(<span class="keyword">this</span>)
-    <span class="keyword">if</span> px &lt; py
+    hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>)
+    <span class="hljs-keyword">if</span> px &lt; py
       sx = sign(dx)
       hit.delta.x = px * sx
       hit.normal.x = sx
-      hit.pos.x = this.pos.x + (this.half.x * sx)
+      hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + (<span class="hljs-keyword">this</span>.half.x * sx)
       hit.pos.y = box.pos.y
-    <span class="keyword">else</span>
+    <span class="hljs-keyword">else</span>
       sy = sign(dy)
       hit.delta.y = py * sy
       hit.normal.y = sy
       hit.pos.x = box.pos.x
-      hit.pos.y = this.pos.y + (this.half.y * sy)
-    <span class="keyword">return</span> hit</pre></div>
+      hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + (<span class="hljs-keyword">this</span>.half.y * sy)
+    <span class="hljs-keyword">return</span> hit</pre></div>
         
       
         
@@ -435,86 +448,86 @@ a Sweep object. <code>sweep.hit</code> will be a Hit object if the two collided,
 null if they did not overlap.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">sweepAABB</span>: <span class="function"><span class="params">(box, delta)</span> -&gt;</span>
-    sweep = <span class="keyword">new</span> Sweep()</pre></div>
+          <div class='highlight'><pre>  <span class="hljs-attribute">sweepAABB</span>: <span class="hljs-function"><span class="hljs-params">(box, delta)</span> -&gt;</span>
+    sweep = <span class="hljs-keyword">new</span> Sweep()</pre></div>
         
       
         
-        <p>If the sweep isn&#39;t actually moving anywhere, just do a static test. It&#39;s faster
+        <p>If the sweep isn’t actually moving anywhere, just do a static test. It’s faster
 and will give us a better result for that case.</p>
 
         
-          <div class='highlight'><pre>    <span class="keyword">if</span> delta.x == <span class="number">0</span> <span class="keyword">and</span> delta.y == <span class="number">0</span>
+          <div class='highlight'><pre>    <span class="hljs-keyword">if</span> delta.x == <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> delta.y == <span class="hljs-number">0</span>
       sweep.pos.x = box.pos.x
       sweep.pos.y = box.pos.y
-      sweep.hit = this.intersectAABB(box)
-      <span class="keyword">if</span> sweep.hit?
-        sweep.time = sweep.hit.time = <span class="number">0</span>
-      <span class="keyword">else</span>
-        sweep.time = <span class="number">1</span></pre></div>
+      sweep.hit = <span class="hljs-keyword">this</span>.intersectAABB(box)
+      <span class="hljs-keyword">if</span> sweep.hit?
+        sweep.time = sweep.hit.time = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">else</span>
+        sweep.time = <span class="hljs-number">1</span></pre></div>
         
       
         
         <p>Otherwise, call into <code>intersectSegment</code> instead, where the segment is the center
-of the moving box, with the same delta. We pass the moving box&#39;s half size as
+of the moving box, with the same delta. We pass the moving box’s half size as
 padding. If we get a hit, we need to adjust the hit pos. Since a segment vs box
 test was used, the hit pos is the center of the box. This offsets it to the edge
 of the box, along the segment of movement.</p>
 
         
-          <div class='highlight'><pre>    <span class="keyword">else</span>
-      sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
-      <span class="keyword">if</span> sweep.hit?
-        sweep.time = clamp(sweep.hit.time - epsilon, <span class="number">0</span>, <span class="number">1</span>)
+          <div class='highlight'><pre>    <span class="hljs-keyword">else</span>
+      sweep.hit = <span class="hljs-keyword">this</span>.intersectSegment(box.pos, delta, box.half.x, box.half.y)
+      <span class="hljs-keyword">if</span> sweep.hit?
+        sweep.time = clamp(sweep.hit.time - epsilon, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>)
         sweep.pos.x = box.pos.x + delta.x * sweep.time
         sweep.pos.y = box.pos.y + delta.y * sweep.time
         direction = delta.clone()
         direction.normalize()
         sweep.hit.pos.x += direction.x * box.half.x
         sweep.hit.pos.y += direction.y * box.half.y
-      <span class="keyword">else</span>
+      <span class="hljs-keyword">else</span>
         sweep.pos.x = box.pos.x + delta.x
         sweep.pos.y = box.pos.y + delta.y
-        sweep.time = <span class="number">1</span>
-    <span class="keyword">return</span> sweep</pre></div>
+        sweep.time = <span class="hljs-number">1</span>
+    <span class="hljs-keyword">return</span> sweep</pre></div>
         
       
         
         <h3 id="sweeping-an-aabb-through-multiple-objects">Sweeping an AABB Through Multiple Objects</h3>
-<p>So, let&#39;s say we have an AABB we want to move from one point to another, without
+<p>So, let’s say we have an AABB we want to move from one point to another, without
 allowing it to collide with a list of static AABBs. To do this, we need to call
 <code>sweepAABB</code> on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.</p>
 
         
-          <div class='highlight'><pre>  <span class="attribute">sweepInto</span>: <span class="function"><span class="params">(staticColliders, delta)</span> -&gt;</span>
-    nearest = <span class="keyword">new</span> Sweep()
-    nearest.time = <span class="number">1</span>
-    nearest.pos.x = this.pos.x + delta.x
-    nearest.pos.y = this.pos.y + delta.y
-    <span class="keyword">for</span> collider <span class="keyword">in</span> staticColliders
-      sweep = collider.sweepAABB(<span class="keyword">this</span>, delta)
-      <span class="keyword">if</span> sweep.time &lt; nearest.time
+          <div class='highlight'><pre>  <span class="hljs-attribute">sweepInto</span>: <span class="hljs-function"><span class="hljs-params">(staticColliders, delta)</span> -&gt;</span>
+    nearest = <span class="hljs-keyword">new</span> Sweep()
+    nearest.time = <span class="hljs-number">1</span>
+    nearest.pos.x = <span class="hljs-keyword">this</span>.pos.x + delta.x
+    nearest.pos.y = <span class="hljs-keyword">this</span>.pos.y + delta.y
+    <span class="hljs-keyword">for</span> collider <span class="hljs-keyword">in</span> staticColliders
+      sweep = collider.sweepAABB(<span class="hljs-keyword">this</span>, delta)
+      <span class="hljs-keyword">if</span> sweep.time &lt; nearest.time
         nearest = sweep
-    <span class="keyword">return</span> nearest</pre></div>
+    <span class="hljs-keyword">return</span> nearest</pre></div>
         
       
         
-        <p>It&#39;s a common use case to have a single object that needs to move through a
+        <p>It’s a common use case to have a single object that needs to move through a
 world, colliding with many other objects. Note that solving this problem
 efficiently requires two steps:</p>
 <ol>
 <li>A broad phase, which does not do precise collision detection, but which can
 very quickly reject large chunks of the world which are not likely to be
-colliding. That is, you don&#39;t have to try to calculate how two objects are
-colliding if you know they&#39;re in entirely different rooms.</li>
+colliding. That is, you don’t have to try to calculate how two objects are
+colliding if you know they’re in entirely different rooms.</li>
 <li>A narrow phase, which finds, given a set of items which are likely to be
 colliding, the earliest point at which the moving object collided with one
 of the items.</li>
 </ol>
 <p>The first step is out of scope for this library, but these tests are great for
 solving the narrow phase. You can usually get away without a broad phase for
-simple games, however, if you aren&#39;t colliding against a huge number of objects.</p>
+simple games, however, if you aren’t colliding against a huge number of objects.</p>
 
         
       
