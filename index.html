@@ -253,10 +253,27 @@ on the edge of the box.</p>
         <h3 id="aabb-vs-segment">AABB vs Segment</h3>
 <p>Games use segment intersection tests all the time, for everything from line of
 sight to checking whether a bullet hit a monster. This is the most complicated
-of the four AABB tests, and is commonly known as a [slab test]. It finds the
+of the four AABB tests, and is commonly known as a slab test. It finds the
 time of the line&#39;s intersection with the near and far edges of each axis of the
-AABB. If they overlap, the segment is intersecting. For further reading, I
-recommend <a href="http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm">IRT p.65,104</a> and <a href="http://www.cs.utah.edu/~awilliam/box/">WilliamsEtAl05</a>.</p>
+AABB. If they overlap, the segment is intersecting.</p>
+<figure class="right">
+  <img src="./docs/svg/box-near-far-x.svg" class="small"/>
+  <figcaption>Near x is greater than far y</figcaption>
+</figure>
+<figure class="right">
+  <img src="./docs/svg/box-near-far-y.svg" class="small"/>
+  <figcaption>Near x is greater than far y</figcaption>
+</figure>
+
+<p>What are the near and far edges? Well, in our examples to the right, the
+direction of the segment is from the top left to the bottom right. This means
+that the near edges of the box are the top and left edges, and the far edges of
+the box are the bottom and right edges.</p>
+<p>Note that the intersection points might not actually be on the box or the
+segment. They will be at the intersection of the infinite lines of the box&#39;s
+edges and the infinte line of the segment.</p>
+<p>This is a weird concept, so don&#39;t feel bad if it takes a while for it to sink
+in. For further reading, I recommend <a href="http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm">IRT p.65,104</a> and <a href="https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/">WilliamsEtAl05</a>.</p>
 <p>The function calculates the collision times along the line for each edge of
 the box. It returns a Hit object (with an extra <code>time</code> property), or null if
 the two do not overlap. <code>paddingX</code> and <code>paddingY</code> will be added to the radius
@@ -275,22 +292,6 @@ segment, we use this equation and describe it it as a start <code>pos</code> and
 vector to the end of the line.</p>
 <p>Next, we need to find the linear time at which point the segment intersects
 with the box&#39;s near and far edges.</p>
-<figure class="right">
-  <img src="./docs/svg/box-near-far-x.svg" class="small"/>
-  <figcaption>Near x is greater than far y</figcaption>
-</figure>
-<figure class="right">
-  <img src="./docs/svg/box-near-far-y.svg" class="small"/>
-  <figcaption>Near x is greater than far y</figcaption>
-</figure>
-
-<p>What are the near and far edges? Well, in our examples to the right, the
-direction of the segment is from the top left to the bottom right. This means
-that the near edges of the box are the top and left edges, and the far edges of
-the box are the bottom and right edges.</p>
-<p>Note that the intersection points might not actually be on the box or the
-segment. They will be at the intersection of the infinite lines of the box&#39;s
-edges and the infinte line of the segment.</p>
 <p>We can calculate this by subtracting the position of the edge from the segment&#39;s
 start position, then dividing by the segment&#39;s delta. Scaling is done here using
 multiplication instead of division to deal with floating point issues.</p>
