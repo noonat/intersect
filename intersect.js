@@ -243,3 +243,7 @@
   })();
 
 }).call(this);
+
+/*
+//@ sourceMappingURL=intersect.map
+*/

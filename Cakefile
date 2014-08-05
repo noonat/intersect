@@ -5,7 +5,8 @@ option '-w', '--watch', 'continually build the library'
 
 build = ({callback, watch}) ->
   files = (fn for fn in readdirSync(__dirname) when fn.match(/\.(lit)?coffee$/i))
-  coffee = spawn 'coffee', ['-c' + (if watch then 'w' else '')].concat(files)
+  args = ['-cm' + (if watch then 'w' else '')].concat(files)
+  coffee = spawn 'coffee', args
   coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
   coffee.stderr.on 'data', (data) -> console.log data.toString().trim()
   coffee.on 'exit', (status) -> callback?() if status is 0
@@ -21,7 +22,7 @@ task 'doc', 'rebuild the documentation', ->
       '-e "s~</body>~<script src="intersect.js"></script><script src="examples.js"></script></body>~"'
     ]
     exec([
-      'docco --layout linear intersect.litcoffee'
+      './node_modules/.bin/docco --layout linear intersect.litcoffee'
       "sed #{expressions.join(" ")} < docs/intersect.html > index.html"
       'rm docs/intersect.html'
     ].join(' && '), (err) ->
