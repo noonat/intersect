@@ -1,0 +1,7 @@
+{
+  "browser": true,
+  "eqnull": true,
+  "esnext": true,
+  "node": true,
+  "strict": "global"
+}
