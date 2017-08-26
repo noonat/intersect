@@ -31,50 +31,60 @@ fairly readable.
 [CoffeeScript]: http://jashkenas.github.com/coffee-script/
 [compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
 
-
 Helpers
 -------
 
 Let's define a couple helpers that we'll use through the code.
 
-    intersect = exports ? (this.intersect ?= {})
+    export const EPSILON = 1e-8;
 
-    intersect.epsilon = epsilon = 1e-8
+    export function abs(value) {
+      return value < 0 ? -value : value;
+    }
 
-    intersect.abs = abs = (value) ->
-      if value < 0 then -value else value
+    export function clamp(value, min, max) {
+      if (value < min) {
+        return min;
+      } else if (value > max) {
+        return max;
+      } else {
+        return value;
+      }
+    }
 
-    intersect.clamp = clamp = (value, min, max) ->
-      if value < min
-        min
-      else if value > max
-        max
-      else
-        value
+    export function sign(value) {
+      return value < 0 ? -1 : 1;
+    }
 
-    intersect.sign = sign = (value) ->
-      if value < 0 then -1 else 1
 
 We'll also need a 2D point. We could just use a literal `{x: 0, y: 0}` object,
 but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.
 
-    intersect.Point = class Point
-      constructor: (x=0, y=0) ->
-        this.x = x
-        this.y = y
+    export class Point {
+      constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+      }
 
-      clone: ->
-        return new Point(this.x, this.y)
+      clone() {
+        return new Point(this.x, this.y);
+      }
 
-      normalize: ->
-        length = this.x * this.x + this.y * this.y
-        if length > 0
-          length = Math.sqrt(length)
-          inverseLength = 1.0 / length
-          this.x *= inverseLength
-          this.y *= inverseLength
-        return length
+      normalize() {
+        let length = this.x * this.x + this.y * this.y;
+        if (length > 0) {
+          length = Math.sqrt(length);
+          let inverseLength = 1.0 / length;
+          this.x *= inverseLength;
+          this.y *= inverseLength;
+        } else {
+          this.x = 1;
+          this.y = 0;
+        }
+        return length;
+      }
+    }
 
 
 Types of Tests
@@ -110,12 +120,14 @@ overlapping.
 
 Intersection tests will return a Hit object when a collision occurs:
 
-    intersect.Hit = class Hit
-      constructor: (collider) ->
-        this.collider = collider
-        this.pos = new Point()
-        this.delta = new Point()
-        this.normal = new Point()
+    export class Hit {
+      constructor(collider) {
+        this.collider = collider;
+        this.pos = new Point();
+        this.delta = new Point();
+        this.normal = new Point();
+      }
+    }
 
 - **hit.pos** is the point of contact between the two objects (or an
   estimation of it, in some sweep tests).
@@ -155,17 +167,19 @@ and stop objects from ever moving into other objects.
 
 Sweep tests return a `Sweep` object:
 
-    intersect.Sweep = class Sweep
-      constructor: ->
-        this.hit = null
-        this.pos = new Point()
-        this.time = 1
+    export class Sweep {
+      constructor() {
+        this.hit = null;
+        this.pos = new Point();
+        this.time = 1;
+      }
+    }
 
 - **sweep.hit** is a Hit object if there was a collision, or null if not.
 - **sweep.pos** is the furthest point the object reached along the swept path
   before it hit something.
-- **sweep.time** is a copy of `sweep.hit.time`, or 1 if the object didn't hit
-  anything during the sweep.
+- **sweep.time** is a copy of `sweep.hit.time`, offset by epsilon, or 1 if
+  the object didn't hit anything during the sweep.
 
 
 Axis-Aligned Bounding Boxes
@@ -177,10 +191,11 @@ makes collision detection much simpler. These examples specify an AABB via a
 center point and box's half size for each axis (that is, the box's "radius" on
 each axis).
 
-    intersect.AABB = class AABB
-      constructor: (pos, half) ->
-        this.pos = pos
-        this.half = half
+    export class AABB {
+      constructor(pos, half) {
+        this.pos = pos;
+        this.half = half;
+      }
 
 The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
 AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.
@@ -198,29 +213,35 @@ than zero for either, a collision is not possible. Otherwise, we find the
 axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.
 
-      intersectPoint: (point) ->
-        dx = point.x - this.pos.x
-        px = this.half.x - abs(dx)
-        return null if px <= 0
+      intersectPoint(point) {
+        const dx = point.x - this.pos.x;
+        const px = this.half.x - abs(dx);
+        if (px <= 0) {
+          return null;
+        }
 
-        dy = point.y - this.pos.y
-        py = this.half.y - abs(dy)
-        return null if py <= 0
+        const dy = point.y - this.pos.y;
+        const py = this.half.y - abs(dy);
+        if (py <= 0) {
+          return null;
+        }
 
-        hit = new Hit(this)
-        if px < py
-          sx = sign(dx)
-          hit.delta.x = px * sx
-          hit.normal.x = sx
-          hit.pos.x = this.pos.x + (this.half.x * sx)
-          hit.pos.y = point.y
-        else
-          sy = sign(dy)
-          hit.delta.y = py * sy
-          hit.normal.y = sy
-          hit.pos.x = point.x
-          hit.pos.y = this.pos.y + (this.half.y * sy)
-        return hit
+        let hit = new Hit(this);
+        if (px < py) {
+          const sx = sign(dx);
+          hit.delta.x = px * sx;
+          hit.normal.x = sx;
+          hit.pos.x = this.pos.x + (this.half.x * sx);
+          hit.pos.y = point.y;
+        } else {
+          const sy = sign(dy);
+          hit.delta.y = py * sy;
+          hit.normal.y = sy;
+          hit.pos.x = point.x;
+          hit.pos.y = this.pos.y + (this.half.y * sy);
+        }
+        return hit;
+      }
 
 
 ### AABB vs Segment
@@ -262,7 +283,7 @@ of the bounding box, if specified.
 [IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 [WilliamsEtAl05]: https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/
 
-      intersectSegment: (pos, delta, paddingX=0, paddingY=0) ->
+      intersectSegment(pos, delta, paddingX = 0, paddingY = 0) {
 
 You might notice we haven't defined a segment argument. A segment from point
 `A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
@@ -278,14 +299,14 @@ We can calculate this by subtracting the position of the edge from the segment's
 start position, then dividing by the segment's delta. Scaling is done here using
 multiplication instead of division to deal with floating point issues.
 
-        scaleX = 1.0 / delta.x
-        scaleY = 1.0 / delta.y
-        signX = sign(scaleX)
-        signY = sign(scaleY)
-        nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX
-        nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY
-        farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX
-        farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY
+        let scaleX = 1.0 / delta.x;
+        let scaleY = 1.0 / delta.y;
+        let signX = sign(scaleX);
+        let signY = sign(scaleY);
+        let nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        let nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
+        let farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        let farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
 
 Now we have to compare these times to see if a collision is possible.
 
@@ -301,15 +322,16 @@ of the box's top edge, before it ever hit the line for the left edge, we know
 the intersection occurred before the segment ever reached the box. We don't
 need to do any more checks, because we know a collision isn't possible.
 
-        if nearTimeX > farTimeY or nearTimeY > farTimeX
-          return null
+        if (nearTimeX > farTimeY || nearTimeY > farTimeX) {
+          return null;
+        }
 
 Otherwise, find the greater of the near times, and the lesser of the far times
 &mdash; we want the times that got closest to the slab. We can check these two
 times to determine whether the collision occurred on the segment.
 
-        nearTime = if nearTimeX > nearTimeY then nearTimeX else nearTimeY
-        farTime = if farTimeX < farTimeY then farTimeX else farTimeY
+        let nearTime = nearTimeX > nearTimeY ? nearTimeX : nearTimeY;
+        let farTime = farTimeX < farTimeY ? farTimeX : farTimeY;
 
 <div class="figure-row right">
 <figure>
@@ -328,8 +350,9 @@ further than a whole segment length away. If the **far time is less than or
 equal to 0**, the line starts in front of the far side of the box, and points
 away from the box.
 
-        if nearTime >= 1 or farTime <= 0
-          return null
+        if (nearTime >= 1 || farTime <= 0) {
+          return null;
+        }
 
 If we've gotten this far a collision of some sort is happening. If the near time
 is greater than zero, the segment starts outside and is entering the box.
@@ -338,20 +361,21 @@ entering the box, we can set the hit time to the near time, since that's the
 point along the segment at which it collided. If it's inside, it's colliding at
 the very starting of the line, so just set the hit time to zero.
 
-        hit = new Hit(this)
-        hit.time = clamp(nearTime, 0, 1)
-        if nearTimeX > nearTimeY
-          hit.normal.x = -signX
-          hit.normal.y = 0
-        else
-          hit.normal.x = 0
-          hit.normal.y = -signY
-        hit.delta.x = hit.time * delta.x
-        hit.delta.y = hit.time * delta.y
-        hit.pos.x = pos.x + hit.delta.x
-        hit.pos.y = pos.y + hit.delta.y
-        return hit
-
+        let hit = new Hit(this);
+        hit.time = clamp(nearTime, 0, 1);
+        if (nearTimeX > nearTimeY) {
+          hit.normal.x = -signX;
+          hit.normal.y = 0;
+        } else {
+          hit.normal.x = 0;
+          hit.normal.y = -signY;
+        }
+        hit.delta.x = hit.time * delta.x;
+        hit.delta.y = hit.time * delta.y;
+        hit.pos.x = pos.x + hit.delta.x;
+        hit.pos.y = pos.y + hit.delta.y;
+        return hit;
+      }
 
 ### AABB vs AABB
 
@@ -369,29 +393,35 @@ This code is very similar to the `intersectPoint` function above.
 
 [separating axis test]: http://www.metanetsoftware.com/technique/tutorialA.html#section1
 
-      intersectAABB: (box) ->
-        dx = box.pos.x - this.pos.x
-        px = (box.half.x + this.half.x) - abs(dx)
-        return null if px <= 0
+      intersectAABB(box) {
+        let dx = box.pos.x - this.pos.x;
+        let px = (box.half.x + this.half.x) - abs(dx);
+        if (px <= 0) {
+          return null;
+        }
 
-        dy = box.pos.y - this.pos.y
-        py = (box.half.y + this.half.y) - abs(dy)
-        return null if py <= 0
+        let dy = box.pos.y - this.pos.y;
+        let py = (box.half.y + this.half.y) - abs(dy);
+        if (py <= 0) {
+          return null;
+        }
 
-        hit = new Hit(this)
-        if px < py
-          sx = sign(dx)
-          hit.delta.x = px * sx
-          hit.normal.x = sx
-          hit.pos.x = this.pos.x + (this.half.x * sx)
-          hit.pos.y = box.pos.y
-        else
-          sy = sign(dy)
-          hit.delta.y = py * sy
-          hit.normal.y = sy
-          hit.pos.x = box.pos.x
-          hit.pos.y = this.pos.y + (this.half.y * sy)
-        return hit
+        let hit = new Hit(this);
+        if (px < py) {
+          let sx = sign(dx);
+          hit.delta.x = px * sx;
+          hit.normal.x = sx;
+          hit.pos.x = this.pos.x + (this.half.x * sx);
+          hit.pos.y = box.pos.y;
+        } else {
+          let sy = sign(dy);
+          hit.delta.y = py * sy;
+          hit.normal.y = sy;
+          hit.pos.x = box.pos.x;
+          hit.pos.y = this.pos.y + (this.half.y * sy);
+        }
+        return hit;
+      }
 
 
 ### AABB vs Swept AABB
@@ -421,42 +451,50 @@ null if they did not overlap.
 
 [Minkowski]: http://physics2d.com/content/gjk-algorithm
 
-      sweepAABB: (box, delta) ->
-        sweep = new Sweep()
+      sweepAABB(box, delta) {
+        let sweep = new Sweep();
 
 If the sweep isn't actually moving anywhere, just do a static test. It's faster
 and will give us a better result for that case.
 
-        if delta.x == 0 and delta.y == 0
-          sweep.pos.x = box.pos.x
-          sweep.pos.y = box.pos.y
-          sweep.hit = this.intersectAABB(box)
-          if sweep.hit?
-            sweep.time = sweep.hit.time = 0
-          else
-            sweep.time = 1
+        if (delta.x == 0 && delta.y == 0) {
+          sweep.pos.x = box.pos.x;
+          sweep.pos.y = box.pos.y;
+          sweep.hit = this.intersectAABB(box);
+          if (sweep.hit) {
+            sweep.time = sweep.hit.time = 0;
+          } else {
+            sweep.time = 1;
+          }
 
 Otherwise, call into `intersectSegment` instead, where the segment is the center
 of the moving box, with the same delta. We pass the moving box's half size as
 padding. If we get a hit, we need to adjust the hit pos. Since a segment vs box
 test was used, the hit pos is the center of the box. This offsets it to the edge
-of the box, along the segment of movement.
+of the box, as close to the segment of movement as possible.
 
-        else
-          sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y)
-          if sweep.hit?
-            sweep.time = clamp(sweep.hit.time - epsilon, 0, 1)
-            sweep.pos.x = box.pos.x + delta.x * sweep.time
-            sweep.pos.y = box.pos.y + delta.y * sweep.time
-            direction = delta.clone()
-            direction.normalize()
-            sweep.hit.pos.x += direction.x * box.half.x
-            sweep.hit.pos.y += direction.y * box.half.y
-          else
-            sweep.pos.x = box.pos.x + delta.x
-            sweep.pos.y = box.pos.y + delta.y
-            sweep.time = 1
-        return sweep
+        } else {
+          sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
+          if (sweep.hit) {
+            sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+            sweep.pos.x = box.pos.x + delta.x * sweep.time;
+            sweep.pos.y = box.pos.y + delta.y * sweep.time;
+            let direction = delta.clone();
+            direction.normalize();
+            sweep.hit.pos.x = clamp(
+              sweep.hit.pos.x + direction.x * box.half.x,
+              this.pos.x - this.half.x, this.pos.x + this.half.x);
+            sweep.hit.pos.y = clamp(
+              sweep.hit.pos.y + direction.y * box.half.y,
+              this.pos.y - this.half.y, this.pos.y + this.half.y);
+          } else {
+            sweep.pos.x = box.pos.x + delta.x;
+            sweep.pos.y = box.pos.y + delta.y;
+            sweep.time = 1;
+          }
+        }
+        return sweep;
+      }
 
 
 ### Sweeping an AABB Through Multiple Objects
@@ -466,16 +504,20 @@ allowing it to collide with a list of static AABBs. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.
 
-      sweepInto: (staticColliders, delta) ->
-        nearest = new Sweep()
-        nearest.time = 1
-        nearest.pos.x = this.pos.x + delta.x
-        nearest.pos.y = this.pos.y + delta.y
-        for collider in staticColliders
-          sweep = collider.sweepAABB(this, delta)
-          if sweep.time < nearest.time
-            nearest = sweep
-        return nearest
+      sweepInto(staticColliders, delta) {
+        let nearest = new Sweep();
+        nearest.time = 1;
+        nearest.pos.x = this.pos.x + delta.x;
+        nearest.pos.y = this.pos.y + delta.y;
+        for (let i = 0, il = staticColliders.length; i < il; i++) {
+          let sweep = staticColliders[i].sweepAABB(this, delta);
+          if (sweep.time < nearest.time) {
+            nearest = sweep;
+          }
+        }
+        return nearest;
+      }
+    }
 
 It's a common use case to have a single object that needs to move through a
 world, colliding with many other objects. Note that solving this problem
