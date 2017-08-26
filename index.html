@@ -64,10 +64,10 @@ fairly readable.</p>
 
 intersect.epsilon = epsilon = <span class="hljs-number">1e-8</span>
 
-intersect.abs = <span class="hljs-function"><span class="hljs-title">abs</span> = <span class="hljs-params">(value)</span> -&gt;</span>
+intersect.abs = abs = <span class="hljs-function"><span class="hljs-params">(value)</span> -&gt;</span>
   <span class="hljs-keyword">if</span> value &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> -value <span class="hljs-keyword">else</span> value
 
-intersect.clamp = <span class="hljs-function"><span class="hljs-title">clamp</span> = <span class="hljs-params">(value, min, max)</span> -&gt;</span>
+intersect.clamp = clamp = <span class="hljs-function"><span class="hljs-params">(value, min, max)</span> -&gt;</span>
   <span class="hljs-keyword">if</span> value &lt; min
     min
   <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> value &gt; max
@@ -75,8 +75,8 @@ intersect.clamp = <span class="hljs-function"><span class="hljs-title">clamp</sp
   <span class="hljs-keyword">else</span>
     value
 
-intersect.sign = <span class="hljs-function"><span class="hljs-title">sign</span> = <span class="hljs-params">(value)</span> -&gt;</span>
-  <span class="hljs-keyword">if</span> value &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span></pre></div>
+intersect.sign = sign = <span class="hljs-function"><span class="hljs-params">(value)</span> -&gt;</span>
+  <span class="hljs-keyword">if</span> value &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">-1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span></pre></div>
         
       
         
@@ -86,14 +86,14 @@ detection, so it makes things a bit more readable to formalize it as a class.</p
 
         
           <div class='highlight'><pre>intersect.Point = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Point</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(x=<span class="hljs-number">0</span>, y=<span class="hljs-number">0</span>)</span> -&gt;</span>
+  constructor: <span class="hljs-function"><span class="hljs-params">(x=<span class="hljs-number">0</span>, y=<span class="hljs-number">0</span>)</span> -&gt;</span>
     <span class="hljs-keyword">this</span>.x = x
     <span class="hljs-keyword">this</span>.y = y
 
-  <span class="hljs-attribute">clone</span>:<span class="hljs-function"> -&gt;</span>
+  clone: <span class="hljs-function">-&gt;</span>
     <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.x, <span class="hljs-keyword">this</span>.y)
 
-  <span class="hljs-attribute">normalize</span>:<span class="hljs-function"> -&gt;</span>
+  normalize: <span class="hljs-function">-&gt;</span>
     length = <span class="hljs-keyword">this</span>.x * <span class="hljs-keyword">this</span>.x + <span class="hljs-keyword">this</span>.y * <span class="hljs-keyword">this</span>.y
     <span class="hljs-keyword">if</span> length &gt; <span class="hljs-number">0</span>
       length = Math.sqrt(length)
@@ -135,7 +135,7 @@ overlapping.</p>
 
         
           <div class='highlight'><pre>intersect.Hit = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Hit</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(collider)</span> -&gt;</span>
+  constructor: <span class="hljs-function"><span class="hljs-params">(collider)</span> -&gt;</span>
     <span class="hljs-keyword">this</span>.collider = collider
     <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point()
     <span class="hljs-keyword">this</span>.delta = <span class="hljs-keyword">new</span> Point()
@@ -178,7 +178,7 @@ and stop objects from ever moving into other objects.</p>
 
         
           <div class='highlight'><pre>intersect.Sweep = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sweep</span></span>
-  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+  constructor: <span class="hljs-function">-&gt;</span>
     <span class="hljs-keyword">this</span>.hit = <span class="hljs-literal">null</span>
     <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point()
     <span class="hljs-keyword">this</span>.time = <span class="hljs-number">1</span></pre></div>
@@ -205,7 +205,7 @@ each axis).</p>
 
         
           <div class='highlight'><pre>intersect.AABB = <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AABB</span></span>
-  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(pos, half)</span> -&gt;</span>
+  constructor: <span class="hljs-function"><span class="hljs-params">(pos, half)</span> -&gt;</span>
     <span class="hljs-keyword">this</span>.pos = pos
     <span class="hljs-keyword">this</span>.half = half</pre></div>
         
@@ -224,7 +224,7 @@ axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.</p>
 
         
-          <div class='highlight'><pre>  <span class="hljs-attribute">intersectPoint</span>: <span class="hljs-function"><span class="hljs-params">(point)</span> -&gt;</span>
+          <div class='highlight'><pre>  intersectPoint: <span class="hljs-function"><span class="hljs-params">(point)</span> -&gt;</span>
     dx = point.x - <span class="hljs-keyword">this</span>.pos.x
     px = <span class="hljs-keyword">this</span>.half.x - abs(dx)
     <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> px &lt;= <span class="hljs-number">0</span>
@@ -282,7 +282,7 @@ the two do not overlap. <code>paddingX</code> and <code>paddingY</code> will be 
 of the bounding box, if specified.</p>
 
         
-          <div class='highlight'><pre>  <span class="hljs-attribute">intersectSegment</span>: <span class="hljs-function"><span class="hljs-params">(pos, delta, paddingX=<span class="hljs-number">0</span>, paddingY=<span class="hljs-number">0</span>)</span> -&gt;</span></pre></div>
+          <div class='highlight'><pre>  intersectSegment: <span class="hljs-function"><span class="hljs-params">(pos, delta, paddingX=<span class="hljs-number">0</span>, paddingY=<span class="hljs-number">0</span>)</span> -&gt;</span></pre></div>
         
       
         
@@ -398,7 +398,7 @@ edge. This can cause weird behavior for moving boxes, so you should use
 <p>This code is very similar to the <code>intersectPoint</code> function above.</p>
 
         
-          <div class='highlight'><pre>  <span class="hljs-attribute">intersectAABB</span>: <span class="hljs-function"><span class="hljs-params">(box)</span> -&gt;</span>
+          <div class='highlight'><pre>  intersectAABB: <span class="hljs-function"><span class="hljs-params">(box)</span> -&gt;</span>
     dx = box.pos.x - <span class="hljs-keyword">this</span>.pos.x
     px = (box.half.x + <span class="hljs-keyword">this</span>.half.x) - abs(dx)
     <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">if</span> px &lt;= <span class="hljs-number">0</span>
@@ -448,7 +448,7 @@ a Sweep object. <code>sweep.hit</code> will be a Hit object if the two collided,
 null if they did not overlap.</p>
 
         
-          <div class='highlight'><pre>  <span class="hljs-attribute">sweepAABB</span>: <span class="hljs-function"><span class="hljs-params">(box, delta)</span> -&gt;</span>
+          <div class='highlight'><pre>  sweepAABB: <span class="hljs-function"><span class="hljs-params">(box, delta)</span> -&gt;</span>
     sweep = <span class="hljs-keyword">new</span> Sweep()</pre></div>
         
       
@@ -500,7 +500,7 @@ allowing it to collide with a list of static AABBs. To do this, we need to call
 least distance &mdash; that is, the nearest collision to the start of the path.</p>
 
         
-          <div class='highlight'><pre>  <span class="hljs-attribute">sweepInto</span>: <span class="hljs-function"><span class="hljs-params">(staticColliders, delta)</span> -&gt;</span>
+          <div class='highlight'><pre>  sweepInto: <span class="hljs-function"><span class="hljs-params">(staticColliders, delta)</span> -&gt;</span>
     nearest = <span class="hljs-keyword">new</span> Sweep()
     nearest.time = <span class="hljs-number">1</span>
     nearest.pos.x = <span class="hljs-keyword">this</span>.pos.x + delta.x
