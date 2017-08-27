@@ -30,10 +30,9 @@ them out of physics libraries.</p>
 buy <a href="http://realtimecollisiondetection.net/">Real-Time Collision Detection</a>. It is easily the best purchase you could
 make if you are learning about collision detection. There is also an excellent
 <a href="http://www.realtimerendering.com/intersections.html">list of different algorithms here</a>.</p>
-<p>The code is written in <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>, but it’s simple and should be easily
+<p>The code is written in JavaScript, but it’s simple and should be easily
 portable to your language of choice. If you just want to see the code, take
-a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js">the compiled JS file</a>. It’s stripped of comments and
-fairly readable.</p>
+a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js">the compiled JS file</a>.</p>
 <ol>
 <li><a href="#helpers">Helpers</a></li>
 <li><a href="#types-of-tests">Types of Tests</a><ol>
@@ -486,7 +485,7 @@ null if they did not overlap.</p>
 and will give us a better result for that case.</p>
 
         
-          <div class='highlight'><pre>    <span class="hljs-keyword">if</span> (delta.x == <span class="hljs-number">0</span> &amp;&amp; delta.y == <span class="hljs-number">0</span>) {
+          <div class='highlight'><pre>    <span class="hljs-keyword">if</span> (delta.x === <span class="hljs-number">0</span> &amp;&amp; delta.y === <span class="hljs-number">0</span>) {
       sweep.pos.x = box.pos.x;
       sweep.pos.y = box.pos.y;
       sweep.hit = <span class="hljs-keyword">this</span>.intersectAABB(box);
@@ -494,7 +493,9 @@ and will give us a better result for that case.</p>
         sweep.time = sweep.hit.time = <span class="hljs-number">0</span>;
       } <span class="hljs-keyword">else</span> {
         sweep.time = <span class="hljs-number">1</span>;
-      }</pre></div>
+      }
+      <span class="hljs-keyword">return</span> sweep;
+    }</pre></div>
         
       
         
@@ -505,25 +506,23 @@ test was used, the hit pos is the center of the box. This offsets it to the edge
 of the box, as close to the segment of movement as possible.</p>
 
         
-          <div class='highlight'><pre>    } <span class="hljs-keyword">else</span> {
-      sweep.hit = <span class="hljs-keyword">this</span>.intersectSegment(box.pos, delta, box.half.x, box.half.y);
-      <span class="hljs-keyword">if</span> (sweep.hit) {
-        sweep.time = clamp(sweep.hit.time - EPSILON, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
-        sweep.pos.x = box.pos.x + delta.x * sweep.time;
-        sweep.pos.y = box.pos.y + delta.y * sweep.time;
-        <span class="hljs-keyword">let</span> direction = delta.clone();
-        direction.normalize();
-        sweep.hit.pos.x = clamp(
-          sweep.hit.pos.x + direction.x * box.half.x,
-          <span class="hljs-keyword">this</span>.pos.x - <span class="hljs-keyword">this</span>.half.x, <span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.half.x);
-        sweep.hit.pos.y = clamp(
-          sweep.hit.pos.y + direction.y * box.half.y,
-          <span class="hljs-keyword">this</span>.pos.y - <span class="hljs-keyword">this</span>.half.y, <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.half.y);
-      } <span class="hljs-keyword">else</span> {
-        sweep.pos.x = box.pos.x + delta.x;
-        sweep.pos.y = box.pos.y + delta.y;
-        sweep.time = <span class="hljs-number">1</span>;
-      }
+          <div class='highlight'><pre>    sweep.hit = <span class="hljs-keyword">this</span>.intersectSegment(box.pos, delta, box.half.x, box.half.y);
+    <span class="hljs-keyword">if</span> (sweep.hit) {
+      sweep.time = clamp(sweep.hit.time - EPSILON, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+      sweep.pos.x = box.pos.x + delta.x * sweep.time;
+      sweep.pos.y = box.pos.y + delta.y * sweep.time;
+      <span class="hljs-keyword">let</span> direction = delta.clone();
+      direction.normalize();
+      sweep.hit.pos.x = clamp(
+        sweep.hit.pos.x + direction.x * box.half.x,
+        <span class="hljs-keyword">this</span>.pos.x - <span class="hljs-keyword">this</span>.half.x, <span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.half.x);
+      sweep.hit.pos.y = clamp(
+        sweep.hit.pos.y + direction.y * box.half.y,
+        <span class="hljs-keyword">this</span>.pos.y - <span class="hljs-keyword">this</span>.half.y, <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.half.y);
+    } <span class="hljs-keyword">else</span> {
+      sweep.pos.x = box.pos.x + delta.x;
+      sweep.pos.y = box.pos.y + delta.y;
+      sweep.time = <span class="hljs-number">1</span>;
     }
     <span class="hljs-keyword">return</span> sweep;
   }</pre></div>
