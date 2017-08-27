@@ -19,7 +19,7 @@ portable to your language of choice. To get started, take a look at:
 
 [annotated]: http://noonat.github.io/intersect
 [examples]: https://github.com/noonat/intersect/blob/master/examples.js
-[library]: https://github.com/noonat/intersect/blob/master/intersect.js
+[intersect]: https://github.com/noonat/intersect/blob/master/intersect.js
 [rtcd]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
 [travis]: http://travis-ci.org/noonat/intersect
