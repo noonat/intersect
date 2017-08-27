@@ -10,10 +10,9 @@ buy [Real-Time Collision Detection]. It is easily the best purchase you could
 make if you are learning about collision detection. There is also an excellent
 [list of different algorithms here][algorithms].
 
-The code is written in [CoffeeScript], but it's simple and should be easily
+The code is written in JavaScript, but it's simple and should be easily
 portable to your language of choice. If you just want to see the code, take
-a look at [the compiled JS file][compiled]. It's stripped of comments and
-fairly readable.
+a look at [the compiled JS file][compiled].
 
 1. [Helpers](#helpers)
 2. [Types of Tests](#types-of-tests)
@@ -28,7 +27,6 @@ fairly readable.
 
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
-[CoffeeScript]: http://jashkenas.github.com/coffee-script/
 [compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
 
 Helpers
@@ -457,7 +455,7 @@ null if they did not overlap.
 If the sweep isn't actually moving anywhere, just do a static test. It's faster
 and will give us a better result for that case.
 
-        if (delta.x == 0 && delta.y == 0) {
+        if (delta.x === 0 && delta.y === 0) {
           sweep.pos.x = box.pos.x;
           sweep.pos.y = box.pos.y;
           sweep.hit = this.intersectAABB(box);
@@ -466,6 +464,8 @@ and will give us a better result for that case.
           } else {
             sweep.time = 1;
           }
+          return sweep;
+        }
 
 Otherwise, call into `intersectSegment` instead, where the segment is the center
 of the moving box, with the same delta. We pass the moving box's half size as
@@ -473,25 +473,23 @@ padding. If we get a hit, we need to adjust the hit pos. Since a segment vs box
 test was used, the hit pos is the center of the box. This offsets it to the edge
 of the box, as close to the segment of movement as possible.
 
+        sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
+        if (sweep.hit) {
+          sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+          sweep.pos.x = box.pos.x + delta.x * sweep.time;
+          sweep.pos.y = box.pos.y + delta.y * sweep.time;
+          let direction = delta.clone();
+          direction.normalize();
+          sweep.hit.pos.x = clamp(
+            sweep.hit.pos.x + direction.x * box.half.x,
+            this.pos.x - this.half.x, this.pos.x + this.half.x);
+          sweep.hit.pos.y = clamp(
+            sweep.hit.pos.y + direction.y * box.half.y,
+            this.pos.y - this.half.y, this.pos.y + this.half.y);
         } else {
-          sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
-          if (sweep.hit) {
-            sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
-            sweep.pos.x = box.pos.x + delta.x * sweep.time;
-            sweep.pos.y = box.pos.y + delta.y * sweep.time;
-            let direction = delta.clone();
-            direction.normalize();
-            sweep.hit.pos.x = clamp(
-              sweep.hit.pos.x + direction.x * box.half.x,
-              this.pos.x - this.half.x, this.pos.x + this.half.x);
-            sweep.hit.pos.y = clamp(
-              sweep.hit.pos.y + direction.y * box.half.y,
-              this.pos.y - this.half.y, this.pos.y + this.half.y);
-          } else {
-            sweep.pos.x = box.pos.x + delta.x;
-            sweep.pos.y = box.pos.y + delta.y;
-            sweep.time = 1;
-          }
+          sweep.pos.x = box.pos.x + delta.x;
+          sweep.pos.y = box.pos.y + delta.y;
+          sweep.time = 1;
         }
         return sweep;
       }

@@ -165,7 +165,7 @@ export class AABB {
 
   sweepAABB(box, delta) {
     let sweep = new Sweep();
-    if (delta.x == 0 && delta.y == 0) {
+    if (delta.x === 0 && delta.y === 0) {
       sweep.pos.x = box.pos.x;
       sweep.pos.y = box.pos.y;
       sweep.hit = this.intersectAABB(box);
@@ -174,26 +174,26 @@ export class AABB {
       } else {
         sweep.time = 1;
       }
+      return sweep;
+    }
 
+    sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
+    if (sweep.hit) {
+      sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+      sweep.pos.x = box.pos.x + delta.x * sweep.time;
+      sweep.pos.y = box.pos.y + delta.y * sweep.time;
+      let direction = delta.clone();
+      direction.normalize();
+      sweep.hit.pos.x = clamp(
+        sweep.hit.pos.x + direction.x * box.half.x,
+        this.pos.x - this.half.x, this.pos.x + this.half.x);
+      sweep.hit.pos.y = clamp(
+        sweep.hit.pos.y + direction.y * box.half.y,
+        this.pos.y - this.half.y, this.pos.y + this.half.y);
     } else {
-      sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
-      if (sweep.hit) {
-        sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
-        sweep.pos.x = box.pos.x + delta.x * sweep.time;
-        sweep.pos.y = box.pos.y + delta.y * sweep.time;
-        let direction = delta.clone();
-        direction.normalize();
-        sweep.hit.pos.x = clamp(
-          sweep.hit.pos.x + direction.x * box.half.x,
-          this.pos.x - this.half.x, this.pos.x + this.half.x);
-        sweep.hit.pos.y = clamp(
-          sweep.hit.pos.y + direction.y * box.half.y,
-          this.pos.y - this.half.y, this.pos.y + this.half.y);
-      } else {
-        sweep.pos.x = box.pos.x + delta.x;
-        sweep.pos.y = box.pos.y + delta.y;
-        sweep.time = 1;
-      }
+      sweep.pos.x = box.pos.x + delta.x;
+      sweep.pos.y = box.pos.y + delta.y;
+      sweep.time = 1;
     }
     return sweep;
   }
