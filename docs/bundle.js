@@ -631,6 +631,64 @@ var CircleSweptAABBExample = function (_Example10) {
   return CircleSweptAABBExample;
 }(Example);
 
+var CircleSweptCircleExample = function (_Example11) {
+  _inherits(CircleSweptCircleExample, _Example11);
+
+  function CircleSweptCircleExample(context, width, height) {
+    _classCallCheck(this, CircleSweptCircleExample);
+
+    var _this14 = _possibleConstructorReturn(this, (CircleSweptCircleExample.__proto__ || Object.getPrototypeOf(CircleSweptCircleExample)).call(this, context, width, height));
+
+    _this14.angle = 0;
+    _this14.circle = new _intersect.Circle(new _intersect.Point(0, 0), 112);
+    _this14.sweepCircles = [new _intersect.Circle(new _intersect.Point(-152, 24), 16), new _intersect.Circle(new _intersect.Point(128, -48), 16)];
+    _this14.sweepDeltas = [new _intersect.Point(64, -12), new _intersect.Point(-32, 96)];
+    _this14.tempCircle = new _intersect.Circle(new _intersect.Point(0, 0), 16);
+    return _this14;
+  }
+
+  _createClass(CircleSweptCircleExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      var _this15 = this;
+
+      _get(CircleSweptCircleExample.prototype.__proto__ || Object.getPrototypeOf(CircleSweptCircleExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.5 * Math.PI * elapsed;
+      this.drawCircle(this.circle, '#666');
+      var factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
+      this.sweepCircles.forEach(function (circle, i) {
+        var delta = _this15.sweepDeltas[i].clone();
+        delta.x *= factor;
+        delta.y *= factor;
+        var sweep = _this15.circle.sweepCircle(circle, delta);
+        var dir = delta.clone();
+        var length = dir.normalize();
+        _this15.drawCircle(circle, '#666');
+        if (sweep.hit) {
+          // Draw a red circle at the point where it was trying to move to
+          _this15.drawRay(circle.pos, dir, length, '#f00');
+          _this15.tempCircle.pos.x = circle.pos.x + delta.x;
+          _this15.tempCircle.pos.y = circle.pos.y + delta.y;
+          _this15.drawCircle(_this15.tempCircle, '#f00');
+          // Draw a yellow circle at the point it actually got to
+          _this15.tempCircle.pos.x = sweep.pos.x;
+          _this15.tempCircle.pos.y = sweep.pos.y;
+          _this15.drawCircle(_this15.tempCircle, '#ff0');
+          _this15.drawPoint(sweep.hit.pos, '#ff0');
+          _this15.drawRay(sweep.hit.pos, sweep.hit.normal, 4, '#ff0', false);
+        } else {
+          _this15.tempCircle.pos.x = sweep.pos.x;
+          _this15.tempCircle.pos.y = sweep.pos.y;
+          _this15.drawCircle(_this15.tempCircle, '#0f0');
+          _this15.drawRay(circle.pos, dir, length, '#0f0');
+        }
+      });
+    }
+  }]);
+
+  return CircleSweptCircleExample;
+}(Example);
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -653,7 +711,8 @@ ready(function () {
     'circle-vs-segment': CircleSegmentExample,
     'circle-vs-aabb': CircleAABBExample,
     'circle-vs-circle': CircleCircleExample,
-    'circle-vs-swept-aabb': CircleSweptAABBExample
+    'circle-vs-swept-aabb': CircleSweptAABBExample,
+    'circle-vs-swept-circle': CircleSweptCircleExample
   };
 
   var examples = [];
@@ -1032,6 +1091,34 @@ var Circle = exports.Circle = function () {
     key: 'intersectCircle',
     value: function intersectCircle(circle) {
       return this.intersectPoint(circle.pos, circle.radius);
+    }
+  }, {
+    key: 'sweepCircle',
+    value: function sweepCircle(circle, delta) {
+      var sweep = new Sweep();
+      if (delta.x === 0 && delta.y === 0) {
+        sweep.pos.x = circle.pos.x;
+        sweep.pos.y = circle.pos.y;
+        sweep.hit = this.intersectCircle(circle);
+        if (sweep.hit) {
+          sweep.time = sweep.hit.time = 0;
+        } else {
+          sweep.time = 1;
+        }
+        return sweep;
+      }
+      sweep.hit = this.intersectSegment(circle.pos, delta, circle.radius);
+      if (sweep.hit) {
+        sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+        sweep.pos.x = circle.pos.x + delta.x * sweep.time;
+        sweep.pos.y = circle.pos.y + delta.y * sweep.time;
+        sweep.hit.pos.x -= sweep.hit.normal.x * circle.radius;
+        sweep.hit.pos.y -= sweep.hit.normal.y * circle.radius;
+      } else {
+        sweep.pos.x = circle.pos.x + delta.x;
+        sweep.pos.y = circle.pos.y + delta.y;
+      }
+      return sweep;
     }
   }]);
 

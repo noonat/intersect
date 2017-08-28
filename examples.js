@@ -422,6 +422,57 @@ class CircleSweptAABBExample extends Example {
   }
 }
 
+class CircleSweptCircleExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.circle = new Circle(new Point(0, 0), 112);
+    this.sweepCircles = [
+      new Circle(new Point(-152, 24), 16),
+      new Circle(new Point(128, -48), 16),
+    ];
+    this.sweepDeltas = [
+      new Point(64, -12),
+      new Point(-32, 96),
+    ];
+    this.tempCircle = new Circle(new Point(0, 0), 16);
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.5 * Math.PI * elapsed;
+    this.drawCircle(this.circle, '#666');
+    let factor = ((Math.cos(this.angle) + 1) * 0.5) || 1e-8;
+    this.sweepCircles.forEach((circle, i) => {
+      let delta = this.sweepDeltas[i].clone();
+      delta.x *= factor;
+      delta.y *= factor;
+      let sweep = this.circle.sweepCircle(circle, delta);
+      let dir = delta.clone();
+      let length = dir.normalize();
+      this.drawCircle(circle, '#666');
+      if (sweep.hit) {
+        // Draw a red circle at the point where it was trying to move to
+        this.drawRay(circle.pos, dir, length, '#f00');
+        this.tempCircle.pos.x = circle.pos.x + delta.x;
+        this.tempCircle.pos.y = circle.pos.y + delta.y;
+        this.drawCircle(this.tempCircle, '#f00');
+        // Draw a yellow circle at the point it actually got to
+        this.tempCircle.pos.x = sweep.pos.x;
+        this.tempCircle.pos.y = sweep.pos.y;
+        this.drawCircle(this.tempCircle, '#ff0');
+        this.drawPoint(sweep.hit.pos, '#ff0');
+        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, '#ff0', false);
+      } else {
+        this.tempCircle.pos.x = sweep.pos.x;
+        this.tempCircle.pos.y = sweep.pos.y;
+        this.drawCircle(this.tempCircle, '#0f0');
+        this.drawRay(circle.pos, dir, length, '#0f0');
+      }
+    });
+  }
+}
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -445,6 +496,7 @@ ready(() => {
     'circle-vs-aabb': CircleAABBExample,
     'circle-vs-circle': CircleCircleExample,
     'circle-vs-swept-aabb': CircleSweptAABBExample,
+    'circle-vs-swept-circle': CircleSweptCircleExample,
   };
 
   let examples = [];

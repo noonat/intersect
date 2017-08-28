@@ -29,6 +29,7 @@ a look at [the compiled JS file][compiled].
    2. [Circle vs Segment](#circle-vs-segment)
    3. [Circle vs AABB](#circle-vs-aabb)
    4. [Circle vs Circle](#circle-vs-circle)
+   5. [Circle vs Swept Circle](#circle-vs-swept-circle)
 
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -488,10 +489,12 @@ of the box, as close to the segment of movement as possible.
           direction.normalize();
           sweep.hit.pos.x = clamp(
             sweep.hit.pos.x + direction.x * box.half.x,
-            this.pos.x - this.half.x, this.pos.x + this.half.x);
+            this.pos.x - this.half.x,
+            this.pos.x + this.half.x);
           sweep.hit.pos.y = clamp(
             sweep.hit.pos.y + direction.y * box.half.y,
-            this.pos.y - this.half.y, this.pos.y + this.half.y);
+            this.pos.y - this.half.y,
+            this.pos.y + this.half.y);
         } else {
           sweep.pos.x = box.pos.x + delta.x;
           sweep.pos.y = box.pos.y + delta.y;
@@ -792,5 +795,42 @@ just that.
 
       intersectCircle(circle) {
         return this.intersectPoint(circle.pos, circle.radius);
+      }
+
+
+### Circle vs Swept Circle
+
+Much like we were able to simplify the circle vs circle test, we can also
+simplify this test. By inflating the size of the stationary circle to include
+the size of the moving one, this check can become a circle vs segment test.
+
+If the sweep isn't actually moving anywhere, we'll just do a static test, like
+we've done for the other sweep tests.
+
+      sweepCircle(circle, delta) {
+        let sweep = new Sweep();
+        if (delta.x === 0 && delta.y === 0) {
+          sweep.pos.x = circle.pos.x;
+          sweep.pos.y = circle.pos.y;
+          sweep.hit = this.intersectCircle(circle);
+          if (sweep.hit) {
+            sweep.time = sweep.hit.time = 0;
+          } else {
+            sweep.time = 1;
+          }
+          return sweep;
+        }
+        sweep.hit = this.intersectSegment(circle.pos, delta, circle.radius);
+        if (sweep.hit) {
+          sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+          sweep.pos.x = circle.pos.x + delta.x * sweep.time;
+          sweep.pos.y = circle.pos.y + delta.y * sweep.time;
+          sweep.hit.pos.x -= sweep.hit.normal.x * circle.radius;
+          sweep.hit.pos.y -= sweep.hit.normal.y * circle.radius;
+        } else {
+          sweep.pos.x = circle.pos.x + delta.x;
+          sweep.pos.y = circle.pos.y + delta.y;
+        }
+        return sweep;
       }
     }
