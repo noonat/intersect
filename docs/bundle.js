@@ -421,6 +421,216 @@ var MultipleAABBSweptAABBExample = function (_Example5) {
   return MultipleAABBSweptAABBExample;
 }(Example);
 
+var CirclePointExample = function (_Example6) {
+  _inherits(CirclePointExample, _Example6);
+
+  function CirclePointExample(context, width, height) {
+    _classCallCheck(this, CirclePointExample);
+
+    var _this8 = _possibleConstructorReturn(this, (CirclePointExample.__proto__ || Object.getPrototypeOf(CirclePointExample)).call(this, context, width, height));
+
+    _this8.angle = 0;
+    _this8.pos = new _intersect.Point();
+    _this8.circle = new _intersect.Circle(new _intersect.Point(0, 0), 24);
+    return _this8;
+  }
+
+  _createClass(CirclePointExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      _get(CirclePointExample.prototype.__proto__ || Object.getPrototypeOf(CirclePointExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.5 * Math.PI * elapsed;
+      this.pos.x = Math.cos(this.angle * 0.4) * 32;
+      this.pos.y = Math.sin(this.angle) * 12;
+      var hit = this.circle.intersectPoint(this.pos);
+      this.drawCircle(this.circle, '#666');
+      if (hit) {
+        this.drawPoint(this.pos, '#f00');
+        this.drawPoint(hit.pos, '#ff0');
+      } else {
+        this.drawPoint(this.pos, '#0f0');
+      }
+    }
+  }]);
+
+  return CirclePointExample;
+}(Example);
+
+var CircleSegmentExample = function (_Example7) {
+  _inherits(CircleSegmentExample, _Example7);
+
+  function CircleSegmentExample(context, width, height) {
+    _classCallCheck(this, CircleSegmentExample);
+
+    var _this9 = _possibleConstructorReturn(this, (CircleSegmentExample.__proto__ || Object.getPrototypeOf(CircleSegmentExample)).call(this, context, width, height));
+
+    _this9.angle = 0;
+    _this9.circle = new _intersect.Circle(new _intersect.Point(0, 0), 24);
+    return _this9;
+  }
+
+  _createClass(CircleSegmentExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      _get(CircleSegmentExample.prototype.__proto__ || Object.getPrototypeOf(CircleSegmentExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.5 * Math.PI * elapsed;
+      var pos1 = new _intersect.Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
+      var pos2 = new _intersect.Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+      var delta = new _intersect.Point(pos2.x - pos1.x, pos2.y - pos1.y);
+      var hit = this.circle.intersectSegment(pos1, delta);
+      var dir = delta.clone();
+      var length = dir.normalize();
+      this.drawCircle(this.circle, '#666');
+      if (hit) {
+        this.drawRay(pos1, dir, length, '#f00');
+        this.drawSegment(pos1, hit.pos, '#ff0');
+        this.drawPoint(hit.pos, '#ff0');
+        this.drawRay(hit.pos, hit.normal, 6, '#ff0', false);
+      } else {
+        this.drawRay(pos1, dir, length, '#0f0');
+      }
+    }
+  }]);
+
+  return CircleSegmentExample;
+}(Example);
+
+var CircleAABBExample = function (_Example8) {
+  _inherits(CircleAABBExample, _Example8);
+
+  function CircleAABBExample(context, width, height) {
+    _classCallCheck(this, CircleAABBExample);
+
+    var _this10 = _possibleConstructorReturn(this, (CircleAABBExample.__proto__ || Object.getPrototypeOf(CircleAABBExample)).call(this, context, width, height));
+
+    _this10.angle = 0;
+    _this10.circle = new _intersect.Circle(new _intersect.Point(0, 0), 32);
+    _this10.box = new _intersect.AABB(new _intersect.Point(0, 0), new _intersect.Point(16, 16));
+    return _this10;
+  }
+
+  _createClass(CircleAABBExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      _get(CircleAABBExample.prototype.__proto__ || Object.getPrototypeOf(CircleAABBExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.2 * Math.PI * elapsed;
+      this.box.pos.x = Math.cos(this.angle) * 96;
+      this.box.pos.y = Math.sin(this.angle * 2.4) * 24;
+      var hit = this.circle.intersectAABB(this.box);
+      this.drawCircle(this.circle, '#666');
+      if (hit) {
+        this.drawAABB(this.box, '#f00');
+        this.box.pos.x += hit.delta.x;
+        this.box.pos.y += hit.delta.y;
+        this.drawAABB(this.box, '#ff0');
+        this.drawPoint(hit.pos, '#ff0');
+        this.drawRay(hit.pos, hit.normal, 4, '#ff0', false);
+      } else {
+        this.drawAABB(this.box, '#0f0');
+      }
+    }
+  }]);
+
+  return CircleAABBExample;
+}(Example);
+
+var CircleCircleExample = function (_Example9) {
+  _inherits(CircleCircleExample, _Example9);
+
+  function CircleCircleExample(context, width, height) {
+    _classCallCheck(this, CircleCircleExample);
+
+    var _this11 = _possibleConstructorReturn(this, (CircleCircleExample.__proto__ || Object.getPrototypeOf(CircleCircleExample)).call(this, context, width, height));
+
+    _this11.angle = 0;
+    _this11.circle1 = new _intersect.Circle(new _intersect.Point(0, 0), 32);
+    _this11.circle2 = new _intersect.Circle(new _intersect.Point(0, 0), 16);
+    return _this11;
+  }
+
+  _createClass(CircleCircleExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      _get(CircleCircleExample.prototype.__proto__ || Object.getPrototypeOf(CircleCircleExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.2 * Math.PI * elapsed;
+      this.circle2.pos.x = Math.cos(this.angle) * 96;
+      this.circle2.pos.y = Math.sin(this.angle * 2.4) * 24;
+      var hit = this.circle1.intersectCircle(this.circle2);
+      this.drawCircle(this.circle1, '#666');
+      if (hit) {
+        this.drawCircle(this.circle2, '#f00');
+        this.circle2.pos.x += hit.delta.x;
+        this.circle2.pos.y += hit.delta.y;
+        this.drawCircle(this.circle2, '#ff0');
+        this.drawPoint(hit.pos, '#ff0');
+        this.drawRay(hit.pos, hit.normal, 4, '#ff0', false);
+      } else {
+        this.drawCircle(this.circle2, '#0f0');
+      }
+    }
+  }]);
+
+  return CircleCircleExample;
+}(Example);
+
+var CircleSweptAABBExample = function (_Example10) {
+  _inherits(CircleSweptAABBExample, _Example10);
+
+  function CircleSweptAABBExample(context, width, height) {
+    _classCallCheck(this, CircleSweptAABBExample);
+
+    var _this12 = _possibleConstructorReturn(this, (CircleSweptAABBExample.__proto__ || Object.getPrototypeOf(CircleSweptAABBExample)).call(this, context, width, height));
+
+    _this12.angle = 0;
+    _this12.circle = new _intersect.Circle(new _intersect.Point(0, 0), 112);
+    _this12.sweepBoxes = [new _intersect.AABB(new _intersect.Point(-152, 24), new _intersect.Point(16, 16)), new _intersect.AABB(new _intersect.Point(128, -48), new _intersect.Point(16, 16))];
+    _this12.sweepDeltas = [new _intersect.Point(64, -12), new _intersect.Point(-32, 96)];
+    _this12.tempBox = new _intersect.AABB(new _intersect.Point(0, 0), new _intersect.Point(16, 16));
+    return _this12;
+  }
+
+  _createClass(CircleSweptAABBExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      var _this13 = this;
+
+      _get(CircleSweptAABBExample.prototype.__proto__ || Object.getPrototypeOf(CircleSweptAABBExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.5 * Math.PI * elapsed;
+      this.drawCircle(this.circle, '#666');
+      var factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
+      this.sweepBoxes.forEach(function (box, i) {
+        var delta = _this13.sweepDeltas[i].clone();
+        delta.x *= factor;
+        delta.y *= factor;
+        var sweep = _this13.circle.sweepAABB(box, delta);
+        var dir = delta.clone();
+        var length = dir.normalize();
+        _this13.drawAABB(box, '#666');
+        if (sweep.hit) {
+          // Draw a red box at the point where it was trying to move to
+          _this13.drawRay(box.pos, dir, length, '#f00');
+          _this13.tempBox.pos.x = box.pos.x + delta.x;
+          _this13.tempBox.pos.y = box.pos.y + delta.y;
+          _this13.drawAABB(_this13.tempBox, '#f00');
+          // Draw a yellow box at the point it actually got to
+          _this13.tempBox.pos.x = sweep.pos.x;
+          _this13.tempBox.pos.y = sweep.pos.y;
+          _this13.drawAABB(_this13.tempBox, '#ff0');
+          _this13.drawPoint(sweep.hit.pos, '#ff0');
+          _this13.drawRay(sweep.hit.pos, sweep.hit.normal, 4, '#ff0', false);
+        } else {
+          _this13.tempBox.pos.x = sweep.pos.x;
+          _this13.tempBox.pos.y = sweep.pos.y;
+          _this13.drawAABB(_this13.tempBox, '#0f0');
+          _this13.drawRay(box.pos, dir, length, '#0f0');
+        }
+      });
+    }
+  }]);
+
+  return CircleSweptAABBExample;
+}(Example);
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -438,7 +648,12 @@ ready(function () {
     'aabb-vs-segment': AABBSegmentExample,
     'aabb-vs-aabb': AABBAABBExample,
     'aabb-vs-swept-aabb': AABBSweptAABBExample,
-    'sweeping-an-aabb-through-multiple-objects': MultipleAABBSweptAABBExample
+    'sweeping-an-aabb-through-multiple-objects': MultipleAABBSweptAABBExample,
+    'circle-vs-point': CirclePointExample,
+    'circle-vs-segment': CircleSegmentExample,
+    'circle-vs-aabb': CircleAABBExample,
+    'circle-vs-circle': CircleCircleExample,
+    'circle-vs-swept-aabb': CircleSweptAABBExample
   };
 
   var examples = [];
@@ -717,6 +932,110 @@ var AABB = exports.AABB = function () {
   }]);
 
   return AABB;
+}();
+
+var Circle = exports.Circle = function () {
+  function Circle(pos, radius) {
+    _classCallCheck(this, Circle);
+
+    this.pos = pos;
+    this.radius = radius;
+  }
+
+  _createClass(Circle, [{
+    key: 'intersectPoint',
+    value: function intersectPoint(point) {
+      var padding = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+      var dx = point.x - this.pos.x;
+      var dy = point.y - this.pos.y;
+      var distanceSquared = dx * dx + dy * dy;
+      var minDistance = this.radius + padding;
+      if (distanceSquared >= minDistance * minDistance) {
+        return null;
+      }
+      var hit = new Hit(this);
+      hit.normal.x = dx;
+      hit.normal.y = dy;
+      hit.normal.normalize();
+      hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+      hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+      hit.delta.x = hit.pos.x + hit.normal.x * padding - point.x;
+      hit.delta.y = hit.pos.y + hit.normal.y * padding - point.y;
+      return hit;
+    }
+  }, {
+    key: 'intersectSegment',
+    value: function intersectSegment(pos, delta) {
+      var padding = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+      var r = this.radius + padding;
+      var mx = pos.x - this.pos.x;
+      var my = pos.y - this.pos.y;
+      var dx = delta.x;
+      var dy = delta.y;
+      var a = dx * dx + dy * dy; // D . D
+      var b = 2 * (mx * dx + my * dy); // 2(M . D)
+      var c = mx * mx + my * my - r * r; // (M . M) - r^2
+      var discr = b * b - 4 * a * c; // b^2 - 4ac
+      if (discr < 0) {
+        return null;
+      }
+
+      var time = (-b - Math.sqrt(discr)) / (2 * a);
+      if (time > 1) {
+        return null;
+      }
+
+      time = clamp(time, 0, 1);
+      var hit = new Hit(this);
+      hit.normal.x = mx + time * dx;
+      hit.normal.y = my + time * dy;
+      hit.normal.normalize();
+      hit.pos.x = pos.x + time * dx;
+      hit.pos.y = pos.y + time * dy;
+      hit.time = time;
+      return hit;
+    }
+  }, {
+    key: 'intersectAABB',
+    value: function intersectAABB(box) {
+      var dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+      var dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
+      dx -= this.pos.x;
+      dy -= this.pos.y;
+      var distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared >= this.radius * this.radius) {
+        return null;
+      }
+
+      var hit = new Hit(this);
+      hit.normal.x = box.pos.x - this.pos.x;
+      hit.normal.y = box.pos.y - this.pos.y;
+      hit.normal.normalize();
+      hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+      hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+      var px = void 0,
+          py = void 0;
+      if (abs(hit.normal.x) > abs(hit.normal.y)) {
+        px = box.half.x * sign(hit.normal.x);
+        py = px * hit.normal.y / hit.normal.x;
+      } else {
+        py = box.half.y * sign(hit.normal.y);
+        px = py * hit.normal.x / hit.normal.y;
+      }
+      hit.delta.x = hit.pos.x + px - box.pos.x;
+      hit.delta.y = hit.pos.y + py - box.pos.y;
+      return hit;
+    }
+  }, {
+    key: 'intersectCircle',
+    value: function intersectCircle(circle) {
+      return this.intersectPoint(circle.pos, circle.radius);
+    }
+  }]);
+
+  return Circle;
 }();
 
 /***/ })

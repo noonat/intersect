@@ -212,3 +212,92 @@ export class AABB {
     return nearest;
   }
 }
+
+export class Circle {
+  constructor(pos, radius) {
+    this.pos = pos;
+    this.radius = radius;
+  }
+
+  intersectPoint(point, padding=0) {
+    let dx = point.x - this.pos.x;
+    let dy = point.y - this.pos.y;
+    let distanceSquared = dx * dx + dy * dy;
+    let minDistance = this.radius + padding;
+    if (distanceSquared >= (minDistance * minDistance)) {
+      return null;
+    }
+    let hit = new Hit(this);
+    hit.normal.x = dx;
+    hit.normal.y = dy;
+    hit.normal.normalize();
+    hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+    hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+    hit.delta.x = (hit.pos.x + hit.normal.x * padding) - point.x;
+    hit.delta.y = (hit.pos.y + hit.normal.y * padding) - point.y;
+    return hit;
+  }
+
+  intersectSegment(pos, delta, padding=0) {
+    let r = this.radius + padding;
+    let mx = pos.x - this.pos.x;
+    let my = pos.y - this.pos.y;
+    let dx = delta.x;
+    let dy = delta.y;
+    let a = dx * dx + dy * dy;              // D . D
+    let b = 2 * (mx * dx + my * dy);        // 2(M . D)
+    let c = (mx * mx + my * my) - (r * r);  // (M . M) - r^2
+    let discr = (b * b) - (4 * a * c);      // b^2 - 4ac
+    if (discr < 0) {
+      return null;
+    }
+
+    let time = (-b - Math.sqrt(discr)) / (2 * a);
+    if (time > 1) {
+      return null;
+    }
+
+    time = clamp(time, 0, 1);
+    let hit = new Hit(this);
+    hit.normal.x = mx + time * dx;
+    hit.normal.y = my + time * dy;
+    hit.normal.normalize();
+    hit.pos.x = pos.x + time * dx;
+    hit.pos.y = pos.y + time * dy;
+    hit.time = time;
+    return hit;
+  }
+
+  intersectAABB(box) {
+    let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+    let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
+    dx -= this.pos.x;
+    dy -= this.pos.y;
+    let distanceSquared = dx * dx + dy * dy;
+    if (distanceSquared >= this.radius * this.radius) {
+      return null;
+    }
+
+    let hit = new Hit(this);
+    hit.normal.x = box.pos.x - this.pos.x;
+    hit.normal.y = box.pos.y - this.pos.y;
+    hit.normal.normalize();
+    hit.pos.x = this.pos.x + (hit.normal.x * this.radius);
+    hit.pos.y = this.pos.y + (hit.normal.y * this.radius);
+    let px, py;
+    if (abs(hit.normal.x) > abs(hit.normal.y)) {
+      px = box.half.x * sign(hit.normal.x);
+      py = px * (hit.normal.y) / hit.normal.x;
+    } else {
+      py = box.half.y * sign(hit.normal.y);
+      px = (py * hit.normal.x) / hit.normal.y;
+    }
+    hit.delta.x = (hit.pos.x + px) - box.pos.x;
+    hit.delta.y = (hit.pos.y + py) - box.pos.y;
+    return hit;
+  }
+
+  intersectCircle(circle) {
+    return this.intersectPoint(circle.pos, circle.radius);
+  }
+}

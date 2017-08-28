@@ -45,9 +45,16 @@ a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js"
 <li><a href="#aabb-vs-segment">AABB vs Segment</a></li>
 <li><a href="#aabb-vs-aabb">AABB vs AABB</a></li>
 <li><a href="#aabb-vs-swept-aabb">AABB vs Swept AABB</a></li>
+<li><a href="#sweeping-an-aabb-through-multiple-objects">Sweeping an AABB Through Multiple Objects</a></li>
 </ol>
 </li>
-<li><a href="#sweeping-an-aabb-through-multiple-objects">Sweeping an AABB Through Multiple Objects</a></li>
+<li><a href="#circles">Circles</a><ol>
+<li><a href="#circle-vs-point">Circle vs Point</a></li>
+<li><a href="#circle-vs-segment">Circle vs Segment</a></li>
+<li><a href="#circle-vs-aabb">Circle vs AABB</a></li>
+<li><a href="#circle-vs-circle">Circle vs Circle</a></li>
+</ol>
+</li>
 </ol>
 <h2 id="helpers">Helpers</h2>
 
@@ -159,9 +166,9 @@ estimation of it, in some sweep tests).</li>
 <li><strong>hit.delta</strong> is the overlap between the two objects, and is a vector that
 can be added to the colliding object’s position to move it back to a
 non-colliding state.</li>
-<li><strong>hit.time</strong> is only defined for segment and sweep intersections, and is
+<li><strong>hit.time</strong> is only defined for segment and sweep intersections, and is a
 fraction from 0 to 1 indicating how far along the line the collision occurred.
-(This is the <code>t</code> value for the line equation <code>L(t) = A + t * (B - A)</code>)</li>
+(This is the \(t\) value for the line equation \(L(t) = A + t(B - A)\))</li>
 </ul>
 <h3 id="sweep-tests">Sweep Tests</h3>
 <p>Sweep tests are a <em>moving vs static</em> test. They take two objects, sweep one
@@ -305,11 +312,12 @@ of the bounding box, if specified.</p>
       
         
         <p>You might notice we haven’t defined a segment argument. A segment from point
-<code>A</code> to point <code>B</code> can be expressed with the equation <code>S(t) = A + t * (B - A)</code>,
-for <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is the time along the line, or
-percentage distance from <code>A</code> to <code>B</code>. Instead of formalizing the concept of a
-segment, we use this equation and describe it it as a start <code>pos</code> and a <code>delta</code>
-vector to the end of the line.</p>
+\(A\) to point \(B\) can be expressed with the equation
+\(S(t) = A + t(B - A)\), for \(0 &lt;= t &lt;= 1\). In this equation, \(t\) is
+the time along the line, or percentage distance from \(A\) to \(B\).
+Instead of formalizing the concept of a segment, we use this equation and
+create a variable <code>pos</code> with the value of \(A\), and a variable <code>delta</code> with
+the value of \(B - A\).</p>
 <p>Next, we need to find the linear time at which point the segment intersects
 with the box’s near and far edges.</p>
 <p>We can calculate this by subtracting the position of the edge from the segment’s
@@ -568,12 +576,270 @@ of the items.</li>
 <p>The first step is out of scope for this library, but these tests are great for
 solving the narrow phase. You can usually get away without a broad phase for
 simple games, however, if you aren’t colliding against a huge number of objects.</p>
+<h2 id="circles">Circles</h2>
 
+        
+      
+        
+        <p>Circles are just a center position and a radius.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Circle</span> </span>{
+  <span class="hljs-keyword">constructor</span>(pos, radius) {
+    <span class="hljs-keyword">this</span>.pos = pos;
+    <span class="hljs-keyword">this</span>.radius = radius;
+  }</pre></div>
+        
+      
+        
+        <p>The tests for circles are similar to the ones for AABB, although their
+implementation tends to be a bit more complicated.</p>
+<p>We’ll need to talk about math a bit more for circles. To keep it clear whether
+we’re talking about vectors or scalars, we’ll use uppercase letters to refer to
+vectors, and lowercase letters to refer to scalars. For circles specifically,
+\(C\) will be the circle’s <code>pos</code>, and \(r\) will be the circle’s <code>radius</code>.</p>
+<h3 id="circle-vs-point">Circle vs Point</h3>
+<p>When testing whether a point \(P\) collides with a circle, we first need to
+calculate the delta from \(P\) to the circle’s center, \(C\):</p>
+<p>\[D = P - C\]</p>
+<p>If the length of \(D\) is greater than \(r\), then the point is outside the
+circle. Calculating the length of \(D\) is just the usual Pythagorean
+theorem, the circle is not colliding if:</p>
+<p>\[\sqrt{D_{0}D_{0} + D_{1}D_{1}} &gt; r\]</p>
+<p>When the length is greater than the radius of the circle, it means the point
+lies outside the circle. We can optimize the check a bit by comparing the
+distance squared to the radius squared, so that we don’t need to do a square
+root to calculate the true distance:</p>
+<p>\[D_{0}D_{0} + D_{1}D_{1} &gt; r^2\]</p>
+<p>We’ll also allow a padding to be passed into the function for use in other
+places that we’ll call this function. The padding will just be added to the
+radius to inflate the size of the circle for the test.</p>
+<p>In the case of a collision, we’ll just put the hit on the edge of the circle.</p>
+
+        
+          <div class='highlight'><pre>  intersectPoint(point, padding=<span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">let</span> dx = point.x - <span class="hljs-keyword">this</span>.pos.x;
+    <span class="hljs-keyword">let</span> dy = point.y - <span class="hljs-keyword">this</span>.pos.y;
+    <span class="hljs-keyword">let</span> distanceSquared = dx * dx + dy * dy;
+    <span class="hljs-keyword">let</span> minDistance = <span class="hljs-keyword">this</span>.radius + padding;
+    <span class="hljs-keyword">if</span> (distanceSquared &gt;= (minDistance * minDistance)) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }
+    <span class="hljs-keyword">let</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+    hit.normal.x = dx;
+    hit.normal.y = dy;
+    hit.normal.normalize();
+    hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + hit.normal.x * <span class="hljs-keyword">this</span>.radius;
+    hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + hit.normal.y * <span class="hljs-keyword">this</span>.radius;
+    hit.delta.x = (hit.pos.x + hit.normal.x * padding) - point.x;
+    hit.delta.y = (hit.pos.y + hit.normal.y * padding) - point.y;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre></div>
+        
+      
+        
+        <h3 id="circle-vs-segment">Circle vs Segment</h3>
+<p>This collision test is one of the more complicated ones that we’ll have to
+talk about here. You can find another explanation of this formula and algorithm
+in [Real-Time Collision Detection] section 5.3.2. If you’re not interested in
+the math behind the algorithm, you can skip to the end of this section to
+see the code.</p>
+<p>Like we did in <a href="#aabb-vs-segment">AABB vs Segment</a>, we’re going to express a
+segment as a starting position \(P\) and a delta \(D\) representing the
+distance from the start to the end. Points along the line can be expressed by
+multiplying \(D\) by a linear time \(t\), and adding that to the starting
+position:</p>
+<p>\[S(t) = P + tD\]</p>
+<p>Remember that, in this formula, points that exist on the segment must have
+\(t \in [0, 1]\). If \(t\) is not in that range, the point is collinear
+with the segment, but exists either before it’s start point or after it’s
+end point.</p>
+<p>If we reuse the formula from the previous section for expressing a point on
+the edge of the circle, \((X - C) \cdot (X - C) = r^2\), but substitute
+instead the formula for our segment in place of \(X\):</p>
+<p>\[(P + tD - C) \cdot (P + tD - C) = r^2\]</p>
+<p>We need to solve this equation to find \(t\), so that we know the time at
+which the segment intersects with the edge of the circle. It turns out that
+with some re-ordering and expansion, we can turn this into a quadratic
+equation. Let’s go through the process.</p>
+<p>First, let’s say that \(M = P - C\), and use that to simplify a bit:</p>
+<p>\[(P - C + tD) \cdot (P - C + tD) = r^2\]
+\[(M + tD) \cdot (M + tD) = r^2\]</p>
+<p>We can expand the dot product and simplify things a bit:</p>
+<p>\[(M \cdot M) + (M \cdot tD) + (tD \cdot M) + (tD \cdot tD) = r^2\]
+\[(M \cdot M) + 2(M \cdot tD) + (D \cdot D)t^2 = r^2\]</p>
+<p>Then we can re-order things to swap the first and last terms of the left-hand side,
+and subtract \(r^2\) from both sides:</p>
+<p>\[(D \cdot D)t^2 + 2(M \cdot D)t + (M \cdot M) = r^2\]
+\[(D \cdot D)t^2 + 2(M \cdot D)t + (M \cdot M) - r^2 = 0\]</p>
+<p>It might not be immediately obvious, but this is a <em>quadratic equation</em>. A
+quadratic equation has the form
+\({\color{red}a}x^2 + {\color{green}b}x + {\color{blue}c} = 0\). Here is
+the same equation with the corresponding terms highlighted:</p>
+<p>\[{\color{red}(D \cdot D)}t^2 + {\color{green}2(M \cdot D)}t + {\color{blue}(M \cdot M) - r^2} = 0\]</p>
+<p>Why is it helpful to have it in this form? Because the <em>quadratic formula</em> can
+be used to solve a quadratic equation for \(x\) (or, in our case, \(t\)).
+The quadratic formula is:</p>
+<p>\[x = \frac{-b \pm \sqrt{{\color{blue}b^2 - 4ac}}}{2a}\]</p>
+<p>The part highlighted in blue is important. It’s called the discriminant. The
+result of this portion of the formula tells us what sort of result we can
+expect:</p>
+<ul>
+<li>If it is negative, it means there aren’t any real roots. For our purposes,
+this means that the ray missed the circle completely.</li>
+<li>If it is zero, it means that the ray hit the circle exactly once.</li>
+<li>If it is greater than zero, it means that the ray hit the circle twice –
+once entering the circle, and once leaving it again. Note the \(\pm\) in
+the quadratic formula. This is because it can yield two possible results,
+one by adding and one by subtracting the root. In this case, the lesser of
+the two is the one we care about, so we only need to subtract.</li>
+</ul>
+<p>If we substitute our terms into the formula, it’s pretty awful to read:</p>
+<p>\[t = \frac{-2(M \cdot D) \pm \sqrt{2(M \cdot D)^2 - 4(D \cdot D)((M \cdot M) - r^2)}}{2(D \cdot D)}\]</p>
+<p>This is probably a good time to start expressing this as code, which should
+make it a bit easier to understand. Let’s start out by defining our equivalents
+of \(r\), \(M\), and \(D\):</p>
+
+        
+          <div class='highlight'><pre>  intersectSegment(pos, delta, padding=<span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">let</span> r = <span class="hljs-keyword">this</span>.radius + padding;
+    <span class="hljs-keyword">let</span> mx = pos.x - <span class="hljs-keyword">this</span>.pos.x;
+    <span class="hljs-keyword">let</span> my = pos.y - <span class="hljs-keyword">this</span>.pos.y;
+    <span class="hljs-keyword">let</span> dx = delta.x;
+    <span class="hljs-keyword">let</span> dy = delta.y;</pre></div>
+        
+      
+        
+        <p>Once we have these, we can define \(a\), \(b\), and \(c\) from the
+quadratic formula:</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">let</span> a = dx * dx + dy * dy;              <span class="hljs-comment">// D . D</span>
+    <span class="hljs-keyword">let</span> b = <span class="hljs-number">2</span> * (mx * dx + my * dy);        <span class="hljs-comment">// 2(M . D)</span>
+    <span class="hljs-keyword">let</span> c = (mx * mx + my * my) - (r * r);  <span class="hljs-comment">// (M . M) - r^2</span></pre></div>
+        
+      
+        
+        <p>Then we can use these to calculate the discriminant. We can also check for the
+case when it is less than zero, as that means no collision occurred and we
+can return early.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">let</span> discr = (b * b) - (<span class="hljs-number">4</span> * a * c);      <span class="hljs-comment">// b^2 - 4ac</span>
+    <span class="hljs-keyword">if</span> (discr &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre></div>
+        
+      
+        
+        <p>Once we have the discriminant, we can calculate the rest of the quadratic
+formula to give us the time of intersection. If the time is greater than 1, it
+means the intersection occurred past the end of the segment, so no collision
+occurred and we can return early.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">let</span> time = (-b - <span class="hljs-built_in">Math</span>.sqrt(discr)) / (<span class="hljs-number">2</span> * a);
+    <span class="hljs-keyword">if</span> (time &gt; <span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre></div>
+        
+      
+        
+        <p>If we’ve gotten this far, a collision occurred, and we can use the values to
+calculate and return a hit.</p>
+
+        
+          <div class='highlight'><pre>    time = clamp(time, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+    <span class="hljs-keyword">let</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+    hit.normal.x = mx + time * dx;
+    hit.normal.y = my + time * dy;
+    hit.normal.normalize();
+    hit.pos.x = pos.x + time * dx;
+    hit.pos.y = pos.y + time * dy;
+    hit.time = time;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre></div>
+        
+      
+        
+        <h3 id="circle-vs-aabb">Circle vs AABB</h3>
+<p>To test for a collision between a circle and an AABB, we can simplify it to
+a test of the distance of the of the center of the circle from the closest
+point on the edge of the AABB. We can calculate the closest point by clamping
+the circle’s position to the edges of the box:</p>
+
+        
+          <div class='highlight'><pre>  intersectAABB(box) {
+    <span class="hljs-keyword">let</span> dx = clamp(<span class="hljs-keyword">this</span>.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+    <span class="hljs-keyword">let</span> dy = clamp(<span class="hljs-keyword">this</span>.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);</pre></div>
+        
+      
+        
+        <p>Once we have the nearest point, we need to convert it into the circle’s
+coordinate space – that is, make the point relative to the circle’s center:</p>
+
+        
+          <div class='highlight'><pre>    dx -= <span class="hljs-keyword">this</span>.pos.x;
+    dy -= <span class="hljs-keyword">this</span>.pos.y;</pre></div>
+        
+      
+        
+        <p>Then we can calculate the length of that vector, and if it’s greater than the
+radius of the circle, the circle isn’t colliding with the box:</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">let</span> distanceSquared = dx * dx + dy * dy;
+    <span class="hljs-keyword">if</span> (distanceSquared &gt;= <span class="hljs-keyword">this</span>.radius * <span class="hljs-keyword">this</span>.radius) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre></div>
+        
+      
+        
+        <p>Otherwise, they’re colliding, and we need to create a hit.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">let</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+    hit.normal.x = box.pos.x - <span class="hljs-keyword">this</span>.pos.x;
+    hit.normal.y = box.pos.y - <span class="hljs-keyword">this</span>.pos.y;
+    hit.normal.normalize();
+    hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + (hit.normal.x * <span class="hljs-keyword">this</span>.radius);
+    hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + (hit.normal.y * <span class="hljs-keyword">this</span>.radius);
+    <span class="hljs-keyword">let</span> px, py;
+    <span class="hljs-keyword">if</span> (abs(hit.normal.x) &gt; abs(hit.normal.y)) {
+      px = box.half.x * sign(hit.normal.x);
+      py = px * (hit.normal.y) / hit.normal.x;
+    } <span class="hljs-keyword">else</span> {
+      py = box.half.y * sign(hit.normal.y);
+      px = (py * hit.normal.x) / hit.normal.y;
+    }
+    hit.delta.x = (hit.pos.x + px) - box.pos.x;
+    hit.delta.y = (hit.pos.y + py) - box.pos.y;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre></div>
+        
+      
+        
+        <h3 id="circle-vs-circle">Circle vs Circle</h3>
+<p>The last few tests were a little complicated, so here’s an easy one for you.
+Checking for the intersection of a circle with another circle is as simple as
+inflating the size of one circle by the size of the other, and doing a point
+check. We can reuse the <code>intersectPoint</code> function we’ve already created to do
+just that.</p>
+
+        
+          <div class='highlight'><pre>  intersectCircle(circle) {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.intersectPoint(circle.pos, circle.radius);
+  }
+}</pre></div>
         
       
       <div class="fleur">h</div>
     </div>
   </div>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({TeX: {extensions: ["color.js"]}});
+  </script>
+  <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
   <script src="docs/bundle.js"></script>
 </body>
 </html>

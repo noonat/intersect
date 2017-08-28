@@ -1,6 +1,6 @@
 'use strict';
 
-import {AABB, Point} from './intersect';
+import {AABB, Circle, Point} from './intersect';
 
 class Example {
   constructor(context, width, height) {
@@ -263,6 +263,165 @@ class MultipleAABBSweptAABBExample extends Example {
   }
 }
 
+class CirclePointExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.pos = new Point();
+    this.circle = new Circle(new Point(0, 0), 24);
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.5 * Math.PI * elapsed;
+    this.pos.x = Math.cos(this.angle * 0.4) * 32;
+    this.pos.y = Math.sin(this.angle) * 12;
+    let hit = this.circle.intersectPoint(this.pos);
+    this.drawCircle(this.circle, '#666');
+    if (hit) {
+      this.drawPoint(this.pos, '#f00');
+      this.drawPoint(hit.pos, '#ff0');
+    } else {
+      this.drawPoint(this.pos, '#0f0');
+    }
+  }
+}
+
+class CircleSegmentExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.circle = new Circle(new Point(0, 0), 24);
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.5 * Math.PI * elapsed;
+    let pos1 = new Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
+    let pos2 = new Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+    let delta = new Point(pos2.x - pos1.x, pos2.y - pos1.y);
+    let hit = this.circle.intersectSegment(pos1, delta);
+    let dir = delta.clone();
+    let length = dir.normalize();
+    this.drawCircle(this.circle, '#666');
+    if (hit) {
+      this.drawRay(pos1, dir, length, '#f00');
+      this.drawSegment(pos1, hit.pos, '#ff0');
+      this.drawPoint(hit.pos, '#ff0');
+      this.drawRay(hit.pos, hit.normal, 6, '#ff0', false);
+    } else {
+      this.drawRay(pos1, dir, length, '#0f0');
+    }
+  }
+}
+
+class CircleAABBExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.circle = new Circle(new Point(0, 0), 32);
+    this.box = new AABB(new Point(0, 0), new Point(16, 16));
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.2 * Math.PI * elapsed;
+    this.box.pos.x = Math.cos(this.angle) * 96;
+    this.box.pos.y = Math.sin(this.angle * 2.4) * 24;
+    let hit = this.circle.intersectAABB(this.box);
+    this.drawCircle(this.circle, '#666');
+    if (hit) {
+      this.drawAABB(this.box, '#f00');
+      this.box.pos.x += hit.delta.x;
+      this.box.pos.y += hit.delta.y;
+      this.drawAABB(this.box, '#ff0');
+      this.drawPoint(hit.pos, '#ff0');
+      this.drawRay(hit.pos, hit.normal, 4, '#ff0', false);
+    } else {
+      this.drawAABB(this.box, '#0f0');
+    }
+  }
+}
+
+class CircleCircleExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.circle1 = new Circle(new Point(0, 0), 32);
+    this.circle2 = new Circle(new Point(0, 0), 16);
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.2 * Math.PI * elapsed;
+    this.circle2.pos.x = Math.cos(this.angle) * 96;
+    this.circle2.pos.y = Math.sin(this.angle * 2.4) * 24;
+    let hit = this.circle1.intersectCircle(this.circle2);
+    this.drawCircle(this.circle1, '#666');
+    if (hit) {
+      this.drawCircle(this.circle2, '#f00');
+      this.circle2.pos.x += hit.delta.x;
+      this.circle2.pos.y += hit.delta.y;
+      this.drawCircle(this.circle2, '#ff0');
+      this.drawPoint(hit.pos, '#ff0');
+      this.drawRay(hit.pos, hit.normal, 4, '#ff0', false);
+    } else {
+      this.drawCircle(this.circle2, '#0f0');
+    }
+  }
+}
+
+class CircleSweptAABBExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.circle = new Circle(new Point(0, 0), 112);
+    this.sweepBoxes = [
+      new AABB(new Point(-152, 24), new Point(16, 16)),
+      new AABB(new Point(128, -48), new Point(16, 16)),
+    ];
+    this.sweepDeltas = [
+      new Point(64, -12),
+      new Point(-32, 96),
+    ];
+    this.tempBox = new AABB(new Point(0, 0), new Point(16, 16));
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.5 * Math.PI * elapsed;
+    this.drawCircle(this.circle, '#666');
+    let factor = ((Math.cos(this.angle) + 1) * 0.5) || 1e-8;
+    this.sweepBoxes.forEach((box, i) => {
+      let delta = this.sweepDeltas[i].clone();
+      delta.x *= factor;
+      delta.y *= factor;
+      let sweep = this.circle.sweepAABB(box, delta);
+      let dir = delta.clone();
+      let length = dir.normalize();
+      this.drawAABB(box, '#666');
+      if (sweep.hit) {
+        // Draw a red box at the point where it was trying to move to
+        this.drawRay(box.pos, dir, length, '#f00');
+        this.tempBox.pos.x = box.pos.x + delta.x;
+        this.tempBox.pos.y = box.pos.y + delta.y;
+        this.drawAABB(this.tempBox, '#f00');
+        // Draw a yellow box at the point it actually got to
+        this.tempBox.pos.x = sweep.pos.x;
+        this.tempBox.pos.y = sweep.pos.y;
+        this.drawAABB(this.tempBox, '#ff0');
+        this.drawPoint(sweep.hit.pos, '#ff0');
+        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, '#ff0', false);
+      } else {
+        this.tempBox.pos.x = sweep.pos.x;
+        this.tempBox.pos.y = sweep.pos.y;
+        this.drawAABB(this.tempBox, '#0f0');
+        this.drawRay(box.pos, dir, length, '#0f0');
+      }
+    });
+  }
+}
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -281,6 +440,11 @@ ready(() => {
     'aabb-vs-aabb': AABBAABBExample,
     'aabb-vs-swept-aabb': AABBSweptAABBExample,
     'sweeping-an-aabb-through-multiple-objects': MultipleAABBSweptAABBExample,
+    'circle-vs-point': CirclePointExample,
+    'circle-vs-segment': CircleSegmentExample,
+    'circle-vs-aabb': CircleAABBExample,
+    'circle-vs-circle': CircleCircleExample,
+    'circle-vs-swept-aabb': CircleSweptAABBExample,
   };
 
   let examples = [];
