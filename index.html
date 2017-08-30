@@ -56,6 +56,10 @@ a look at <a href="https://github.com/noonat/intersect/blob/master/intersect.js"
 <li><a href="#circle-vs-swept-circle">Circle vs Swept Circle</a></li>
 </ol>
 </li>
+<li><a href="#capsules">Capsules</a><ol>
+<li><a href="#capsule-vs-segment">Capsule vs Segment</a></li>
+</ol>
+</li>
 </ol>
 <h2 id="helpers">Helpers</h2>
 
@@ -92,8 +96,8 @@ but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Point</span> </span>{
-  <span class="hljs-keyword">constructor</span>(x = 0, y = 0) {
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Point {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">x = 0, y = 0</span>) {
     <span class="hljs-keyword">this</span>.x = x;
     <span class="hljs-keyword">this</span>.y = y;
   }
@@ -149,8 +153,8 @@ overlapping.</p>
 <p>Intersection tests will return a Hit object when a collision occurs:</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Hit</span> </span>{
-  <span class="hljs-keyword">constructor</span>(collider) {
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Hit {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">collider</span>) {
     <span class="hljs-keyword">this</span>.collider = collider;
     <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point();
     <span class="hljs-keyword">this</span>.delta = <span class="hljs-keyword">new</span> Point();
@@ -194,8 +198,8 @@ and stop objects from ever moving into other objects.</p>
 <p>Sweep tests return a <code>Sweep</code> object:</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Sweep</span> </span>{
-  <span class="hljs-keyword">constructor</span>() {
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Sweep {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params"></span>) {
     <span class="hljs-keyword">this</span>.hit = <span class="hljs-literal">null</span>;
     <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point();
     <span class="hljs-keyword">this</span>.time = <span class="hljs-number">1</span>;
@@ -223,8 +227,8 @@ center point and box’s half size for each axis (that is, the box’s “radius
 each axis).</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AABB</span> </span>{
-  <span class="hljs-keyword">constructor</span>(pos, half) {
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> AABB {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos, half</span>) {
     <span class="hljs-keyword">this</span>.pos = pos;
     <span class="hljs-keyword">this</span>.half = half;
   }</pre></div>
@@ -587,8 +591,8 @@ simple games, however, if you aren’t colliding against a huge number of object
         <p>Circles are just a center position and a radius.</p>
 
         
-          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Circle</span> </span>{
-  <span class="hljs-keyword">constructor</span>(pos, radius) {
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Circle {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos, radius</span>) {
     <span class="hljs-keyword">this</span>.pos = pos;
     <span class="hljs-keyword">this</span>.radius = radius;
   }</pre></div>
@@ -869,6 +873,155 @@ we’ve done for the other sweep tests.</p>
       sweep.pos.y = circle.pos.y + delta.y;
     }
     <span class="hljs-keyword">return</span> sweep;
+  }
+}</pre></div>
+        
+      
+        
+        <h2 id="capsules">Capsules</h2>
+
+        
+      
+        
+        <p>Capsules are a segment with a radius. You can imagine it as a pill shape, or a
+bounding box with a half circle on each end.</p>
+
+        
+          <div class='highlight'><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Capsule {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos, delta, radius</span>) {
+    <span class="hljs-keyword">this</span>.pos = pos;
+    <span class="hljs-keyword">this</span>.delta = delta;
+    <span class="hljs-keyword">this</span>.radius = radius;
+    <span class="hljs-keyword">this</span>._circle = <span class="hljs-keyword">new</span> Circle(<span class="hljs-keyword">new</span> Point(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>), <span class="hljs-number">0</span>);
+  }</pre></div>
+        
+      
+        
+        <h3 id="capsule-vs-segment">Capsule vs Segment</h3>
+
+        
+          <div class='highlight'><pre>  _intersectSegmentCircle1(pos, delta) {
+    <span class="hljs-keyword">this</span>._circle.pos.x = <span class="hljs-keyword">this</span>.pos.x;
+    <span class="hljs-keyword">this</span>._circle.pos.y = <span class="hljs-keyword">this</span>.pos.y;
+    <span class="hljs-keyword">this</span>._circle.radius = <span class="hljs-keyword">this</span>.radius;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._circle.intersectSegment(pos, delta);
+  }
+
+  _intersectSegmentCircle2(pos, delta) {
+    <span class="hljs-keyword">this</span>._circle.pos.x = <span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.delta.x;
+    <span class="hljs-keyword">this</span>._circle.pos.y = <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.delta.y;
+    <span class="hljs-keyword">this</span>._circle.radius = <span class="hljs-keyword">this</span>.radius;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._circle.intersectSegment(pos, delta);
+  }
+
+  intersectSegment(pos, delta) {
+    <span class="hljs-keyword">const</span> mx = pos.x - <span class="hljs-keyword">this</span>.pos.x;
+    <span class="hljs-keyword">const</span> my = pos.y - <span class="hljs-keyword">this</span>.pos.y;
+    <span class="hljs-keyword">const</span> md = mx * <span class="hljs-keyword">this</span>.delta.x + my * <span class="hljs-keyword">this</span>.delta.y;
+    <span class="hljs-keyword">const</span> nd = delta.x * <span class="hljs-keyword">this</span>.delta.x + delta.y * <span class="hljs-keyword">this</span>.delta.y;
+    <span class="hljs-keyword">if</span> (md &lt; <span class="hljs-number">0</span> &amp;&amp; md + nd &lt; <span class="hljs-number">0</span>) {</pre></div>
+        
+      
+        
+        <p>Segment is outside the start end of the capsule’s box.
+Intersect it with the circle at that end of the capsule.</p>
+
+        
+          <div class='highlight'><pre>      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle1(pos, delta);
+    }
+    <span class="hljs-keyword">const</span> dd = <span class="hljs-keyword">this</span>.delta.x * <span class="hljs-keyword">this</span>.delta.x + <span class="hljs-keyword">this</span>.delta.y * <span class="hljs-keyword">this</span>.delta.y;
+    <span class="hljs-keyword">if</span> (md &gt; dd &amp;&amp; md + nd &gt; dd) {</pre></div>
+        
+      
+        
+        <p>Segment is outside the other end of the capsule’s box.
+Intersect it with the circle at that end of the capsule.</p>
+
+        
+          <div class='highlight'><pre>      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle2(pos, delta);
+    }
+    <span class="hljs-keyword">const</span> nn = delta.x * delta.x + delta.y * delta.y;
+    <span class="hljs-keyword">const</span> mn = mx * delta.x + my * delta.y;
+    <span class="hljs-keyword">const</span> a = dd * nn - nd * nd;
+    <span class="hljs-keyword">const</span> k = (mx * mx + my * my) - (<span class="hljs-keyword">this</span>.radius * <span class="hljs-keyword">this</span>.radius);
+    <span class="hljs-keyword">const</span> c = (dd * k) - (md * md);
+    <span class="hljs-keyword">if</span> (abs(a) &lt; EPSILON) {</pre></div>
+        
+      
+        
+        <p>Segment runs parallel to the capsule axis</p>
+
+        
+          <div class='highlight'><pre>      <span class="hljs-keyword">if</span> (c &gt; <span class="hljs-number">0</span>) {</pre></div>
+        
+      
+        
+        <p>‘a’ and thus the segment lie outside the capsule.</p>
+
+        
+          <div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+      }</pre></div>
+        
+      
+        
+        <p>Segment intersects the capsule. Figure out how.</p>
+
+        
+          <div class='highlight'><pre>      <span class="hljs-keyword">if</span> (md &lt; <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle1(pos, delta);
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (md &gt; dd) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle2(pos, delta);
+      }
+      <span class="hljs-keyword">const</span> center = <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.delta.x / <span class="hljs-number">2</span>,
+                               <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.delta.y / <span class="hljs-number">2</span>);
+      <span class="hljs-keyword">const</span> normal = <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.delta.x, <span class="hljs-keyword">this</span>.delta.y);
+      normal.normalize();
+      <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+      hit.time = <span class="hljs-number">0</span>;
+      hit.normal.x = (pos.x - center.x) * normal.y;
+      hit.normal.y = (pos.y - center.y) * normal.x;
+      hit.normal.normalize();
+      hit.pos.x = pos.x;
+      hit.pos.y = pos.y;
+      hit.delta.x = <span class="hljs-number">0</span>;
+      hit.delta.y = <span class="hljs-number">0</span>;
+      <span class="hljs-keyword">return</span> hit;
+    }
+
+    <span class="hljs-keyword">const</span> b = (dd * mn) - (nd * md);
+    <span class="hljs-keyword">const</span> discr = (b * b) - (a * c);
+    <span class="hljs-keyword">if</span> (discr &lt; <span class="hljs-number">0</span>) {</pre></div>
+        
+      
+        
+        <p>No real roots; no intersection.</p>
+
+        
+          <div class='highlight'><pre>      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }
+
+    <span class="hljs-keyword">const</span> time = (-b - <span class="hljs-built_in">Math</span>.sqrt(discr)) / a;
+    <span class="hljs-keyword">if</span> (md + time * nd &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle1(pos, delta);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (md + time * nd &gt; dd) {
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._intersectSegmentCircle2(pos, delta);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (time &gt;= <span class="hljs-number">0</span> &amp;&amp; time &lt;= <span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">const</span> center = <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.delta.x / <span class="hljs-number">2</span>,
+                               <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.delta.y / <span class="hljs-number">2</span>);
+      <span class="hljs-keyword">const</span> normal = <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.delta.x, <span class="hljs-keyword">this</span>.delta.y);
+      normal.normalize();
+      <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+      hit.time = time;
+      hit.normal.x = (pos.x - center.x) * normal.y;
+      hit.normal.y = (pos.y - center.y) * normal.x;
+      hit.normal.normalize();
+      hit.pos.x = pos.x + time * delta.x;
+      hit.pos.y = pos.y + time * delta.y;
+      hit.delta.x = <span class="hljs-number">0</span>;  <span class="hljs-comment">// FIXME</span>
+      hit.delta.y = <span class="hljs-number">0</span>;
+      <span class="hljs-keyword">return</span> hit;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
   }
 }</pre></div>
         

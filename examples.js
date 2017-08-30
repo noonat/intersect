@@ -1,6 +1,6 @@
 'use strict';
 
-import {AABB, Circle, Point} from './intersect';
+import {AABB, Capsule, Circle, Point} from './intersect';
 
 class Example {
   constructor(context, width, height) {
@@ -25,6 +25,35 @@ class Example {
     this.context.closePath();
     this.context.lineWidth = thickness;
     this.context.strokeStyle = color;
+    this.context.stroke();
+  }
+
+  drawCapsule(capsule, color='#fff', thickness=1) {
+    let x1 = Math.floor(this.origin.x + capsule.pos.x);
+    let y1 = Math.floor(this.origin.y + capsule.pos.y);
+    let x2 = Math.floor(this.origin.x + capsule.pos.x + capsule.delta.x);
+    let y2 = Math.floor(this.origin.y + capsule.pos.y + capsule.delta.y);
+    let dir = new Point(capsule.delta.y, -capsule.delta.x);
+    dir.normalize();
+    this.context.lineWidth = thickness;
+    this.context.strokeStyle = color;
+
+    this.context.beginPath();
+    this.context.arc(x1, y1, capsule.radius, 0, 2 * Math.PI, true);
+    this.context.closePath();
+    this.context.stroke();
+
+    this.context.beginPath();
+    this.context.arc(x2, y2, capsule.radius, 0, 2 * Math.PI, true);
+    this.context.closePath();
+    this.context.stroke();
+
+    this.context.beginPath();
+    this.context.moveTo(x1 + dir.x * capsule.radius, y1 + dir.y * capsule.radius);
+    this.context.lineTo(x2 + dir.x * capsule.radius, y2 + dir.y * capsule.radius);
+    this.context.moveTo(x2 - dir.x * capsule.radius, y2 - dir.y * capsule.radius);
+    this.context.lineTo(x1 - dir.x * capsule.radius, y1 - dir.y * capsule.radius);
+    this.context.closePath();
     this.context.stroke();
   }
 
@@ -473,6 +502,37 @@ class CircleSweptCircleExample extends Example {
   }
 }
 
+class CapsuleSegmentExample extends Example {
+  constructor(context, width, height) {
+    super(context, width, height);
+    this.angle = 0;
+    this.capsule = new Capsule(new Point(-24, 0), new Point(48, 16), 16);
+  }
+
+  tick(elapsed) {
+    super.tick(elapsed);
+    this.angle += 0.1 * Math.PI * elapsed;
+    let pos1 = new Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
+    let pos2 = new Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+    let delta = new Point(pos2.x - pos1.x, pos2.y - pos1.y);
+    let hit = this.capsule.intersectSegment(pos1, delta);
+    let dir = delta.clone();
+    let length = dir.normalize();
+    this.context.font = '10px sans-serif';
+    this.context.fillStyle = '#ff0';
+    this.context.fillText('' + this.capsule.t, 100, 100);
+    this.drawCapsule(this.capsule, '#666');
+    if (hit) {
+      this.drawRay(pos1, dir, length, '#f00');
+      this.drawSegment(pos1, hit.pos, '#ff0');
+      this.drawPoint(hit.pos, '#ff0');
+      this.drawRay(hit.pos, hit.normal, 6, '#ff0', false);
+    } else {
+      this.drawRay(pos1, dir, length, '#0f0');
+    }
+  }
+}
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -497,6 +557,7 @@ ready(() => {
     'circle-vs-circle': CircleCircleExample,
     'circle-vs-swept-aabb': CircleSweptAABBExample,
     'circle-vs-swept-circle': CircleSweptCircleExample,
+    'capsule-vs-segment': CapsuleSegmentExample,
   };
 
   let examples = [];

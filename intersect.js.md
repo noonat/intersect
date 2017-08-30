@@ -30,10 +30,13 @@ a look at [the compiled JS file][compiled].
    3. [Circle vs AABB](#circle-vs-aabb)
    4. [Circle vs Circle](#circle-vs-circle)
    5. [Circle vs Swept Circle](#circle-vs-swept-circle)
+5. [Capsules](#capsules)
+   1. [Capsule vs Segment](#capsule-vs-segment)
 
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
 [compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
+
 
 Helpers
 -------
@@ -381,6 +384,7 @@ the very starting of the line, so just set the hit time to zero.
         hit.pos.y = pos.y + hit.delta.y;
         return hit;
       }
+
 
 ### AABB vs AABB
 
@@ -738,6 +742,7 @@ calculate and return a hit.
         return hit;
       }
 
+
 ### Circle vs AABB
 
 To test for a collision between a circle and an AABB, we can simplify it to
@@ -832,5 +837,117 @@ we've done for the other sweep tests.
           sweep.pos.y = circle.pos.y + delta.y;
         }
         return sweep;
+      }
+    }
+
+
+Capsules
+--------
+
+Capsules are a segment with a radius. You can imagine it as a pill shape, or a
+bounding box with a half circle on each end.
+
+    export class Capsule {
+      constructor(pos, delta, radius) {
+        this.pos = pos;
+        this.delta = delta;
+        this.radius = radius;
+        this._circle = new Circle(new Point(0, 0), 0);
+      }
+
+### Capsule vs Segment
+
+      _intersectSegmentCircle1(pos, delta) {
+        this._circle.pos.x = this.pos.x;
+        this._circle.pos.y = this.pos.y;
+        this._circle.radius = this.radius;
+        return this._circle.intersectSegment(pos, delta);
+      }
+
+      _intersectSegmentCircle2(pos, delta) {
+        this._circle.pos.x = this.pos.x + this.delta.x;
+        this._circle.pos.y = this.pos.y + this.delta.y;
+        this._circle.radius = this.radius;
+        return this._circle.intersectSegment(pos, delta);
+      }
+
+      intersectSegment(pos, delta) {
+        const mx = pos.x - this.pos.x;
+        const my = pos.y - this.pos.y;
+        const md = mx * this.delta.x + my * this.delta.y;
+        const nd = delta.x * this.delta.x + delta.y * this.delta.y;
+        if (md < 0 && md + nd < 0) {
+          // Segment is outside the start end of the capsule's box.
+          // Intersect it with the circle at that end of the capsule.
+          return this._intersectSegmentCircle1(pos, delta);
+        }
+        const dd = this.delta.x * this.delta.x + this.delta.y * this.delta.y;
+        if (md > dd && md + nd > dd) {
+          // Segment is outside the other end of the capsule's box.
+          // Intersect it with the circle at that end of the capsule.
+          return this._intersectSegmentCircle2(pos, delta);
+        }
+        const nn = delta.x * delta.x + delta.y * delta.y;
+        const mn = mx * delta.x + my * delta.y;
+        const a = dd * nn - nd * nd;
+        const k = (mx * mx + my * my) - (this.radius * this.radius);
+        const c = (dd * k) - (md * md);
+        if (abs(a) < EPSILON) {
+          // Segment runs parallel to the capsule axis
+          if (c > 0) {
+            // 'a' and thus the segment lie outside the capsule.
+            return null;
+          }
+          // Segment intersects the capsule. Figure out how.
+          if (md < 0) {
+            return this._intersectSegmentCircle1(pos, delta);
+          } else if (md > dd) {
+            return this._intersectSegmentCircle2(pos, delta);
+          }
+          const center = new Point(this.pos.x + this.delta.x / 2,
+                                   this.pos.y + this.delta.y / 2);
+          const normal = new Point(this.delta.x, this.delta.y);
+          normal.normalize();
+          const hit = new Hit(this);
+          hit.time = 0;
+          hit.normal.x = (pos.x - center.x) * normal.y;
+          hit.normal.y = (pos.y - center.y) * normal.x;
+          hit.normal.normalize();
+          hit.pos.x = pos.x;
+          hit.pos.y = pos.y;
+          hit.delta.x = 0;
+          hit.delta.y = 0;
+          return hit;
+        }
+
+        const b = (dd * mn) - (nd * md);
+        const discr = (b * b) - (a * c);
+        if (discr < 0) {
+          // No real roots; no intersection.
+          return null;
+        }
+
+        const time = (-b - Math.sqrt(discr)) / a;
+        if (md + time * nd < 0) {
+          return this._intersectSegmentCircle1(pos, delta);
+        } else if (md + time * nd > dd) {
+          return this._intersectSegmentCircle2(pos, delta);
+        } else if (time >= 0 && time <= 1) {
+          const center = new Point(this.pos.x + this.delta.x / 2,
+                                   this.pos.y + this.delta.y / 2);
+          const normal = new Point(this.delta.x, this.delta.y);
+          normal.normalize();
+          const hit = new Hit(this);
+          hit.time = time;
+          hit.normal.x = (pos.x - center.x) * normal.y;
+          hit.normal.y = (pos.y - center.y) * normal.x;
+          hit.normal.normalize();
+          hit.pos.x = pos.x + time * delta.x;
+          hit.pos.y = pos.y + time * delta.y;
+          hit.delta.x = 0;  // FIXME
+          hit.delta.y = 0;
+          return hit;
+        }
+        return null;
       }
     }

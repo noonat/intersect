@@ -115,6 +115,39 @@ var Example = function () {
       this.context.stroke();
     }
   }, {
+    key: 'drawCapsule',
+    value: function drawCapsule(capsule) {
+      var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '#fff';
+      var thickness = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+      var x1 = Math.floor(this.origin.x + capsule.pos.x);
+      var y1 = Math.floor(this.origin.y + capsule.pos.y);
+      var x2 = Math.floor(this.origin.x + capsule.pos.x + capsule.delta.x);
+      var y2 = Math.floor(this.origin.y + capsule.pos.y + capsule.delta.y);
+      var dir = new _intersect.Point(capsule.delta.y, -capsule.delta.x);
+      dir.normalize();
+      this.context.lineWidth = thickness;
+      this.context.strokeStyle = color;
+
+      this.context.beginPath();
+      this.context.arc(x1, y1, capsule.radius, 0, 2 * Math.PI, true);
+      this.context.closePath();
+      this.context.stroke();
+
+      this.context.beginPath();
+      this.context.arc(x2, y2, capsule.radius, 0, 2 * Math.PI, true);
+      this.context.closePath();
+      this.context.stroke();
+
+      this.context.beginPath();
+      this.context.moveTo(x1 + dir.x * capsule.radius, y1 + dir.y * capsule.radius);
+      this.context.lineTo(x2 + dir.x * capsule.radius, y2 + dir.y * capsule.radius);
+      this.context.moveTo(x2 - dir.x * capsule.radius, y2 - dir.y * capsule.radius);
+      this.context.lineTo(x1 - dir.x * capsule.radius, y1 - dir.y * capsule.radius);
+      this.context.closePath();
+      this.context.stroke();
+    }
+  }, {
     key: 'drawCircle',
     value: function drawCircle(circle) {
       var color = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '#fff';
@@ -689,6 +722,48 @@ var CircleSweptCircleExample = function (_Example11) {
   return CircleSweptCircleExample;
 }(Example);
 
+var CapsuleSegmentExample = function (_Example12) {
+  _inherits(CapsuleSegmentExample, _Example12);
+
+  function CapsuleSegmentExample(context, width, height) {
+    _classCallCheck(this, CapsuleSegmentExample);
+
+    var _this16 = _possibleConstructorReturn(this, (CapsuleSegmentExample.__proto__ || Object.getPrototypeOf(CapsuleSegmentExample)).call(this, context, width, height));
+
+    _this16.angle = 0;
+    _this16.capsule = new _intersect.Capsule(new _intersect.Point(-24, 0), new _intersect.Point(48, 16), 16);
+    return _this16;
+  }
+
+  _createClass(CapsuleSegmentExample, [{
+    key: 'tick',
+    value: function tick(elapsed) {
+      _get(CapsuleSegmentExample.prototype.__proto__ || Object.getPrototypeOf(CapsuleSegmentExample.prototype), 'tick', this).call(this, elapsed);
+      this.angle += 0.1 * Math.PI * elapsed;
+      var pos1 = new _intersect.Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
+      var pos2 = new _intersect.Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+      var delta = new _intersect.Point(pos2.x - pos1.x, pos2.y - pos1.y);
+      var hit = this.capsule.intersectSegment(pos1, delta);
+      var dir = delta.clone();
+      var length = dir.normalize();
+      this.context.font = '10px sans-serif';
+      this.context.fillStyle = '#ff0';
+      this.context.fillText('' + this.capsule.t, 100, 100);
+      this.drawCapsule(this.capsule, '#666');
+      if (hit) {
+        this.drawRay(pos1, dir, length, '#f00');
+        this.drawSegment(pos1, hit.pos, '#ff0');
+        this.drawPoint(hit.pos, '#ff0');
+        this.drawRay(hit.pos, hit.normal, 6, '#ff0', false);
+      } else {
+        this.drawRay(pos1, dir, length, '#0f0');
+      }
+    }
+  }]);
+
+  return CapsuleSegmentExample;
+}(Example);
+
 function ready(callback) {
   if (document.readyState == 'complete') {
     setTimeout(callback, 1);
@@ -712,7 +787,8 @@ ready(function () {
     'circle-vs-aabb': CircleAABBExample,
     'circle-vs-circle': CircleCircleExample,
     'circle-vs-swept-aabb': CircleSweptAABBExample,
-    'circle-vs-swept-circle': CircleSweptCircleExample
+    'circle-vs-swept-circle': CircleSweptCircleExample,
+    'capsule-vs-segment': CapsuleSegmentExample
   };
 
   var examples = [];
@@ -1123,6 +1199,116 @@ var Circle = exports.Circle = function () {
   }]);
 
   return Circle;
+}();
+
+var Capsule = exports.Capsule = function () {
+  function Capsule(pos, delta, radius) {
+    _classCallCheck(this, Capsule);
+
+    this.pos = pos;
+    this.delta = delta;
+    this.radius = radius;
+    this._circle = new Circle(new Point(0, 0), 0);
+  }
+
+  _createClass(Capsule, [{
+    key: '_intersectSegmentCircle1',
+    value: function _intersectSegmentCircle1(pos, delta) {
+      this._circle.pos.x = this.pos.x;
+      this._circle.pos.y = this.pos.y;
+      this._circle.radius = this.radius;
+      return this._circle.intersectSegment(pos, delta);
+    }
+  }, {
+    key: '_intersectSegmentCircle2',
+    value: function _intersectSegmentCircle2(pos, delta) {
+      this._circle.pos.x = this.pos.x + this.delta.x;
+      this._circle.pos.y = this.pos.y + this.delta.y;
+      this._circle.radius = this.radius;
+      return this._circle.intersectSegment(pos, delta);
+    }
+  }, {
+    key: 'intersectSegment',
+    value: function intersectSegment(pos, delta) {
+      var mx = pos.x - this.pos.x;
+      var my = pos.y - this.pos.y;
+      var md = mx * this.delta.x + my * this.delta.y;
+      var nd = delta.x * this.delta.x + delta.y * this.delta.y;
+      if (md < 0 && md + nd < 0) {
+        // Segment is outside the start end of the capsule's box.
+        // Intersect it with the circle at that end of the capsule.
+        return this._intersectSegmentCircle1(pos, delta);
+      }
+      var dd = this.delta.x * this.delta.x + this.delta.y * this.delta.y;
+      if (md > dd && md + nd > dd) {
+        // Segment is outside the other end of the capsule's box.
+        // Intersect it with the circle at that end of the capsule.
+        return this._intersectSegmentCircle2(pos, delta);
+      }
+      var nn = delta.x * delta.x + delta.y * delta.y;
+      var mn = mx * delta.x + my * delta.y;
+      var a = dd * nn - nd * nd;
+      var k = mx * mx + my * my - this.radius * this.radius;
+      var c = dd * k - md * md;
+      if (abs(a) < EPSILON) {
+        // Segment runs parallel to the capsule axis
+        if (c > 0) {
+          // 'a' and thus the segment lie outside the capsule.
+          return null;
+        }
+        // Segment intersects the capsule. Figure out how.
+        if (md < 0) {
+          return this._intersectSegmentCircle1(pos, delta);
+        } else if (md > dd) {
+          return this._intersectSegmentCircle2(pos, delta);
+        }
+        var center = new Point(this.pos.x + this.delta.x / 2, this.pos.y + this.delta.y / 2);
+        var normal = new Point(this.delta.x, this.delta.y);
+        normal.normalize();
+        var hit = new Hit(this);
+        hit.time = 0;
+        hit.normal.x = (pos.x - center.x) * normal.y;
+        hit.normal.y = (pos.y - center.y) * normal.x;
+        hit.normal.normalize();
+        hit.pos.x = pos.x;
+        hit.pos.y = pos.y;
+        hit.delta.x = 0;
+        hit.delta.y = 0;
+        return hit;
+      }
+
+      var b = dd * mn - nd * md;
+      var discr = b * b - a * c;
+      if (discr < 0) {
+        // No real roots; no intersection.
+        return null;
+      }
+
+      var time = (-b - Math.sqrt(discr)) / a;
+      if (md + time * nd < 0) {
+        return this._intersectSegmentCircle1(pos, delta);
+      } else if (md + time * nd > dd) {
+        return this._intersectSegmentCircle2(pos, delta);
+      } else if (time >= 0 && time <= 1) {
+        var _center = new Point(this.pos.x + this.delta.x / 2, this.pos.y + this.delta.y / 2);
+        var _normal = new Point(this.delta.x, this.delta.y);
+        _normal.normalize();
+        var _hit = new Hit(this);
+        _hit.time = time;
+        _hit.normal.x = (pos.x - _center.x) * _normal.y;
+        _hit.normal.y = (pos.y - _center.y) * _normal.x;
+        _hit.normal.normalize();
+        _hit.pos.x = pos.x + time * delta.x;
+        _hit.pos.y = pos.y + time * delta.y;
+        _hit.delta.x = 0; // FIXME
+        _hit.delta.y = 0;
+        return _hit;
+      }
+      return null;
+    }
+  }]);
+
+  return Capsule;
 }();
 
 /***/ })
