@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-export const EPSILON = 1e-8;
+export const EPSILON: number = 1e-8;
 
-export function abs(value) {
+export function abs(value: number): number {
   return value < 0 ? -value : value;
 }
 
-export function clamp(value, min, max) {
+export function clamp(value: number, min: number, max: number): number {
   if (value < min) {
     return min;
   } else if (value > max) {
@@ -16,25 +16,28 @@ export function clamp(value, min, max) {
   }
 }
 
-export function sign(value) {
+export function sign(value: number): number {
   return value < 0 ? -1 : 1;
 }
 
 export class Point {
-  constructor(x = 0, y = 0) {
+  public x: number;
+  public y: number;
+
+  constructor(x: number = 0, y: number = 0) {
     this.x = x;
     this.y = y;
   }
 
-  clone() {
+  public clone(): Point {
     return new Point(this.x, this.y);
   }
 
-  normalize() {
+  public normalize(): number {
     let length = this.x * this.x + this.y * this.y;
     if (length > 0) {
       length = Math.sqrt(length);
-      let inverseLength = 1.0 / length;
+      const inverseLength = 1.0 / length;
       this.x *= inverseLength;
       this.y *= inverseLength;
     } else {
@@ -46,15 +49,26 @@ export class Point {
 }
 
 export class Hit {
+  public collider;
+  public pos: Point;
+  public delta: Point;
+  public normal: Point;
+  public time: number;
+
   constructor(collider) {
     this.collider = collider;
     this.pos = new Point();
     this.delta = new Point();
     this.normal = new Point();
+    this.time = 0;
   }
 }
 
 export class Sweep {
+  public hit: Hit | null;
+  public pos: Point;
+  public time: number;
+
   constructor() {
     this.hit = null;
     this.pos = new Point();
@@ -63,12 +77,15 @@ export class Sweep {
 }
 
 export class AABB {
+  public pos: Point;
+  public half: Point;
+
   constructor(pos, half) {
     this.pos = pos;
     this.half = half;
   }
 
-  intersectPoint(point) {
+  public intersectPoint(point: Point): Hit | null {
     const dx = point.x - this.pos.x;
     const px = this.half.x - abs(dx);
     if (px <= 0) {
@@ -81,7 +98,7 @@ export class AABB {
       return null;
     }
 
-    let hit = new Hit(this);
+    const hit = new Hit(this);
     if (px < py) {
       const sx = sign(dx);
       hit.delta.x = px * sx;
@@ -98,26 +115,27 @@ export class AABB {
     return hit;
   }
 
-  intersectSegment(pos, delta, paddingX = 0, paddingY = 0) {
-    let scaleX = 1.0 / delta.x;
-    let scaleY = 1.0 / delta.y;
-    let signX = sign(scaleX);
-    let signY = sign(scaleY);
-    let nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    let nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
-    let farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    let farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+  public intersectSegment(pos: Point, delta: Point, paddingX: number = 0,
+                          paddingY: number = 0): Hit | null {
+    const scaleX = 1.0 / delta.x;
+    const scaleY = 1.0 / delta.y;
+    const signX = sign(scaleX);
+    const signY = sign(scaleY);
+    const nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
+    const nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
+    const farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
+    const farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
     if (nearTimeX > farTimeY || nearTimeY > farTimeX) {
       return null;
     }
 
-    let nearTime = nearTimeX > nearTimeY ? nearTimeX : nearTimeY;
-    let farTime = farTimeX < farTimeY ? farTimeX : farTimeY;
+    const nearTime = nearTimeX > nearTimeY ? nearTimeX : nearTimeY;
+    const farTime = farTimeX < farTimeY ? farTimeX : farTimeY;
     if (nearTime >= 1 || farTime <= 0) {
       return null;
     }
 
-    let hit = new Hit(this);
+    const hit = new Hit(this);
     hit.time = clamp(nearTime, 0, 1);
     if (nearTimeX > nearTimeY) {
       hit.normal.x = -signX;
@@ -133,28 +151,28 @@ export class AABB {
     return hit;
   }
 
-  intersectAABB(box) {
-    let dx = box.pos.x - this.pos.x;
-    let px = (box.half.x + this.half.x) - abs(dx);
+  public intersectAABB(box: AABB): Hit | null {
+    const dx = box.pos.x - this.pos.x;
+    const px = (box.half.x + this.half.x) - abs(dx);
     if (px <= 0) {
       return null;
     }
 
-    let dy = box.pos.y - this.pos.y;
-    let py = (box.half.y + this.half.y) - abs(dy);
+    const dy = box.pos.y - this.pos.y;
+    const py = (box.half.y + this.half.y) - abs(dy);
     if (py <= 0) {
       return null;
     }
 
-    let hit = new Hit(this);
+    const hit = new Hit(this);
     if (px < py) {
-      let sx = sign(dx);
+      const sx = sign(dx);
       hit.delta.x = px * sx;
       hit.normal.x = sx;
       hit.pos.x = this.pos.x + (this.half.x * sx);
       hit.pos.y = box.pos.y;
     } else {
-      let sy = sign(dy);
+      const sy = sign(dy);
       hit.delta.y = py * sy;
       hit.normal.y = sy;
       hit.pos.x = box.pos.x;
@@ -163,8 +181,8 @@ export class AABB {
     return hit;
   }
 
-  sweepAABB(box, delta) {
-    let sweep = new Sweep();
+  public sweepAABB(box: AABB, delta: Point): Sweep {
+    const sweep = new Sweep();
     if (delta.x === 0 && delta.y === 0) {
       sweep.pos.x = box.pos.x;
       sweep.pos.y = box.pos.y;
@@ -182,7 +200,7 @@ export class AABB {
       sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
       sweep.pos.x = box.pos.x + delta.x * sweep.time;
       sweep.pos.y = box.pos.y + delta.y * sweep.time;
-      let direction = delta.clone();
+      const direction = delta.clone();
       direction.normalize();
       sweep.hit.pos.x = clamp(
         sweep.hit.pos.x + direction.x * box.half.x,
@@ -198,13 +216,13 @@ export class AABB {
     return sweep;
   }
 
-  sweepInto(staticColliders, delta) {
+  public sweepInto(staticColliders, delta: Point): Sweep {
     let nearest = new Sweep();
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;
     nearest.pos.y = this.pos.y + delta.y;
     for (let i = 0, il = staticColliders.length; i < il; i++) {
-      let sweep = staticColliders[i].sweepAABB(this, delta);
+      const sweep = staticColliders[i].sweepAABB(this, delta);
       if (sweep.time < nearest.time) {
         nearest = sweep;
       }
