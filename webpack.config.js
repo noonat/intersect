@@ -1,13 +1,13 @@
 module.exports = {
-  entry: './examples.js',
+  entry: './src/examples.ts',
   output: {
       path: __dirname + '/docs',
       filename: 'bundle.js'
   },
   module: {
     loaders: [
-      {test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'}
+      {test: /\.tsx?$/, exclude: /node_modules/, loader: 'ts-loader'}
     ]
   },
-  devtool: "source-map",
+  devtool: 'source-map'
 };

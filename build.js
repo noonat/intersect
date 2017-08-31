@@ -5,24 +5,27 @@ const md = require('markdown-it')();
 execFile('docco', [
   '--css', 'template/docco.css',
   '--template', 'template/docco.jst',
-  'intersect.js.md',
+  'src/intersect.ts.md',
 ], (err, stdout, stderr) => {
   if (err) {
+    console.log('ERROR: docco failed');
+    console.log('docco stdout:', stdout);
+    console.log('docco stderr:', stderr);
     throw err;
   }
-  rename('docs/intersect.js.html', 'index.html', (err) => {
+  rename('docs/intersect.ts.html', 'index.html', (err) => {
     if (err) {
       throw err;
     }
   })
 });
 
-readFile('intersect.js.md', (err, data) => {
+readFile('src/intersect.ts.md', (err, data) => {
   if (err) {
     throw err;
   }
 
-  let blocks = ["'use strict';\n\n"];
+  let blocks = ['"use strict";\n\n'];
   md.renderer.rules = {
     code_block(tokens, index) {
       // We can't express empty lines for readability in Markdown, since most
@@ -35,23 +38,25 @@ readFile('intersect.js.md', (err, data) => {
     }
   };
   md.render(data.toString('UTF-8'));
-  writeFile('intersect.js', blocks.join(''), (err) => {
+  writeFile('src/intersect.ts', blocks.join(''), (err) => {
     if (err) {
       throw err;
     }
 
-    execFile('babel', [
-      '--out-dir', 'lib',
-      '--source-maps', 'true',
-      'intersect.js',
-    ], (err) => {
+    execFile('tsc', (err, stdout, stderr) => {
       if (err) {
+        console.log('ERROR: tsc failed');
+        console.log('tsc stdout:', stdout);
+        console.log('tsc stderr:', stderr);
         throw err;
       }
     });
 
-    execFile('webpack', (err) => {
+    execFile('webpack', (err, stdout, stderr) => {
       if (err) {
+        console.log('ERROR: webpack failed');
+        console.log('webpack stdout', stdout);
+        console.log('webpack stderr', stderr);
         throw err;
       }
     });

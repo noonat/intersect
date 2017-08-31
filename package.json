@@ -9,21 +9,32 @@
   },
   "scripts": {
     "build": "node build.js",
-    "clean": "rimraf intersect.js lib/intersect.js docs/bundle.js",
+    "clean": "rimraf intersect.ts lib/intersect.js docs/bundle.js",
     "prepare": "npm run build",
-    "test": "jest && jshint examples.js intersect.js"
+    "test": "jest && tslint src/*.ts"
   },
   "main": "lib/intersect.js",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-loader": "^7.1.2",
-    "babel-preset-env": "^1.6.0",
     "docco": "^0.7.0",
     "jest": "^20.0.4",
-    "jshint": "^2.9.5",
     "markdown-it": "^8.4.0",
     "rimraf": "^2.6.1",
+    "ts-jest": "^20.0.11",
+    "ts-loader": "^2.3.4",
+    "tslint": "^5.7.0",
+    "typescript": "^2.4.2",
     "webpack": "^3.5.5"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "tsx"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/test/.*\\.(ts|tsx|js|jsx)$"
   }
 }

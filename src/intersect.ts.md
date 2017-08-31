@@ -10,9 +10,10 @@ buy [Real-Time Collision Detection]. It is easily the best purchase you could
 make if you are learning about collision detection. There is also an excellent
 [list of different algorithms here][algorithms].
 
-The code is written in JavaScript, but it's simple and should be easily
+The code is written in TypeScript, but it's simple and should be easily
 portable to your language of choice. If you just want to see the code, take
-a look at [the compiled JS file][compiled].
+a look at [the TypeScript file][intersect.ts]. The [animated examples][examples.ts]
+on this page are also written in TypeScript, using the library.
 
 1. [Helpers](#helpers)
 2. [Types of Tests](#types-of-tests)
@@ -27,20 +28,22 @@ a look at [the compiled JS file][compiled].
 
 [Real-Time Collision Detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
-[compiled]: https://github.com/noonat/intersect/blob/master/intersect.js
+[intersect.ts]: https://github.com/noonat/intersect/blob/master/src/intersect.js
+[examples.ts]: https://github.com/noonat/intersect/blob/master/src/examples.js
+
 
 Helpers
 -------
 
 Let's define a couple helpers that we'll use through the code.
 
-    export const EPSILON = 1e-8;
+    export const EPSILON: number = 1e-8;
 
-    export function abs(value) {
+    export function abs(value: number): number {
       return value < 0 ? -value : value;
     }
 
-    export function clamp(value, min, max) {
+    export function clamp(value: number, min: number, max: number): number {
       if (value < min) {
         return min;
       } else if (value > max) {
@@ -50,30 +53,32 @@ Let's define a couple helpers that we'll use through the code.
       }
     }
 
-    export function sign(value) {
+    export function sign(value: number): number {
       return value < 0 ? -1 : 1;
     }
-
 
 We'll also need a 2D point. We could just use a literal `{x: 0, y: 0}` object,
 but you have to normalize and copy things quite a bit when doing collision
 detection, so it makes things a bit more readable to formalize it as a class.
 
     export class Point {
-      constructor(x = 0, y = 0) {
+      public x: number;
+      public y: number;
+
+      constructor(x: number = 0, y: number = 0) {
         this.x = x;
         this.y = y;
       }
 
-      clone() {
+      public clone(): Point {
         return new Point(this.x, this.y);
       }
 
-      normalize() {
+      public normalize(): number {
         let length = this.x * this.x + this.y * this.y;
         if (length > 0) {
           length = Math.sqrt(length);
-          let inverseLength = 1.0 / length;
+          const inverseLength = 1.0 / length;
           this.x *= inverseLength;
           this.y *= inverseLength;
         } else {
@@ -119,11 +124,18 @@ overlapping.
 Intersection tests will return a Hit object when a collision occurs:
 
     export class Hit {
+      public collider;
+      public pos: Point;
+      public delta: Point;
+      public normal: Point;
+      public time: number;
+
       constructor(collider) {
         this.collider = collider;
         this.pos = new Point();
         this.delta = new Point();
         this.normal = new Point();
+        this.time = 0;
       }
     }
 
@@ -166,6 +178,10 @@ and stop objects from ever moving into other objects.
 Sweep tests return a `Sweep` object:
 
     export class Sweep {
+      public hit: Hit | null;
+      public pos: Point;
+      public time: number;
+
       constructor() {
         this.hit = null;
         this.pos = new Point();
@@ -190,6 +206,9 @@ center point and box's half size for each axis (that is, the box's "radius" on
 each axis).
 
     export class AABB {
+      public pos: Point;
+      public half: Point;
+
       constructor(pos, half) {
         this.pos = pos;
         this.half = half;
@@ -211,7 +230,7 @@ than zero for either, a collision is not possible. Otherwise, we find the
 axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.
 
-      intersectPoint(point) {
+      public intersectPoint(point: Point): Hit | null {
         const dx = point.x - this.pos.x;
         const px = this.half.x - abs(dx);
         if (px <= 0) {
@@ -224,7 +243,7 @@ on the edge of the box.
           return null;
         }
 
-        let hit = new Hit(this);
+        const hit = new Hit(this);
         if (px < py) {
           const sx = sign(dx);
           hit.delta.x = px * sx;
@@ -281,7 +300,8 @@ of the bounding box, if specified.
 [IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
 [WilliamsEtAl05]: https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/
 
-      intersectSegment(pos, delta, paddingX = 0, paddingY = 0) {
+      public intersectSegment(pos: Point, delta: Point, paddingX: number = 0,
+                              paddingY: number = 0): Hit | null {
 
 You might notice we haven't defined a segment argument. A segment from point
 `A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
@@ -297,14 +317,14 @@ We can calculate this by subtracting the position of the edge from the segment's
 start position, then dividing by the segment's delta. Scaling is done here using
 multiplication instead of division to deal with floating point issues.
 
-        let scaleX = 1.0 / delta.x;
-        let scaleY = 1.0 / delta.y;
-        let signX = sign(scaleX);
-        let signY = sign(scaleY);
-        let nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-        let nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
-        let farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
-        let farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+        const scaleX = 1.0 / delta.x;
+        const scaleY = 1.0 / delta.y;
+        const signX = sign(scaleX);
+        const signY = sign(scaleY);
+        const nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        const nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
+        const farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        const farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
 
 Now we have to compare these times to see if a collision is possible.
 
@@ -328,8 +348,8 @@ Otherwise, find the greater of the near times, and the lesser of the far times
 &mdash; we want the times that got closest to the slab. We can check these two
 times to determine whether the collision occurred on the segment.
 
-        let nearTime = nearTimeX > nearTimeY ? nearTimeX : nearTimeY;
-        let farTime = farTimeX < farTimeY ? farTimeX : farTimeY;
+        const nearTime = nearTimeX > nearTimeY ? nearTimeX : nearTimeY;
+        const farTime = farTimeX < farTimeY ? farTimeX : farTimeY;
 
 <div class="figure-row right">
 <figure>
@@ -359,7 +379,7 @@ entering the box, we can set the hit time to the near time, since that's the
 point along the segment at which it collided. If it's inside, it's colliding at
 the very starting of the line, so just set the hit time to zero.
 
-        let hit = new Hit(this);
+        const hit = new Hit(this);
         hit.time = clamp(nearTime, 0, 1);
         if (nearTimeX > nearTimeY) {
           hit.normal.x = -signX;
@@ -374,6 +394,7 @@ the very starting of the line, so just set the hit time to zero.
         hit.pos.y = pos.y + hit.delta.y;
         return hit;
       }
+
 
 ### AABB vs AABB
 
@@ -391,28 +412,28 @@ This code is very similar to the `intersectPoint` function above.
 
 [separating axis test]: http://www.metanetsoftware.com/technique/tutorialA.html#section1
 
-      intersectAABB(box) {
-        let dx = box.pos.x - this.pos.x;
-        let px = (box.half.x + this.half.x) - abs(dx);
+      public intersectAABB(box: AABB): Hit | null {
+        const dx = box.pos.x - this.pos.x;
+        const px = (box.half.x + this.half.x) - abs(dx);
         if (px <= 0) {
           return null;
         }
 
-        let dy = box.pos.y - this.pos.y;
-        let py = (box.half.y + this.half.y) - abs(dy);
+        const dy = box.pos.y - this.pos.y;
+        const py = (box.half.y + this.half.y) - abs(dy);
         if (py <= 0) {
           return null;
         }
 
-        let hit = new Hit(this);
+        const hit = new Hit(this);
         if (px < py) {
-          let sx = sign(dx);
+          const sx = sign(dx);
           hit.delta.x = px * sx;
           hit.normal.x = sx;
           hit.pos.x = this.pos.x + (this.half.x * sx);
           hit.pos.y = box.pos.y;
         } else {
-          let sy = sign(dy);
+          const sy = sign(dy);
           hit.delta.y = py * sy;
           hit.normal.y = sy;
           hit.pos.x = box.pos.x;
@@ -449,8 +470,8 @@ null if they did not overlap.
 
 [Minkowski]: http://physics2d.com/content/gjk-algorithm
 
-      sweepAABB(box, delta) {
-        let sweep = new Sweep();
+      public sweepAABB(box: AABB, delta: Point): Sweep {
+        const sweep = new Sweep();
 
 If the sweep isn't actually moving anywhere, just do a static test. It's faster
 and will give us a better result for that case.
@@ -478,7 +499,7 @@ of the box, as close to the segment of movement as possible.
           sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
           sweep.pos.x = box.pos.x + delta.x * sweep.time;
           sweep.pos.y = box.pos.y + delta.y * sweep.time;
-          let direction = delta.clone();
+          const direction = delta.clone();
           direction.normalize();
           sweep.hit.pos.x = clamp(
             sweep.hit.pos.x + direction.x * box.half.x,
@@ -502,13 +523,13 @@ allowing it to collide with a list of static AABBs. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.
 
-      sweepInto(staticColliders, delta) {
+      public sweepInto(staticColliders, delta: Point): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
         nearest.pos.y = this.pos.y + delta.y;
         for (let i = 0, il = staticColliders.length; i < il; i++) {
-          let sweep = staticColliders[i].sweepAABB(this, delta);
+          const sweep = staticColliders[i].sweepAABB(this, delta);
           if (sweep.time < nearest.time) {
             nearest = sweep;
           }

@@ -1,5 +1,5 @@
-import assert from 'assert';
-import {AABB, EPSILON, Hit, Point, Sweep} from '../intersect';
+import * as assert from 'assert';
+import {AABB, EPSILON, Hit, Point, Sweep} from '../src/intersect';
 
 function almostEqual(actual, expected, message) {
   if (Math.abs(actual - expected) > 1e-8) {
