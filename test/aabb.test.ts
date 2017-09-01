@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import {AABB, EPSILON, Hit, Point, Sweep} from '../src/intersect';
 
-function almostEqual(actual, expected, message) {
+function almostEqual(actual, expected, message: string = undefined) {
   if (Math.abs(actual - expected) > 1e-8) {
     assert.equal(actual, expected, message);
   }
@@ -85,8 +85,8 @@ describe('AABB', () => {
       almostEqual(hit.time, time);
       almostEqual(hit.pos.x, point.x + delta.x * time);
       almostEqual(hit.pos.y, point.y + delta.y * time);
-      almostEqual(hit.delta.x, delta.x * time);
-      almostEqual(hit.delta.y, delta.y * time);
+      almostEqual(hit.delta.x, (1.0 - time) * -delta.x);
+      almostEqual(hit.delta.y, (1.0 - time) * -delta.y);
       almostEqual(hit.normal.x, -1);
       almostEqual(hit.normal.y, 0);
     });
@@ -99,8 +99,8 @@ describe('AABB', () => {
       almostEqual(hit.time, 0);
       almostEqual(hit.pos.x, -4);
       almostEqual(hit.pos.y, 4);
-      almostEqual(hit.delta.x, 0);
-      almostEqual(hit.delta.y, 0);
+      almostEqual(hit.delta.x, -delta.x);
+      almostEqual(hit.delta.y, -delta.y);
       almostEqual(hit.normal.x, -1);
       almostEqual(hit.normal.y, 0);
     });
@@ -116,8 +116,8 @@ describe('AABB', () => {
       almostEqual(hit.time, time);
       almostEqual(hit.pos.x, point.x + delta.x * time);
       almostEqual(hit.pos.y, point.y + delta.y * time);
-      almostEqual(hit.delta.x, delta.x * time);
-      almostEqual(hit.delta.y, delta.y * time);
+      almostEqual(hit.delta.x, (1.0 - time) * -delta.x);
+      almostEqual(hit.delta.y, (1.0 - time) * -delta.y);
       almostEqual(hit.normal.x, -1);
       almostEqual(hit.normal.y, 0);
     });
@@ -296,8 +296,8 @@ describe('AABB', () => {
       almostEqual(sweep.hit.time, time);
       almostEqual(sweep.hit.pos.x, aabb2.pos.x + delta.x * time + direction.x * aabb2.half.x);
       almostEqual(sweep.hit.pos.y, aabb2.pos.y + delta.y * time + direction.y * aabb2.half.y);
-      almostEqual(sweep.hit.delta.x, delta.x * time);
-      almostEqual(sweep.hit.delta.y, delta.y * time);
+      almostEqual(sweep.hit.delta.x, (1.0 - time) * -delta.x);
+      almostEqual(sweep.hit.delta.y, (1.0 - time) * -delta.y);
     });
 
     test('should set sweep.hit.normal to normals of box 1', () => {
@@ -317,8 +317,8 @@ describe('AABB', () => {
       almostEqual(sweep.pos.x, 0);
       almostEqual(sweep.pos.y, -4);
       almostEqual(sweep.hit.time, 0);
-      almostEqual(sweep.hit.delta.x, 0);
-      almostEqual(sweep.hit.delta.y, 0);
+      almostEqual(sweep.hit.delta.x, -delta.x);
+      almostEqual(sweep.hit.delta.y, -delta.y);
     });
   });
 });

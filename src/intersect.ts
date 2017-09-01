@@ -80,7 +80,7 @@ export class AABB {
   public pos: Point;
   public half: Point;
 
-  constructor(pos, half) {
+  constructor(pos: Point, half: Point) {
     this.pos = pos;
     this.half = half;
   }
@@ -144,10 +144,10 @@ export class AABB {
       hit.normal.x = 0;
       hit.normal.y = -signY;
     }
-    hit.delta.x = hit.time * delta.x;
-    hit.delta.y = hit.time * delta.y;
-    hit.pos.x = pos.x + hit.delta.x;
-    hit.pos.y = pos.y + hit.delta.y;
+    hit.delta.x = (1.0 - hit.time) * -delta.x;
+    hit.delta.y = (1.0 - hit.time) * -delta.y;
+    hit.pos.x = pos.x + delta.x * hit.time;
+    hit.pos.y = pos.y + delta.y * hit.time;
     return hit;
   }
 
