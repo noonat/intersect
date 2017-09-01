@@ -234,7 +234,7 @@ each axis).</p>
   <span class="hljs-keyword">public</span> pos: Point;
   <span class="hljs-keyword">public</span> half: Point;
 
-  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos, half</span>) {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos: Point, half: Point</span>) {
     <span class="hljs-keyword">this</span>.pos = pos;
     <span class="hljs-keyword">this</span>.half = half;
   }</pre></div>
@@ -418,10 +418,10 @@ the very starting of the line, so just set the hit time to zero.</p>
       hit.normal.x = <span class="hljs-number">0</span>;
       hit.normal.y = -signY;
     }
-    hit.delta.x = hit.time * delta.x;
-    hit.delta.y = hit.time * delta.y;
-    hit.pos.x = pos.x + hit.delta.x;
-    hit.pos.y = pos.y + hit.delta.y;
+    hit.delta.x = (<span class="hljs-number">1.0</span> - hit.time) * -delta.x;
+    hit.delta.y = (<span class="hljs-number">1.0</span> - hit.time) * -delta.y;
+    hit.pos.x = pos.x + delta.x * hit.time;
+    hit.pos.y = pos.y + delta.y * hit.time;
     <span class="hljs-keyword">return</span> hit;
   }</pre></div>
         
