@@ -90,7 +90,7 @@ function reflect(velocity, normal, out) {
     out.x = wx - ux;
     out.y = wy - uy;
 }
-var Example = (function () {
+var Example = /** @class */ (function () {
     function Example(context, width, height) {
         this.context = context;
         this.width = width;
@@ -180,7 +180,7 @@ var Example = (function () {
     };
     return Example;
 }());
-var AABBPointExample = (function (_super) {
+var AABBPointExample = /** @class */ (function (_super) {
     __extends(AABBPointExample, _super);
     function AABBPointExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
@@ -206,7 +206,7 @@ var AABBPointExample = (function (_super) {
     };
     return AABBPointExample;
 }(Example));
-var AABBSegmentExample = (function (_super) {
+var AABBSegmentExample = /** @class */ (function (_super) {
     __extends(AABBSegmentExample, _super);
     function AABBSegmentExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
@@ -236,7 +236,7 @@ var AABBSegmentExample = (function (_super) {
     };
     return AABBSegmentExample;
 }(Example));
-var AABBAABBExample = (function (_super) {
+var AABBAABBExample = /** @class */ (function (_super) {
     __extends(AABBAABBExample, _super);
     function AABBAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
@@ -266,7 +266,7 @@ var AABBAABBExample = (function (_super) {
     };
     return AABBAABBExample;
 }(Example));
-var AABBSweptAABBExample = (function (_super) {
+var AABBSweptAABBExample = /** @class */ (function (_super) {
     __extends(AABBSweptAABBExample, _super);
     function AABBSweptAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
@@ -320,7 +320,7 @@ var AABBSweptAABBExample = (function (_super) {
     };
     return AABBSweptAABBExample;
 }(Example));
-var MultipleAABBSweptAABBExample = (function (_super) {
+var MultipleAABBSweptAABBExample = /** @class */ (function (_super) {
     __extends(MultipleAABBSweptAABBExample, _super);
     function MultipleAABBSweptAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
@@ -435,7 +435,7 @@ function sign(value) {
     return value < 0 ? -1 : 1;
 }
 exports.sign = sign;
-var Point = (function () {
+var Point = /** @class */ (function () {
     function Point(x, y) {
         if (x === void 0) { x = 0; }
         if (y === void 0) { y = 0; }
@@ -462,7 +462,7 @@ var Point = (function () {
     return Point;
 }());
 exports.Point = Point;
-var Hit = (function () {
+var Hit = /** @class */ (function () {
     function Hit(collider) {
         this.collider = collider;
         this.pos = new Point();
@@ -473,7 +473,7 @@ var Hit = (function () {
     return Hit;
 }());
 exports.Hit = Hit;
-var Sweep = (function () {
+var Sweep = /** @class */ (function () {
     function Sweep() {
         this.hit = null;
         this.pos = new Point();
@@ -482,7 +482,7 @@ var Sweep = (function () {
     return Sweep;
 }());
 exports.Sweep = Sweep;
-var AABB = (function () {
+var AABB = /** @class */ (function () {
     function AABB(pos, half) {
         this.pos = pos;
         this.half = half;

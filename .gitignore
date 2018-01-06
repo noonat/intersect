@@ -1,4 +1,4 @@
 .DS_Store
-docs/intersect.html
+docs/src/intersect.ts.html
 node_modules
 
