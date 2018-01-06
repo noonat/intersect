@@ -13,7 +13,7 @@ execFile('docco', [
     console.log('docco stderr:', stderr);
     throw err;
   }
-  rename('docs/intersect.ts.html', 'index.html', (err) => {
+  rename('docs/src/intersect.ts.html', 'index.html', (err) => {
     if (err) {
       throw err;
     }
