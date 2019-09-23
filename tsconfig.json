@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
+    "lib": ["dom", "es2015"],
     "module": "commonjs",
     "outDir": "./lib",
     "sourceMap": true,
+    "strict": true,
     "strictNullChecks": true
   },
-  "files": [
-    "src/intersect.ts"
-  ]
+  "files": ["src/intersect.ts"]
 }

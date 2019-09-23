@@ -1,63 +1,69 @@
-import * as assert from 'assert';
-import {AABB, EPSILON, Hit, Point, Sweep} from '../src/intersect';
+import * as assert from "assert";
+import { AABB, EPSILON, Hit, Point, Sweep } from "../src/intersect";
 
-function almostEqual(actual, expected, message: string = undefined) {
+function almostEqual(actual: number, expected: number, message?: string) {
   if (Math.abs(actual - expected) > 1e-8) {
     assert.equal(actual, expected, message);
   }
 }
 
-describe('AABB', () => {
-  describe('intersectPoint', () => {
-    test('should return null when not colliding', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let points = [
+function assertNotNull<T>(value: T | null): T {
+  if (value === null) {
+    throw new Error("value is unexpectedly null");
+  }
+  return value;
+}
+
+describe("AABB", () => {
+  describe("intersectPoint", () => {
+    test("should return null when not colliding", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      const points = [
         new Point(-16, -16),
-        new Point(  0, -16),
-        new Point( 16, -16),
-        new Point( 16,   0),
-        new Point( 16,  16),
-        new Point(  0,  16),
-        new Point(-16,  16),
-        new Point(-16,   0),
-      ]
-      points.forEach((point) => {
+        new Point(0, -16),
+        new Point(16, -16),
+        new Point(16, 0),
+        new Point(16, 16),
+        new Point(0, 16),
+        new Point(-16, 16),
+        new Point(-16, 0)
+      ];
+      points.forEach(point => {
         assert.equal(aabb.intersectPoint(point), null);
       });
     });
 
-    test('should return hit when colliding', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let point = new Point(4, 4);
-      let hit = aabb.intersectPoint(point);
-      assert.notEqual(hit, null);
+    test("should return hit when colliding", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      const point = new Point(4, 4);
+      const hit = assertNotNull(aabb.intersectPoint(point));
       assert.ok(hit instanceof Hit);
     });
 
-    test('should set hit pos and normal to nearest edge of box', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let hit = aabb.intersectPoint(new Point(-4, -2));
+    test("should set hit pos and normal to nearest edge of box", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      let hit = assertNotNull(aabb.intersectPoint(new Point(-4, -2)));
       almostEqual(hit.pos.x, -8);
       almostEqual(hit.pos.y, -2);
       almostEqual(hit.delta.x, -4);
       almostEqual(hit.delta.y, 0);
       almostEqual(hit.normal.x, -1);
       almostEqual(hit.normal.y, 0);
-      hit = aabb.intersectPoint(new Point(4, -2));
+      hit = assertNotNull(aabb.intersectPoint(new Point(4, -2)));
       almostEqual(hit.pos.x, 8);
       almostEqual(hit.pos.y, -2);
       almostEqual(hit.delta.x, 4);
       almostEqual(hit.delta.y, 0);
       almostEqual(hit.normal.x, 1);
       almostEqual(hit.normal.y, 0);
-      hit = aabb.intersectPoint(new Point(2, -4));
+      hit = assertNotNull(aabb.intersectPoint(new Point(2, -4)));
       almostEqual(hit.pos.x, 2);
       almostEqual(hit.pos.y, -8);
       almostEqual(hit.delta.x, 0);
       almostEqual(hit.delta.y, -4);
       almostEqual(hit.normal.x, 0);
       almostEqual(hit.normal.y, -1);
-      hit = aabb.intersectPoint(new Point(2, 4));
+      hit = assertNotNull(aabb.intersectPoint(new Point(2, 4)));
       almostEqual(hit.pos.x, 2);
       almostEqual(hit.pos.y, 8);
       almostEqual(hit.delta.x, 0);
@@ -67,20 +73,22 @@ describe('AABB', () => {
     });
   });
 
-  describe('intersectSegment', () => {
-    test('should return null when not colliding', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      assert.equal(aabb.intersectSegment(new Point(-16, -16), new Point(32, 0)), null);
+  describe("intersectSegment", () => {
+    test("should return null when not colliding", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      assert.equal(
+        aabb.intersectSegment(new Point(-16, -16), new Point(32, 0)),
+        null
+      );
     });
 
-    test('should return hit when colliding', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let point = new Point(-16, 4);
-      let delta = new Point(32, 0);
-      let hit = aabb.intersectSegment(point, delta);
-      assert.notEqual(hit, null);
+    test("should return hit when colliding", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      const point = new Point(-16, 4);
+      const delta = new Point(32, 0);
+      const hit = assertNotNull(aabb.intersectSegment(point, delta));
       assert.ok(hit instanceof Hit);
-      let time = 0.25;
+      const time = 0.25;
       assert.equal(hit.collider, aabb);
       almostEqual(hit.time, time);
       almostEqual(hit.pos.x, point.x + delta.x * time);
@@ -91,11 +99,11 @@ describe('AABB', () => {
       almostEqual(hit.normal.y, 0);
     });
 
-    test('should set hit.time to zero when segment starts inside box', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let point = new Point(-4, 4);
-      let delta = new Point(32, 0);
-      let hit = aabb.intersectSegment(point, delta);
+    test("should set hit.time to zero when segment starts inside box", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      const point = new Point(-4, 4);
+      const delta = new Point(32, 0);
+      const hit = assertNotNull(aabb.intersectSegment(point, delta));
       almostEqual(hit.time, 0);
       almostEqual(hit.pos.x, -4);
       almostEqual(hit.pos.y, 4);
@@ -105,13 +113,15 @@ describe('AABB', () => {
       almostEqual(hit.normal.y, 0);
     });
 
-    test('should add padding to half size of box', () => {
-      let aabb = new AABB(new Point(0, 0), new Point(8, 8));
-      let point = new Point(-16, 4);
-      let delta = new Point(32, 0);
-      let padding = 4;
-      let hit = aabb.intersectSegment(point, delta, padding, padding);
-      let time = 0.125;
+    test("should add padding to half size of box", () => {
+      const aabb = new AABB(new Point(0, 0), new Point(8, 8));
+      const point = new Point(-16, 4);
+      const delta = new Point(32, 0);
+      const padding = 4;
+      const hit = assertNotNull(
+        aabb.intersectSegment(point, delta, padding, padding)
+      );
+      const time = 0.125;
       assert.equal(hit.collider, aabb);
       almostEqual(hit.time, time);
       almostEqual(hit.pos.x, point.x + delta.x * time);
@@ -122,35 +132,35 @@ describe('AABB', () => {
       almostEqual(hit.normal.y, 0);
     });
 
-    test('should have consistent results in both directions', () => {
+    test("should have consistent results in both directions", () => {
       // If moving from far away to the near edge of the box doesn't cause a
       // collision, then moving away from the near edge shouldn't either.
-      let aabb = new AABB(new Point(0, 0), new Point(32, 32));
-      let farPos = new Point(64, 0);
-      let farToNearDelta = new Point(-32, 0);
+      const aabb = new AABB(new Point(0, 0), new Point(32, 32));
+      const farPos = new Point(64, 0);
+      const farToNearDelta = new Point(-32, 0);
       assert.equal(aabb.intersectSegment(farPos, farToNearDelta), null);
-      let nearPos = new Point(32, 0);
-      let nearToFarDelta = new Point(32, 0);
+      const nearPos = new Point(32, 0);
+      const nearToFarDelta = new Point(32, 0);
       assert.equal(aabb.intersectSegment(nearPos, nearToFarDelta), null);
     });
 
-    test('should work when segment is axis aligned', () => {
+    test("should work when segment is axis aligned", () => {
       // When the segment is axis aligned, it will cause the near and far values
       // to be Infinity and -Infinity. Make sure that this case works.
-      let aabb = new AABB(new Point(0, 0), new Point(16, 16));
-      let pos = new Point(-32, 0);
-      let delta = new Point(64, 0);
-      let hit = aabb.intersectSegment(pos, delta);
+      const aabb = new AABB(new Point(0, 0), new Point(16, 16));
+      const pos = new Point(-32, 0);
+      const delta = new Point(64, 0);
+      const hit = assertNotNull(aabb.intersectSegment(pos, delta));
       assert.equal(hit.time, 0.25);
       assert.equal(hit.normal.x, -1);
       assert.equal(hit.normal.y, 0);
     });
   });
 
-  describe('intersectAABB', () => {
-    test('should return null when not colliding', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
-      let aabb2 = new AABB(new Point(32, 0), new Point(8, 8));
+  describe("intersectAABB", () => {
+    test("should return null when not colliding", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
+      const aabb2 = new AABB(new Point(32, 0), new Point(8, 8));
       assert.equal(aabb1.intersectAABB(aabb2), null);
       aabb2.pos = new Point(-32, 0);
       assert.equal(aabb1.intersectAABB(aabb2), null);
@@ -162,9 +172,9 @@ describe('AABB', () => {
       assert.equal(aabb1.intersectAABB(aabb2), null);
     });
 
-    test('should return null when edges are flush', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
-      let aabb2 = new AABB(new Point(16, 0), new Point(8, 8));
+    test("should return null when edges are flush", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
+      const aabb2 = new AABB(new Point(16, 0), new Point(8, 8));
       assert.equal(aabb1.intersectAABB(aabb2), null);
       aabb2.pos = new Point(-16, 0);
       assert.equal(aabb1.intersectAABB(aabb2), null);
@@ -176,49 +186,49 @@ describe('AABB', () => {
       assert.equal(aabb1.intersectAABB(aabb2), null);
     });
 
-    test('should return hit when colliding', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
-      let aabb2 = new AABB(new Point(8, 0), new Point(8, 8));
-      let hit = aabb1.intersectAABB(aabb2);
+    test("should return hit when colliding", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
+      const aabb2 = new AABB(new Point(8, 0), new Point(8, 8));
+      const hit = aabb1.intersectAABB(aabb2);
       assert.notEqual(hit, null);
       assert.ok(hit instanceof Hit);
     });
 
-    test('should set hit.pos and hit.normal to nearest edge of box 1', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
-      let aabb2 = new AABB(new Point(4, 0), new Point(8, 8));
-      let hit = aabb1.intersectAABB(aabb2);
+    test("should set hit.pos and hit.normal to nearest edge of box 1", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
+      const aabb2 = new AABB(new Point(4, 0), new Point(8, 8));
+      let hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.pos.x, 8);
       almostEqual(hit.pos.y, 0);
       almostEqual(hit.normal.x, 1);
       almostEqual(hit.normal.y, 0);
 
       aabb2.pos = new Point(-4, 0);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.pos.x, -8);
       almostEqual(hit.pos.y, 0);
       almostEqual(hit.normal.x, -1);
       almostEqual(hit.normal.y, 0);
 
       aabb2.pos = new Point(0, 4);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.pos.x, 0);
       almostEqual(hit.pos.y, 8);
       almostEqual(hit.normal.x, 0);
       almostEqual(hit.normal.y, 1);
 
       aabb2.pos = new Point(0, -4);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.pos.x, 0);
       almostEqual(hit.pos.y, -8);
       almostEqual(hit.normal.x, 0);
       almostEqual(hit.normal.y, -1);
     });
 
-    test('should set hit.delta to move box 2 out of collision', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
-      let aabb2 = new AABB(new Point(4, 0), new Point(8, 8));
-      let hit = aabb1.intersectAABB(aabb2);
+    test("should set hit.delta to move box 2 out of collision", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(8, 8));
+      const aabb2 = new AABB(new Point(4, 0), new Point(8, 8));
+      let hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.delta.x, 12);
       almostEqual(hit.delta.y, 0);
       aabb2.pos.x += hit.delta.x;
@@ -226,7 +236,7 @@ describe('AABB', () => {
       assert.equal(aabb1.intersectAABB(aabb2), null);
 
       aabb2.pos = new Point(-4, 0);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.delta.x, -12);
       almostEqual(hit.delta.y, 0);
       aabb2.pos.x += hit.delta.x;
@@ -234,7 +244,7 @@ describe('AABB', () => {
       assert.equal(aabb1.intersectAABB(aabb2), null);
 
       aabb2.pos = new Point(0, 4);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.delta.x, 0);
       almostEqual(hit.delta.y, 12);
       aabb2.pos.x += hit.delta.x;
@@ -242,7 +252,7 @@ describe('AABB', () => {
       assert.equal(aabb1.intersectAABB(aabb2), null);
 
       aabb2.pos = new Point(0, -4);
-      hit = aabb1.intersectAABB(aabb2);
+      hit = assertNotNull(aabb1.intersectAABB(aabb2));
       almostEqual(hit.delta.x, 0);
       almostEqual(hit.delta.y, -12);
       aabb2.pos.x += hit.delta.x;
@@ -251,12 +261,12 @@ describe('AABB', () => {
     });
   });
 
-  describe('sweepAABB', () => {
-    test('should return sweep when not colliding', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(64, -64), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
+  describe("sweepAABB", () => {
+    test("should return sweep when not colliding", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(64, -64), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
       assert.ok(sweep instanceof Sweep);
       assert.ok(sweep.pos instanceof Point);
       assert.equal(sweep.hit, null);
@@ -264,61 +274,70 @@ describe('AABB', () => {
       almostEqual(sweep.pos.y, aabb2.pos.y + delta.y);
     });
 
-    test('should return sweep with sweep.hit when colliding', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
+    test("should return sweep with sweep.hit when colliding", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
       assert.ok(sweep instanceof Sweep);
       assert.ok(sweep.hit instanceof Hit);
       assert.ok(sweep.pos instanceof Point);
     });
 
-    test('should place sweep.pos at a non-colliding point', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
-      let time = 0.3125 - EPSILON;
+    test("should place sweep.pos at a non-colliding point", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
+      const time = 0.3125 - EPSILON;
       almostEqual(sweep.time, time);
       almostEqual(sweep.pos.x, aabb2.pos.x + delta.x * time);
       almostEqual(sweep.pos.y, aabb2.pos.y + delta.y * time);
     });
 
-    test('should place sweep.hit.pos on the edge of the box', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
-      let time = 0.3125;
-      let direction = delta.clone();
+    test("should place sweep.hit.pos on the edge of the box", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
+      const time = 0.3125;
+      const direction = delta.clone();
       direction.normalize();
-      almostEqual(sweep.hit.time, time);
-      almostEqual(sweep.hit.pos.x, aabb2.pos.x + delta.x * time + direction.x * aabb2.half.x);
-      almostEqual(sweep.hit.pos.y, aabb2.pos.y + delta.y * time + direction.y * aabb2.half.y);
-      almostEqual(sweep.hit.delta.x, (1.0 - time) * -delta.x);
-      almostEqual(sweep.hit.delta.y, (1.0 - time) * -delta.y);
+      const hit = assertNotNull(sweep.hit);
+      almostEqual(hit.time, time);
+      almostEqual(
+        hit.pos.x,
+        aabb2.pos.x + delta.x * time + direction.x * aabb2.half.x
+      );
+      almostEqual(
+        hit.pos.y,
+        aabb2.pos.y + delta.y * time + direction.y * aabb2.half.y
+      );
+      almostEqual(hit.delta.x, (1.0 - time) * -delta.x);
+      almostEqual(hit.delta.y, (1.0 - time) * -delta.y);
     });
 
-    test('should set sweep.hit.normal to normals of box 1', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
-      almostEqual(sweep.hit.normal.x, 0);
-      almostEqual(sweep.hit.normal.y, -1);
+    test("should set sweep.hit.normal to normals of box 1", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(0, -64), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
+      const hit = assertNotNull(sweep.hit);
+      almostEqual(hit.normal.x, 0);
+      almostEqual(hit.normal.y, -1);
     });
 
-    test('should not move when the start position is colliding', () => {
-      let aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
-      let aabb2 = new AABB(new Point(0, -4), new Point(8, 8));
-      let delta = new Point(0, 128);
-      let sweep = aabb1.sweepAABB(aabb2, delta);
+    test("should not move when the start position is colliding", () => {
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(0, -4), new Point(8, 8));
+      const delta = new Point(0, 128);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
       almostEqual(sweep.pos.x, 0);
       almostEqual(sweep.pos.y, -4);
-      almostEqual(sweep.hit.time, 0);
-      almostEqual(sweep.hit.delta.x, -delta.x);
-      almostEqual(sweep.hit.delta.y, -delta.y);
+      const hit = assertNotNull(sweep.hit);
+      almostEqual(hit.time, 0);
+      almostEqual(hit.delta.x, -delta.x);
+      almostEqual(hit.delta.y, -delta.y);
     });
   });
 });

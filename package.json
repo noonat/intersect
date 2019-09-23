@@ -15,15 +15,20 @@
   },
   "main": "lib/intersect.js",
   "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.5",
     "docco": "^0.8.0",
-    "jest": "^22.0.4",
-    "markdown-it": "^8.4.0",
-    "rimraf": "^2.6.2",
-    "ts-jest": "^22.0.1",
-    "ts-loader": "^3.2.0",
-    "tslint": "^5.8.0",
-    "typescript": "^2.6.2",
-    "webpack": "^3.10.0"
+    "jest": "^24.9.0",
+    "markdown-it": "^10.0.0",
+    "prettier": "^1.18.2",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^24.1.0",
+    "ts-loader": "^6.1.2",
+    "tslint": "^5.2.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.6.3",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.9"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -33,7 +38,7 @@
       "tsx"
     ],
     "transform": {
-      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "\\.(ts|tsx)$": "ts-jest"
     },
     "testRegex": "/test/.*\\.(ts|tsx|js|jsx)$"
   }

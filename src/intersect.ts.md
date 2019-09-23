@@ -1,5 +1,4 @@
-Intersection Tests in 2D
-========================
+# Intersection Tests in 2D
 
 This library is a collection of common 2D collision detection tests. Hopefully
 this saves you from the pain of hunting them down yourself, or trying to rip
@@ -26,14 +25,12 @@ on this page are also written in TypeScript, using the library.
    4. [AABB vs Swept AABB](#aabb-vs-swept-aabb)
 4. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
 
-[Real-Time Collision Detection]: http://realtimecollisiondetection.net/
+[real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
 [intersect.ts]: https://github.com/noonat/intersect/blob/master/src/intersect.js
 [examples.ts]: https://github.com/noonat/intersect/blob/master/src/examples.js
 
-
-Helpers
--------
+## Helpers
 
 Let's define a couple helpers that we'll use through the code.
 
@@ -89,9 +86,7 @@ detection, so it makes things a bit more readable to formalize it as a class.
       }
     }
 
-
-Types of Tests
---------------
+## Types of Tests
 
 Collision and physics libraries generally assign things to two categories:
 static objects at rest, and dynamic moving objects. Full physics libraries often
@@ -105,9 +100,8 @@ that this hurts your performance, and it makes the problem far easier to solve.
 It also makes it easier to fine tune the physics system, which is often very
 important for platformers.
 
-As such, the functions in this code are all written for *static vs static* or
-*moving vs static* object tests, to keep things simple.
-
+As such, the functions in this code are all written for _static vs static_ or
+_moving vs static_ object tests, to keep things simple.
 
 ### Intersection Tests
 
@@ -116,21 +110,23 @@ As such, the functions in this code are all written for *static vs static* or
   <figcaption>A intersects with B and needs to be pushed out</figcaption>
 </figure>
 
-Intersection tests are a *static vs static* test. They check whether two static
+Intersection tests are a _static vs static_ test. They check whether two static
 objects are overlapping. They have a boolean result (colliding or not), with a
 vector which tells you how you could move the objects so that they're no longer
 overlapping.
 
 Intersection tests will return a Hit object when a collision occurs:
 
+    type Collider = AABB;
+
     export class Hit {
-      public collider;
+      public collider: Collider;
       public pos: Point;
       public delta: Point;
       public normal: Point;
       public time: number;
 
-      constructor(collider) {
+      constructor(collider: Collider) {
         this.collider = collider;
         this.pos = new Point();
         this.delta = new Point();
@@ -149,10 +145,9 @@ Intersection tests will return a Hit object when a collision occurs:
   fraction from 0 to 1 indicating how far along the line the collision occurred.
   (This is the `t` value for the line equation `L(t) = A + t * (B - A)`)
 
-
 ### Sweep Tests
 
-Sweep tests are a *moving vs static* test. They take two objects, sweep one
+Sweep tests are a _moving vs static_ test. They take two objects, sweep one
 along a line of movement, and determine when it first collides with the other
 object along that path of movement.
 
@@ -163,7 +158,7 @@ object along that path of movement.
 
 Normal intersection tests are helpful for static objects, but they aren't the
 best choice to collide a moving object. If you are trying to collide an object
-A against two objects, B and C, you can easily get into an ambigious situation
+A against two objects, B and C, you can easily get into an ambiguous situation
 where the collision isn't as easy to resolve.
 
 Our intersection tests can only determine what the best way to resolve a
@@ -195,9 +190,7 @@ Sweep tests return a `Sweep` object:
 - **sweep.time** is a copy of `sweep.hit.time`, offset by epsilon, or 1 if
   the object didn't hit anything during the sweep.
 
-
-Axis-Aligned Bounding Boxes
----------------------------
+## Axis-Aligned Bounding Boxes
 
 Axis-aligned bounding boxes (AABBs) are bounding rectangles that do not rotate.
 This means that their edges are always aligned with the main X and Y axes, which
@@ -216,7 +209,6 @@ each axis).
 
 The library has four axis-aligned bounding box (AABB) tests: AABB vs point,
 AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.
-
 
 ### AABB vs Point
 
@@ -260,7 +252,6 @@ on the edge of the box.
         return hit;
       }
 
-
 ### AABB vs Segment
 
 Games use segment intersection tests all the time, for everything from line of
@@ -287,7 +278,7 @@ the box are the bottom and right edges.
 
 Note that the intersection points might not actually be on the box or the
 segment. They will be at the intersection of the infinite lines of the box's
-edges and the infinte line of the segment.
+edges and the infinite line of the segment.
 
 This is a weird concept, so don't feel bad if it takes a while for it to sink
 in. For further reading, I recommend [IRT p.65,104] and [WilliamsEtAl05].
@@ -297,8 +288,8 @@ the box. It returns a Hit object (with an extra `time` property), or null if
 the two do not overlap. `paddingX` and `paddingY` will be added to the radius
 of the bounding box, if specified.
 
-[IRT p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
-[WilliamsEtAl05]: https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/
+[irt p.65,104]: http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+[williamsetal05]: https://web.archive.org/web/20130420103121/http://www.cs.utah.edu/~awilliam/box/
 
       public intersectSegment(pos: Point, delta: Point, paddingX: number = 0,
                               paddingY: number = 0): Hit | null {
@@ -395,11 +386,10 @@ the very starting of the line, so just set the hit time to zero.
         return hit;
       }
 
-
 ### AABB vs AABB
 
 This test uses a [separating axis test], which checks for overlaps between the
-two boxes on each axis. If either axis is *not* overlapping, the boxes aren't
+two boxes on each axis. If either axis is _not_ overlapping, the boxes aren't
 colliding.
 
 The function returns a Hit object, or null if the two static boxes do not
@@ -442,7 +432,6 @@ This code is very similar to the `intersectPoint` function above.
         return hit;
       }
 
-
 ### AABB vs Swept AABB
 
 <div class="figure-row right">
@@ -459,7 +448,7 @@ This code is very similar to the `intersectPoint` function above.
 Swept volume tests are awesome &mdash; they tell you whether object A hits
 object B at any point along a movement path. This problem seems hard, until
 someone tells you the magic word: [Minkowski]. If you inflate the static box by
-the size of the moving box, you can just test the movement *segment* against
+the size of the moving box, you can just test the movement _segment_ against
 the padded static box. The point at which the segment intersects the padded box
 tells you where the moving box first collided with the static box.
 
@@ -468,7 +457,7 @@ the `delta` argument is a point describing the movement of the box. It returns
 a Sweep object. `sweep.hit` will be a Hit object if the two collided, or
 null if they did not overlap.
 
-[Minkowski]: http://physics2d.com/content/gjk-algorithm
+[minkowski]: http://physics2d.com/content/gjk-algorithm
 
       public sweepAABB(box: AABB, delta: Point): Sweep {
         const sweep = new Sweep();
@@ -480,11 +469,7 @@ and will give us a better result for that case.
           sweep.pos.x = box.pos.x;
           sweep.pos.y = box.pos.y;
           sweep.hit = this.intersectAABB(box);
-          if (sweep.hit) {
-            sweep.time = sweep.hit.time = 0;
-          } else {
-            sweep.time = 1;
-          }
+          sweep.time = sweep.hit ? (sweep.hit.time = 0) : 1;
           return sweep;
         }
 
@@ -515,7 +500,6 @@ of the box, as close to the segment of movement as possible.
         return sweep;
       }
 
-
 ### Sweeping an AABB Through Multiple Objects
 
 So, let's say we have an AABB we want to move from one point to another, without
@@ -523,7 +507,7 @@ allowing it to collide with a list of static AABBs. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.
 
-      public sweepInto(staticColliders, delta: Point): Sweep {
+      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
