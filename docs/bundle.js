@@ -36,12 +36,32 @@
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -59,20 +79,29 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/examples.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./src/examples.ts":
+/*!*************************!*\
+  !*** ./src/examples.ts ***!
+  \*************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -80,7 +109,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 exports.__esModule = true;
-var intersect_ts_1 = __webpack_require__(1);
+var intersect_1 = __webpack_require__(/*! ./intersect */ "./src/intersect.ts");
 function reflect(velocity, normal, out) {
     var dot = velocity.x * normal.x + velocity.y * normal.y;
     var ux = normal.x * dot;
@@ -95,7 +124,7 @@ var Example = /** @class */ (function () {
         this.context = context;
         this.width = width;
         this.height = height;
-        this.origin = new intersect_ts_1.Point(this.width * 0.5, this.height * 0.5);
+        this.origin = new intersect_1.Point(this.width * 0.5, this.height * 0.5);
         this.infiniteLength = Math.sqrt(this.width * this.width + this.height * this.height);
     }
     Example.prototype.drawAABB = function (box, color, thickness) {
@@ -132,8 +161,8 @@ var Example = /** @class */ (function () {
         if (color === void 0) { color = "#fff"; }
         if (text === void 0) { text = ""; }
         if (thickness === void 0) { thickness = 1; }
-        var x = Math.floor(this.origin.x + point.x - (thickness / 2));
-        var y = Math.floor(this.origin.y + point.y - (thickness / 2));
+        var x = Math.floor(this.origin.x + point.x - thickness / 2);
+        var y = Math.floor(this.origin.y + point.y - thickness / 2);
         this.context.lineWidth = thickness;
         this.context.fillStyle = color;
         this.context.strokeStyle = color;
@@ -147,7 +176,7 @@ var Example = /** @class */ (function () {
         if (color === void 0) { color = "#fff"; }
         if (arrow === void 0) { arrow = true; }
         if (thickness === void 0) { thickness = 1; }
-        var pos2 = new intersect_ts_1.Point(pos.x + dir.x * length, pos.y + dir.y * length);
+        var pos2 = new intersect_1.Point(pos.x + dir.x * length, pos.y + dir.y * length);
         this.drawSegment(pos, pos2, color, thickness);
         if (arrow) {
             pos = pos2.clone();
@@ -185,8 +214,8 @@ var AABBPointExample = /** @class */ (function (_super) {
     function AABBPointExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
         _this.angle = 0;
-        _this.pos = new intersect_ts_1.Point();
-        _this.box = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(16, 16));
+        _this.pos = new intersect_1.Point();
+        _this.box = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(16, 16));
         return _this;
     }
     AABBPointExample.prototype.tick = function (elapsed) {
@@ -211,15 +240,15 @@ var AABBSegmentExample = /** @class */ (function (_super) {
     function AABBSegmentExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
         _this.angle = 0;
-        _this.box = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(16, 16));
+        _this.box = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(16, 16));
         return _this;
     }
     AABBSegmentExample.prototype.tick = function (elapsed) {
         _super.prototype.tick.call(this, elapsed);
         this.angle += 0.5 * Math.PI * elapsed;
-        var pos1 = new intersect_ts_1.Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
-        var pos2 = new intersect_ts_1.Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
-        var delta = new intersect_ts_1.Point(pos2.x - pos1.x, pos2.y - pos1.y);
+        var pos1 = new intersect_1.Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
+        var pos2 = new intersect_1.Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+        var delta = new intersect_1.Point(pos2.x - pos1.x, pos2.y - pos1.y);
         var hit = this.box.intersectSegment(pos1, delta);
         var dir = delta.clone();
         var length = dir.normalize();
@@ -241,8 +270,8 @@ var AABBAABBExample = /** @class */ (function (_super) {
     function AABBAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
         _this.angle = 0;
-        _this.box1 = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(64, 16));
-        _this.box2 = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(16, 16));
+        _this.box1 = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(64, 16));
+        _this.box2 = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(16, 16));
         return _this;
     }
     AABBAABBExample.prototype.tick = function (elapsed) {
@@ -271,16 +300,13 @@ var AABBSweptAABBExample = /** @class */ (function (_super) {
     function AABBSweptAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
         _this.angle = 0;
-        _this.staticBox = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(112, 16));
+        _this.staticBox = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(112, 16));
         _this.sweepBoxes = [
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(-152, 24), new intersect_ts_1.Point(16, 16)),
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(128, -48), new intersect_ts_1.Point(16, 16)),
+            new intersect_1.AABB(new intersect_1.Point(-152, 24), new intersect_1.Point(16, 16)),
+            new intersect_1.AABB(new intersect_1.Point(128, -48), new intersect_1.Point(16, 16))
         ];
-        _this.sweepDeltas = [
-            new intersect_ts_1.Point(64, -12),
-            new intersect_ts_1.Point(-32, 96),
-        ];
-        _this.tempBox = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(16, 16));
+        _this.sweepDeltas = [new intersect_1.Point(64, -12), new intersect_1.Point(-32, 96)];
+        _this.tempBox = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(16, 16));
         return _this;
     }
     AABBSweptAABBExample.prototype.tick = function (elapsed) {
@@ -288,7 +314,7 @@ var AABBSweptAABBExample = /** @class */ (function (_super) {
         _super.prototype.tick.call(this, elapsed);
         this.angle += 0.5 * Math.PI * elapsed;
         this.drawAABB(this.staticBox, "#666");
-        var factor = ((Math.cos(this.angle) + 1) * 0.5) || 1e-8;
+        var factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
         this.sweepBoxes.forEach(function (box, i) {
             var delta = _this.sweepDeltas[i].clone();
             delta.x *= factor;
@@ -324,14 +350,14 @@ var MultipleAABBSweptAABBExample = /** @class */ (function (_super) {
     __extends(MultipleAABBSweptAABBExample, _super);
     function MultipleAABBSweptAABBExample(context, width, height) {
         var _this = _super.call(this, context, width, height) || this;
-        _this.delta = new intersect_ts_1.Point();
-        _this.velocity = new intersect_ts_1.Point(48, 48);
-        _this.movingBox = new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 0), new intersect_ts_1.Point(8, 8));
+        _this.delta = new intersect_1.Point();
+        _this.velocity = new intersect_1.Point(48, 48);
+        _this.movingBox = new intersect_1.AABB(new intersect_1.Point(0, 0), new intersect_1.Point(8, 8));
         _this.staticBoxes = [
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(-96, 0), new intersect_ts_1.Point(8, 48)),
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(96, 0), new intersect_ts_1.Point(8, 48)),
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(0, -56), new intersect_ts_1.Point(104, 8)),
-            new intersect_ts_1.AABB(new intersect_ts_1.Point(0, 56), new intersect_ts_1.Point(104, 8)),
+            new intersect_1.AABB(new intersect_1.Point(-96, 0), new intersect_1.Point(8, 48)),
+            new intersect_1.AABB(new intersect_1.Point(96, 0), new intersect_1.Point(8, 48)),
+            new intersect_1.AABB(new intersect_1.Point(0, -56), new intersect_1.Point(104, 8)),
+            new intersect_1.AABB(new intersect_1.Point(0, 56), new intersect_1.Point(104, 8))
         ];
         return _this;
     }
@@ -389,8 +415,8 @@ ready(function () {
             return;
         }
         anchor.parentNode.insertBefore(canvas, anchor.nextSibling);
-        var width = canvas.width = 640;
-        var height = canvas.height = 160;
+        var width = (canvas.width = 640);
+        var height = (canvas.height = 160);
         var context = canvas.getContext("2d");
         if (!context) {
             return;
@@ -408,7 +434,12 @@ ready(function () {
 
 
 /***/ }),
-/* 1 */
+
+/***/ "./src/intersect.ts":
+/*!**************************!*\
+  !*** ./src/intersect.ts ***!
+  \**************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -503,7 +534,7 @@ var AABB = /** @class */ (function () {
             var sx = sign(dx);
             hit.delta.x = px * sx;
             hit.normal.x = sx;
-            hit.pos.x = this.pos.x + (this.half.x * sx);
+            hit.pos.x = this.pos.x + this.half.x * sx;
             hit.pos.y = point.y;
         }
         else {
@@ -511,7 +542,7 @@ var AABB = /** @class */ (function () {
             hit.delta.y = py * sy;
             hit.normal.y = sy;
             hit.pos.x = point.x;
-            hit.pos.y = this.pos.y + (this.half.y * sy);
+            hit.pos.y = this.pos.y + this.half.y * sy;
         }
         return hit;
     };
@@ -552,12 +583,12 @@ var AABB = /** @class */ (function () {
     };
     AABB.prototype.intersectAABB = function (box) {
         var dx = box.pos.x - this.pos.x;
-        var px = (box.half.x + this.half.x) - abs(dx);
+        var px = box.half.x + this.half.x - abs(dx);
         if (px <= 0) {
             return null;
         }
         var dy = box.pos.y - this.pos.y;
-        var py = (box.half.y + this.half.y) - abs(dy);
+        var py = box.half.y + this.half.y - abs(dy);
         if (py <= 0) {
             return null;
         }
@@ -566,7 +597,7 @@ var AABB = /** @class */ (function () {
             var sx = sign(dx);
             hit.delta.x = px * sx;
             hit.normal.x = sx;
-            hit.pos.x = this.pos.x + (this.half.x * sx);
+            hit.pos.x = this.pos.x + this.half.x * sx;
             hit.pos.y = box.pos.y;
         }
         else {
@@ -574,7 +605,7 @@ var AABB = /** @class */ (function () {
             hit.delta.y = py * sy;
             hit.normal.y = sy;
             hit.pos.x = box.pos.x;
-            hit.pos.y = this.pos.y + (this.half.y * sy);
+            hit.pos.y = this.pos.y + this.half.y * sy;
         }
         return hit;
     };
@@ -584,12 +615,7 @@ var AABB = /** @class */ (function () {
             sweep.pos.x = box.pos.x;
             sweep.pos.y = box.pos.y;
             sweep.hit = this.intersectAABB(box);
-            if (sweep.hit) {
-                sweep.time = sweep.hit.time = 0;
-            }
-            else {
-                sweep.time = 1;
-            }
+            sweep.time = sweep.hit ? (sweep.hit.time = 0) : 1;
             return sweep;
         }
         sweep.hit = this.intersectSegment(box.pos, delta, box.half.x, box.half.y);
@@ -628,5 +654,6 @@ exports.AABB = AABB;
 
 
 /***/ })
-/******/ ]);
+
+/******/ });
 //# sourceMappingURL=bundle.js.map

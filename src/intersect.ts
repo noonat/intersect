@@ -48,14 +48,16 @@ export class Point {
   }
 }
 
+type Collider = AABB;
+
 export class Hit {
-  public collider;
+  public collider: Collider;
   public pos: Point;
   public delta: Point;
   public normal: Point;
   public time: number;
 
-  constructor(collider) {
+  constructor(collider: Collider) {
     this.collider = collider;
     this.pos = new Point();
     this.delta = new Point();
@@ -103,28 +105,36 @@ export class AABB {
       const sx = sign(dx);
       hit.delta.x = px * sx;
       hit.normal.x = sx;
-      hit.pos.x = this.pos.x + (this.half.x * sx);
+      hit.pos.x = this.pos.x + this.half.x * sx;
       hit.pos.y = point.y;
     } else {
       const sy = sign(dy);
       hit.delta.y = py * sy;
       hit.normal.y = sy;
       hit.pos.x = point.x;
-      hit.pos.y = this.pos.y + (this.half.y * sy);
+      hit.pos.y = this.pos.y + this.half.y * sy;
     }
     return hit;
   }
 
-  public intersectSegment(pos: Point, delta: Point, paddingX: number = 0,
-                          paddingY: number = 0): Hit | null {
+  public intersectSegment(
+    pos: Point,
+    delta: Point,
+    paddingX: number = 0,
+    paddingY: number = 0
+  ): Hit | null {
     const scaleX = 1.0 / delta.x;
     const scaleY = 1.0 / delta.y;
     const signX = sign(scaleX);
     const signY = sign(scaleY);
-    const nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    const nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
-    const farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    const farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+    const nearTimeX =
+      (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
+    const nearTimeY =
+      (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
+    const farTimeX =
+      (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
+    const farTimeY =
+      (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
     if (nearTimeX > farTimeY || nearTimeY > farTimeX) {
       return null;
     }
@@ -153,13 +163,13 @@ export class AABB {
 
   public intersectAABB(box: AABB): Hit | null {
     const dx = box.pos.x - this.pos.x;
-    const px = (box.half.x + this.half.x) - abs(dx);
+    const px = box.half.x + this.half.x - abs(dx);
     if (px <= 0) {
       return null;
     }
 
     const dy = box.pos.y - this.pos.y;
-    const py = (box.half.y + this.half.y) - abs(dy);
+    const py = box.half.y + this.half.y - abs(dy);
     if (py <= 0) {
       return null;
     }
@@ -169,14 +179,14 @@ export class AABB {
       const sx = sign(dx);
       hit.delta.x = px * sx;
       hit.normal.x = sx;
-      hit.pos.x = this.pos.x + (this.half.x * sx);
+      hit.pos.x = this.pos.x + this.half.x * sx;
       hit.pos.y = box.pos.y;
     } else {
       const sy = sign(dy);
       hit.delta.y = py * sy;
       hit.normal.y = sy;
       hit.pos.x = box.pos.x;
-      hit.pos.y = this.pos.y + (this.half.y * sy);
+      hit.pos.y = this.pos.y + this.half.y * sy;
     }
     return hit;
   }
@@ -187,11 +197,7 @@ export class AABB {
       sweep.pos.x = box.pos.x;
       sweep.pos.y = box.pos.y;
       sweep.hit = this.intersectAABB(box);
-      if (sweep.hit) {
-        sweep.time = sweep.hit.time = 0;
-      } else {
-        sweep.time = 1;
-      }
+      sweep.time = sweep.hit ? (sweep.hit.time = 0) : 1;
       return sweep;
     }
 
@@ -204,10 +210,14 @@ export class AABB {
       direction.normalize();
       sweep.hit.pos.x = clamp(
         sweep.hit.pos.x + direction.x * box.half.x,
-        this.pos.x - this.half.x, this.pos.x + this.half.x);
+        this.pos.x - this.half.x,
+        this.pos.x + this.half.x
+      );
       sweep.hit.pos.y = clamp(
         sweep.hit.pos.y + direction.y * box.half.y,
-        this.pos.y - this.half.y, this.pos.y + this.half.y);
+        this.pos.y - this.half.y,
+        this.pos.y + this.half.y
+      );
     } else {
       sweep.pos.x = box.pos.x + delta.x;
       sweep.pos.y = box.pos.y + delta.y;
@@ -216,7 +226,7 @@ export class AABB {
     return sweep;
   }
 
-  public sweepInto(staticColliders, delta: Point): Sweep {
+  public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
     let nearest = new Sweep();
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;

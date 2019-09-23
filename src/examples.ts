@@ -1,6 +1,6 @@
 "use strict";
 
-import {AABB, Point} from "./intersect.ts";
+import { AABB, Point } from "./intersect";
 
 function reflect(velocity: Point, normal: Point, out: Point) {
   const dot = velocity.x * normal.x + velocity.y * normal.y;
@@ -19,13 +19,18 @@ class Example {
   public origin: Point;
   public infiniteLength: number;
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     this.context = context;
     this.width = width;
     this.height = height;
     this.origin = new Point(this.width * 0.5, this.height * 0.5);
     this.infiniteLength = Math.sqrt(
-      this.width * this.width + this.height * this.height);
+      this.width * this.width + this.height * this.height
+    );
   }
 
   public drawAABB(box: AABB, color: string = "#fff", thickness: number = 1) {
@@ -45,8 +50,11 @@ class Example {
     this.context.stroke();
   }
 
-  public drawCircle(circle: {pos: Point, radius: number}, color: string = "#fff",
-                    thickness: number = 1) {
+  public drawCircle(
+    circle: { pos: Point; radius: number },
+    color: string = "#fff",
+    thickness: number = 1
+  ) {
     const x = Math.floor(this.origin.x + circle.pos.x);
     const y = Math.floor(this.origin.y + circle.pos.y);
     this.context.beginPath();
@@ -57,10 +65,14 @@ class Example {
     this.context.stroke();
   }
 
-  public drawPoint(point: Point, color: string = "#fff", text: string = "",
-                   thickness: number = 1) {
-    const x = Math.floor(this.origin.x + point.x - (thickness / 2));
-    const y = Math.floor(this.origin.y + point.y - (thickness / 2));
+  public drawPoint(
+    point: Point,
+    color: string = "#fff",
+    text: string = "",
+    thickness: number = 1
+  ) {
+    const x = Math.floor(this.origin.x + point.x - thickness / 2);
+    const y = Math.floor(this.origin.y + point.y - thickness / 2);
     this.context.lineWidth = thickness;
     this.context.fillStyle = color;
     this.context.strokeStyle = color;
@@ -71,8 +83,14 @@ class Example {
     }
   }
 
-  public drawRay(pos: Point, dir: Point, length: number, color: string = "#fff",
-                 arrow: boolean = true, thickness: number = 1) {
+  public drawRay(
+    pos: Point,
+    dir: Point,
+    length: number,
+    color: string = "#fff",
+    arrow: boolean = true,
+    thickness: number = 1
+  ) {
     const pos2 = new Point(pos.x + dir.x * length, pos.y + dir.y * length);
     this.drawSegment(pos, pos2, color, thickness);
     if (arrow) {
@@ -86,8 +104,12 @@ class Example {
     }
   }
 
-  public drawSegment(point1: Point, point2: Point, color: string = "#fff",
-                     thickness: number = 1) {
+  public drawSegment(
+    point1: Point,
+    point2: Point,
+    color: string = "#fff",
+    thickness: number = 1
+  ) {
     const x1 = Math.floor(this.origin.x + point1.x);
     const y1 = Math.floor(this.origin.y + point1.y);
     const x2 = Math.floor(this.origin.x + point2.x);
@@ -112,7 +134,11 @@ class AABBPointExample extends Example {
   public pos: Point;
   public box: AABB;
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     super(context, width, height);
     this.angle = 0;
     this.pos = new Point();
@@ -139,7 +165,11 @@ class AABBSegmentExample extends Example {
   public angle: number;
   public box: AABB;
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     super(context, width, height);
     this.angle = 0;
     this.box = new AABB(new Point(0, 0), new Point(16, 16));
@@ -148,8 +178,14 @@ class AABBSegmentExample extends Example {
   public tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
-    const pos1 = new Point(Math.cos(this.angle) * 64, Math.sin(this.angle) * 64);
-    const pos2 = new Point(Math.sin(this.angle) * 32, Math.cos(this.angle) * 32);
+    const pos1 = new Point(
+      Math.cos(this.angle) * 64,
+      Math.sin(this.angle) * 64
+    );
+    const pos2 = new Point(
+      Math.sin(this.angle) * 32,
+      Math.cos(this.angle) * 32
+    );
     const delta = new Point(pos2.x - pos1.x, pos2.y - pos1.y);
     const hit = this.box.intersectSegment(pos1, delta);
     const dir = delta.clone();
@@ -171,7 +207,11 @@ class AABBAABBExample extends Example {
   public box1: AABB;
   public box2: AABB;
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     super(context, width, height);
     this.angle = 0;
     this.box1 = new AABB(new Point(0, 0), new Point(64, 16));
@@ -205,18 +245,19 @@ class AABBSweptAABBExample extends Example {
   public sweepDeltas: Point[];
   public tempBox: AABB;
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     super(context, width, height);
     this.angle = 0;
     this.staticBox = new AABB(new Point(0, 0), new Point(112, 16));
     this.sweepBoxes = [
       new AABB(new Point(-152, 24), new Point(16, 16)),
-      new AABB(new Point(128, -48), new Point(16, 16)),
+      new AABB(new Point(128, -48), new Point(16, 16))
     ];
-    this.sweepDeltas = [
-      new Point(64, -12),
-      new Point(-32, 96),
-    ];
+    this.sweepDeltas = [new Point(64, -12), new Point(-32, 96)];
     this.tempBox = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
@@ -224,7 +265,7 @@ class AABBSweptAABBExample extends Example {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
     this.drawAABB(this.staticBox, "#666");
-    const factor = ((Math.cos(this.angle) + 1) * 0.5) || 1e-8;
+    const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
     this.sweepBoxes.forEach((box, i) => {
       const delta = this.sweepDeltas[i].clone();
       delta.x *= factor;
@@ -261,16 +302,20 @@ class MultipleAABBSweptAABBExample extends Example {
   public movingBox: AABB;
   public staticBoxes: AABB[];
 
-  constructor(context: CanvasRenderingContext2D, width: number, height: number) {
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
     super(context, width, height);
     this.delta = new Point();
     this.velocity = new Point(48, 48);
     this.movingBox = new AABB(new Point(0, 0), new Point(8, 8));
     this.staticBoxes = [
       new AABB(new Point(-96, 0), new Point(8, 48)),
-      new AABB(new Point( 96, 0), new Point(8, 48)),
+      new AABB(new Point(96, 0), new Point(8, 48)),
       new AABB(new Point(0, -56), new Point(104, 8)),
-      new AABB(new Point(0,  56), new Point(104, 8)),
+      new AABB(new Point(0, 56), new Point(104, 8))
     ];
   }
 
@@ -284,7 +329,7 @@ class MultipleAABBSweptAABBExample extends Example {
       // the rest of the velocity, but that"s a bit much for this example
       reflect(this.velocity, sweep.hit.normal, this.velocity);
     }
-    this.staticBoxes.forEach((staticBox) => {
+    this.staticBoxes.forEach(staticBox => {
       if (sweep.hit && sweep.hit.collider === staticBox) {
         this.drawAABB(staticBox, "#aaa");
       } else {
@@ -296,28 +341,32 @@ class MultipleAABBSweptAABBExample extends Example {
   }
 }
 
-function ready(callback) {
+function ready(callback: () => void) {
   if (document.readyState === "complete") {
     setTimeout(callback, 1);
     return;
   }
-  document.addEventListener("DOMContentLoaded", function handler() {
-    document.removeEventListener("DOMContentLoaded", handler, false);
-    callback();
-  }, false);
+  document.addEventListener(
+    "DOMContentLoaded",
+    function handler() {
+      document.removeEventListener("DOMContentLoaded", handler, false);
+      callback();
+    },
+    false
+  );
 }
 
 ready(() => {
-  const exampleIds = {
+  const exampleIds: { [key: string]: any } = {
     "aabb-vs-aabb": AABBAABBExample,
     "aabb-vs-point": AABBPointExample,
     "aabb-vs-segment": AABBSegmentExample,
     "aabb-vs-swept-aabb": AABBSweptAABBExample,
-    "sweeping-an-aabb-through-multiple-objects": MultipleAABBSweptAABBExample,
+    "sweeping-an-aabb-through-multiple-objects": MultipleAABBSweptAABBExample
   };
 
   const examples: Example[] = [];
-  Object.keys(exampleIds).forEach((id) => {
+  Object.keys(exampleIds).forEach(id => {
     const exampleConstructor = exampleIds[id];
     const anchor = document.getElementById(id);
     if (!anchor || !anchor.parentNode) {
@@ -328,8 +377,8 @@ ready(() => {
       return;
     }
     anchor.parentNode.insertBefore(canvas, anchor.nextSibling);
-    const width = canvas.width = 640;
-    const height = canvas.height = 160;
+    const width = (canvas.width = 640);
+    const height = (canvas.height = 160);
     const context = canvas.getContext("2d");
     if (!context) {
       return;
@@ -342,6 +391,6 @@ ready(() => {
   });
 
   setInterval(() => {
-    examples.forEach((example) => example.tick(1 / 30));
+    examples.forEach(example => example.tick(1 / 30));
   }, 1000 / 30);
 });
