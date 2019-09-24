@@ -211,9 +211,9 @@
           </li>
           <li>
             <strong>hit.time</strong> is only defined for segment and sweep
-            intersections, and is fraction from 0 to 1 indicating how far along
-            the line the collision occurred. (This is the <code>t</code> value
-            for the line equation <code>L(t) = A + t * (B - A)</code>)
+            intersections, and is a fraction from 0 to 1 indicating how far
+            along the line the collision occurred. (This is the \(t\) value for
+            the line equation \(L(t) = A + t(B - A)\))
           </li>
         </ul>
         <h3 id="sweep-tests">Sweep Tests</h3>
@@ -410,13 +410,12 @@
 
         <p>
           You might notice we haven’t defined a segment argument. A segment from
-          point <code>A</code> to point <code>B</code> can be expressed with the
-          equation <code>S(t) = A + t * (B - A)</code>, for
-          <code>0 &lt;= t &lt;= 1</code>. In this equation, <code>t</code> is
-          the time along the line, or percentage distance from <code>A</code> to
-          <code>B</code>. Instead of formalizing the concept of a segment, we
-          use this equation and describe it it as a start <code>pos</code> and a
-          <code>delta</code> vector to the end of the line.
+          point \(A\) to point \(B\) can be expressed with the equation \(S(t) =
+          A + t(B - A)\), for \(0 &lt;= t &lt;= 1\). In this equation, \(t\) is
+          the time along the line, or percentage distance from \(A\) to \(B\).
+          Instead of formalizing the concept of a segment, we use this equation
+          and create a variable <code>pos</code> with the value of \(A\), and a
+          variable <code>delta</code> with the value of \(B - A\).
         </p>
         <p>
           Next, we need to find the linear time at which point the segment

@@ -141,9 +141,9 @@ Intersection tests will return a Hit object when a collision occurs:
 - **hit.delta** is the overlap between the two objects, and is a vector that
   can be added to the colliding object's position to move it back to a
   non-colliding state.
-- **hit.time** is only defined for segment and sweep intersections, and is
+- **hit.time** is only defined for segment and sweep intersections, and is a
   fraction from 0 to 1 indicating how far along the line the collision occurred.
-  (This is the `t` value for the line equation `L(t) = A + t * (B - A)`)
+  (This is the \\(t\\) value for the line equation \\(L(t) = A + t(B - A)\\))
 
 ### Sweep Tests
 
@@ -295,11 +295,12 @@ of the bounding box, if specified.
                               paddingY: number = 0): Hit | null {
 
 You might notice we haven't defined a segment argument. A segment from point
-`A` to point `B` can be expressed with the equation `S(t) = A + t * (B - A)`,
-for `0 <= t <= 1`. In this equation, `t` is the time along the line, or
-percentage distance from `A` to `B`. Instead of formalizing the concept of a
-segment, we use this equation and describe it it as a start `pos` and a `delta`
-vector to the end of the line.
+\\(A\\) to point \\(B\\) can be expressed with the equation
+\\(S(t) = A + t(B - A)\\), for \\(0 <= t <= 1\\). In this equation, \\(t\\) is
+the time along the line, or percentage distance from \\(A\\) to \\(B\\).
+Instead of formalizing the concept of a segment, we use this equation and
+create a variable `pos` with the value of \\(A\\), and a variable `delta` with
+the value of \\(B - A\\).
 
 Next, we need to find the linear time at which point the segment intersects
 with the box's near and far edges.
