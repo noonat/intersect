@@ -1,8 +1,8 @@
 "use strict";
 
 import "katex";
-import "katex/dist/katex.min.css";
 import * as renderMathInElement from "katex/dist/contrib/auto-render";
+import "katex/dist/katex.min.css";
 import { AABB, Point } from "./intersect";
 
 function reflect(velocity: Point, normal: Point, out: Point) {
