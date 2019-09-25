@@ -22,7 +22,6 @@
     "docco": "^0.8.0",
     "file-loader": "^4.2.0",
     "jest": "^24.9.0",
-    "katex": "^0.11.1",
     "marked": ">=0.3.18",
     "markdown-it": "^10.0.0",
     "prettier": "^1.18.2",
@@ -49,5 +48,7 @@
     },
     "testRegex": "/test/.*\\.(ts|tsx|js|jsx)$"
   },
-  "dependencies": {}
+  "dependencies": {
+    "katex": "^0.11.1"
+  }
 }
