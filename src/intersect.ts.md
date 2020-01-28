@@ -27,8 +27,8 @@ on this page are also written in TypeScript, using the library.
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
-[intersect.ts]: https://github.com/noonat/intersect/blob/master/src/intersect.js
-[examples.ts]: https://github.com/noonat/intersect/blob/master/src/examples.js
+[intersect.ts]: https://github.com/noonat/intersect/blob/master/src/intersect.ts
+[examples.ts]: https://github.com/noonat/intersect/blob/master/src/examples.ts
 
 ## Helpers
 
