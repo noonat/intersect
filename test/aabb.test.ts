@@ -155,6 +155,15 @@ describe("AABB", () => {
       assert.equal(hit.normal.x, -1);
       assert.equal(hit.normal.y, 0);
     });
+
+    test("should return null when line is aligned with box top Y", () => {
+      const aabb = new AABB(new Point(907.5, 318.5), new Point(7.5, 17.5));
+      assert.equal(
+        aabb.intersectSegment(new Point(531, 301), new Point(16, 0)),
+        null
+      );
+    });
+
   });
 
   describe("intersectAABB", () => {
