@@ -129,12 +129,17 @@ export class AABB {
     const signY = sign(scaleY);
     const nearTimeX =
       (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    const nearTimeY =
+    let nearTimeY =
       (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
     const farTimeX =
       (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
     const farTimeY =
       (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+
+    if (Number.isNaN(nearTimeY)) {
+      nearTimeY = Infinity;
+    }
+
     if (nearTimeX > farTimeY || nearTimeY > farTimeX) {
       return null;
     }
