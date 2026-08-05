@@ -1,7 +1,7 @@
 "use strict";
 
 import "katex";
-import * as renderMathInElement from "katex/dist/contrib/auto-render";
+import renderMathInElement from "katex/dist/contrib/auto-render";
 import "katex/dist/katex.min.css";
 import { AABB, Point } from "./intersect";
 
@@ -360,8 +360,7 @@ function ready(callback: () => void) {
 }
 
 ready(() => {
-  // This call is weird because @types/katex doesn't declare this properly.
-  (renderMathInElement as any)(document.body);
+  renderMathInElement(document.body);
 
   const exampleIds: { [key: string]: any } = {
     "aabb-vs-aabb": AABBAABBExample,
