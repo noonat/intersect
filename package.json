@@ -21,7 +21,7 @@
     "docco": "^0.9.2",
     "esbuild": "^0.28.1",
     "jest": "^24.9.0",
-    "markdown-it": "^10.0.0",
+    "markdown-it": "^14.2.0",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
     "ts-jest": "^24.1.0",
