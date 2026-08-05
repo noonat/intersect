@@ -1,0 +1,9 @@
+// esbuild only transpiles, so the examples are type checked separately.
+// They are not emitted here; the bundle in docs/ is esbuild's output.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "files": ["src/examples.ts"]
+}

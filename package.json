@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "node build.js",
-    "clean": "rimraf src/intersect.ts lib/intersect.js* docs/bundle.js* docs/*.ttf docs/*.woff docs/*.woff2",
+    "clean": "rimraf src/intersect.ts lib/intersect.js* docs/bundle.js* docs/bundle.css* docs/*.ttf docs/*.woff docs/*.woff2",
     "prepare": "npm run build",
     "test": "jest && tslint src/*.ts"
   },
@@ -18,20 +18,16 @@
     "@types/jest": "^24.0.18",
     "@types/katex": "^0.10.2",
     "@types/node": "^12.7.5",
-    "css-loader": "^7.1.4",
     "docco": "^0.9.2",
+    "esbuild": "^0.28.1",
     "jest": "^24.9.0",
     "markdown-it": "^10.0.0",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
-    "style-loader": "^4.0.0",
     "ts-jest": "^24.1.0",
-    "ts-loader": "^9.5.4",
     "tslint": "^5.2.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.3",
-    "webpack": "^5.109.2",
-    "webpack-cli": "^6.0.1"
+    "typescript": "^3.6.3"
   },
   "jest": {
     "moduleFileExtensions": [
