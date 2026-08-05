@@ -20,11 +20,11 @@
     "@types/node": "^12.7.5",
     "docco": "^0.9.2",
     "esbuild": "^0.28.1",
-    "jest": "^24.9.0",
+    "jest": "^30.4.2",
     "markdown-it": "^10.0.0",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
-    "ts-jest": "^24.1.0",
+    "ts-jest": "^29.4.12",
     "tslint": "^5.2.0",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.6.3"
