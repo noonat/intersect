@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    # Nothing here is inherited by anyone using the library, so a pull
+    # request per transitive advisory in the docs toolchain is just
+    # noise. Only direct dependencies are actionable, and one grouped
+    # pull request a month is enough.
+    allow:
+      - dependency-type: direct
+    groups:
+      dependencies:
+        patterns:
+          - "*"

@@ -1,4 +1,4 @@
-JavaScript 2D Collision Detection [![Build Status][travis_image]][travis]
+JavaScript 2D Collision Detection [![Build Status][ci_image]][ci]
 =================================
 
 Intersect is a collection of common 2D collision detection tests, written as a
@@ -25,5 +25,5 @@ if you find TypeScript difficult to read.
 [intersect]: https://github.com/noonat/intersect/blob/master/src/intersect.ts
 [rtcd]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
-[travis]: http://travis-ci.org/noonat/intersect
-[travis_image]: https://secure.travis-ci.org/noonat/intersect.png?branch=master
+[ci]: https://github.com/noonat/intersect/actions/workflows/ci.yml
+[ci_image]: https://github.com/noonat/intersect/actions/workflows/ci.yml/badge.svg
