@@ -26,3 +26,27 @@ jobs:
       - run: npm ci
 
       - run: npm test
+
+  # The tests above check that the library works on several versions of Node.
+  # This job is a different question: whether the build output committed to
+  # the repository is what the build actually produces. It runs on a single
+  # version of Node, because that is the claim being made.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check committed build output is current
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Committed build output is stale."
+            echo "Run 'npm run build' and commit the result."
+            git status --short
+            exit 1
+          fi
