@@ -5,7 +5,8 @@
     "outDir": "./lib",
     "sourceMap": true,
     "strict": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "types": ["jest", "node"]
   },
   "files": ["src/intersect.ts"]
 }
