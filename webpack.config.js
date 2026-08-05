@@ -24,14 +24,15 @@ module.exports = {
       },
       {
         test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
-        loader: "url-loader",
-        options: {
-          limit: 8192
+        type: "asset",
+        parser: {
+          dataUrlCondition: { maxSize: 8192 }
         }
       }
     ]
   },
   output: {
+    assetModuleFilename: "[contenthash][ext]",
     filename: "bundle.js",
     path: path.join(__dirname, "/docs")
   },
