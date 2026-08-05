@@ -42,6 +42,6 @@
     "testRegex": "/test/.*\\.(ts|tsx|js|jsx)$"
   },
   "dependencies": {
-    "katex": "^0.11.1"
+    "katex": "^0.16.21"
   }
 }
