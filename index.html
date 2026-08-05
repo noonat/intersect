@@ -76,13 +76,13 @@
           <p>Let’s define a couple helpers that we’ll use through the code.</p>
 
           <div class="highlight">
-            <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> EPSILON: <span class="hljs-built_in">number</span> = <span class="hljs-number">1e-8</span>;
+            <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> <span class="hljs-attr">EPSILON</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">1e-8</span>;
 
-<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">abs</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">number</span> </span>{
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">abs</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {
   <span class="hljs-keyword">return</span> value &lt; <span class="hljs-number">0</span> ? -value : value;
 }
 
-<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">clamp</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span>, min: <span class="hljs-built_in">number</span>, max: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">number</span> </span>{
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">clamp</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span>, min: <span class="hljs-built_in">number</span>, max: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {
   <span class="hljs-keyword">if</span> (value &lt; min) {
     <span class="hljs-keyword">return</span> min;
   } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value &gt; max) {
@@ -92,8 +92,8 @@
   }
 }
 
-<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sign</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">number</span> </span>{
-  <span class="hljs-keyword">return</span> value &lt; <span class="hljs-number">0</span> ? <span class="hljs-number">-1</span> : <span class="hljs-number">1</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> <span class="hljs-title function_">sign</span>(<span class="hljs-params">value: <span class="hljs-built_in">number</span></span>): <span class="hljs-built_in">number</span> {
+  <span class="hljs-keyword">return</span> value &lt; <span class="hljs-number">0</span> ? -<span class="hljs-number">1</span> : <span class="hljs-number">1</span>;
 }</pre>
           </div>
         </div>
@@ -106,29 +106,29 @@
         </p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Point {
-  <span class="hljs-keyword">public</span> x: <span class="hljs-built_in">number</span>;
-  <span class="hljs-keyword">public</span> y: <span class="hljs-built_in">number</span>;
+          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Point</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">x</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">y</span>: <span class="hljs-built_in">number</span>;
 
-  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">x: <span class="hljs-built_in">number</span> = 0, y: <span class="hljs-built_in">number</span> = 0</span>) {
-    <span class="hljs-keyword">this</span>.x = x;
-    <span class="hljs-keyword">this</span>.y = y;
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">x: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>, y: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span> = x;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span> = y;
   }
 
-  <span class="hljs-keyword">public</span> clone(): Point {
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Point(<span class="hljs-keyword">this</span>.x, <span class="hljs-keyword">this</span>.y);
+  <span class="hljs-keyword">public</span> <span class="hljs-title function_">clone</span>(): <span class="hljs-title class_">Point</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span>);
   }
 
-  <span class="hljs-keyword">public</span> normalize(): <span class="hljs-built_in">number</span> {
-    <span class="hljs-keyword">let</span> length = <span class="hljs-keyword">this</span>.x * <span class="hljs-keyword">this</span>.x + <span class="hljs-keyword">this</span>.y * <span class="hljs-keyword">this</span>.y;
+  <span class="hljs-keyword">public</span> <span class="hljs-title function_">normalize</span>(): <span class="hljs-built_in">number</span> {
+    <span class="hljs-keyword">let</span> length = <span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span>;
     <span class="hljs-keyword">if</span> (length &gt; <span class="hljs-number">0</span>) {
-      length = <span class="hljs-built_in">Math</span>.sqrt(length);
+      length = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(length);
       <span class="hljs-keyword">const</span> inverseLength = <span class="hljs-number">1.0</span> / length;
-      <span class="hljs-keyword">this</span>.x *= inverseLength;
-      <span class="hljs-keyword">this</span>.y *= inverseLength;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span> *= inverseLength;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span> *= inverseLength;
     } <span class="hljs-keyword">else</span> {
-      <span class="hljs-keyword">this</span>.x = <span class="hljs-number">1</span>;
-      <span class="hljs-keyword">this</span>.y = <span class="hljs-number">0</span>;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">x</span> = <span class="hljs-number">1</span>;
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">y</span> = <span class="hljs-number">0</span>;
     }
     <span class="hljs-keyword">return</span> length;
   }
@@ -176,21 +176,21 @@
         </p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">type</span> Collider = AABB;
+          <pre><span class="hljs-keyword">type</span> <span class="hljs-title class_">Collider</span> = <span class="hljs-variable constant_">AABB</span>;
 
-<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Hit {
-  <span class="hljs-keyword">public</span> collider: Collider;
-  <span class="hljs-keyword">public</span> pos: Point;
-  <span class="hljs-keyword">public</span> delta: Point;
-  <span class="hljs-keyword">public</span> normal: Point;
-  <span class="hljs-keyword">public</span> time: <span class="hljs-built_in">number</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Hit</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">collider</span>: <span class="hljs-title class_">Collider</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">normal</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">time</span>: <span class="hljs-built_in">number</span>;
 
-  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">collider: Collider</span>) {
-    <span class="hljs-keyword">this</span>.collider = collider;
-    <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point();
-    <span class="hljs-keyword">this</span>.delta = <span class="hljs-keyword">new</span> Point();
-    <span class="hljs-keyword">this</span>.normal = <span class="hljs-keyword">new</span> Point();
-    <span class="hljs-keyword">this</span>.time = <span class="hljs-number">0</span>;
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">collider: Collider</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">collider</span> = collider;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>();
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>();
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">normal</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>();
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">time</span> = <span class="hljs-number">0</span>;
   }
 }</pre>
         </div>
@@ -251,15 +251,15 @@
         <p>Sweep tests return a <code>Sweep</code> object:</p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> Sweep {
-  <span class="hljs-keyword">public</span> hit: Hit | <span class="hljs-literal">null</span>;
-  <span class="hljs-keyword">public</span> pos: Point;
-  <span class="hljs-keyword">public</span> time: <span class="hljs-built_in">number</span>;
+          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Sweep</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">hit</span>: <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">time</span>: <span class="hljs-built_in">number</span>;
 
-  <span class="hljs-keyword">constructor</span>(<span class="hljs-params"></span>) {
-    <span class="hljs-keyword">this</span>.hit = <span class="hljs-literal">null</span>;
-    <span class="hljs-keyword">this</span>.pos = <span class="hljs-keyword">new</span> Point();
-    <span class="hljs-keyword">this</span>.time = <span class="hljs-number">1</span>;
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">hit</span> = <span class="hljs-literal">null</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>();
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
   }
 }</pre>
         </div>
@@ -289,13 +289,13 @@
         </p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> AABB {
-  <span class="hljs-keyword">public</span> pos: Point;
-  <span class="hljs-keyword">public</span> half: Point;
+          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AABB</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">half</span>: <span class="hljs-title class_">Point</span>;
 
-  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">pos: Point, half: Point</span>) {
-    <span class="hljs-keyword">this</span>.pos = pos;
-    <span class="hljs-keyword">this</span>.half = half;
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">pos: Point, half: Point</span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span> = pos;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span> = half;
   }</pre>
         </div>
 
@@ -320,32 +320,32 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> intersectPoint(point: Point): Hit | <span class="hljs-literal">null</span> {
-    <span class="hljs-keyword">const</span> dx = point.x - <span class="hljs-keyword">this</span>.pos.x;
-    <span class="hljs-keyword">const</span> px = <span class="hljs-keyword">this</span>.half.x - abs(dx);
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectPoint</span>(<span class="hljs-attr">point</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> dx = point.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> px = <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> - <span class="hljs-title function_">abs</span>(dx);
     <span class="hljs-keyword">if</span> (px &lt;= <span class="hljs-number">0</span>) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
     }
 
-    <span class="hljs-keyword">const</span> dy = point.y - <span class="hljs-keyword">this</span>.pos.y;
-    <span class="hljs-keyword">const</span> py = <span class="hljs-keyword">this</span>.half.y - abs(dy);
+    <span class="hljs-keyword">const</span> dy = point.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> py = <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> - <span class="hljs-title function_">abs</span>(dy);
     <span class="hljs-keyword">if</span> (py &lt;= <span class="hljs-number">0</span>) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
     }
 
-    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
     <span class="hljs-keyword">if</span> (px &lt; py) {
-      <span class="hljs-keyword">const</span> sx = sign(dx);
-      hit.delta.x = px * sx;
-      hit.normal.x = sx;
-      hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + (<span class="hljs-keyword">this</span>.half.x * sx);
-      hit.pos.y = point.y;
+      <span class="hljs-keyword">const</span> sx = <span class="hljs-title function_">sign</span>(dx);
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = px * sx;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = sx;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> * sx);
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = point.<span class="hljs-property">y</span>;
     } <span class="hljs-keyword">else</span> {
-      <span class="hljs-keyword">const</span> sy = sign(dy);
-      hit.delta.y = py * sy;
-      hit.normal.y = sy;
-      hit.pos.x = point.x;
-      hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + (<span class="hljs-keyword">this</span>.half.y * sy);
+      <span class="hljs-keyword">const</span> sy = <span class="hljs-title function_">sign</span>(dy);
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = py * sy;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = sy;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = point.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> * sy);
     }
     <span class="hljs-keyword">return</span> hit;
   }</pre>
@@ -404,8 +404,8 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> intersectSegment(pos: Point, delta: Point, paddingX: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>,
-                          paddingY: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>): Hit | <span class="hljs-literal">null</span> {</pre>
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectSegment</span>(<span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">paddingX</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>,
+                          <span class="hljs-attr">paddingY</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {</pre>
         </div>
 
         <p>
@@ -429,14 +429,14 @@
         </p>
 
         <div class="highlight">
-          <pre>    <span class="hljs-keyword">const</span> scaleX = <span class="hljs-number">1.0</span> / delta.x;
-    <span class="hljs-keyword">const</span> scaleY = <span class="hljs-number">1.0</span> / delta.y;
-    <span class="hljs-keyword">const</span> signX = sign(scaleX);
-    <span class="hljs-keyword">const</span> signY = sign(scaleY);
-    <span class="hljs-keyword">const</span> nearTimeX = (<span class="hljs-keyword">this</span>.pos.x - signX * (<span class="hljs-keyword">this</span>.half.x + paddingX) - pos.x) * scaleX;
-    <span class="hljs-keyword">const</span> nearTimeY = (<span class="hljs-keyword">this</span>.pos.y - signY * (<span class="hljs-keyword">this</span>.half.y + paddingY) - pos.y) * scaleY;
-    <span class="hljs-keyword">const</span> farTimeX = (<span class="hljs-keyword">this</span>.pos.x + signX * (<span class="hljs-keyword">this</span>.half.x + paddingX) - pos.x) * scaleX;
-    <span class="hljs-keyword">const</span> farTimeY = (<span class="hljs-keyword">this</span>.pos.y + signY * (<span class="hljs-keyword">this</span>.half.y + paddingY) - pos.y) * scaleY;</pre>
+          <pre>    <span class="hljs-keyword">const</span> scaleX = <span class="hljs-number">1.0</span> / delta.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> scaleY = <span class="hljs-number">1.0</span> / delta.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> signX = <span class="hljs-title function_">sign</span>(scaleX);
+    <span class="hljs-keyword">const</span> signY = <span class="hljs-title function_">sign</span>(scaleY);
+    <span class="hljs-keyword">const</span> nearTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
+    <span class="hljs-keyword">const</span> nearTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;
+    <span class="hljs-keyword">const</span> farTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
+    <span class="hljs-keyword">const</span> farTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;</pre>
         </div>
 
         <p>
@@ -515,19 +515,19 @@
         </p>
 
         <div class="highlight">
-          <pre>    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
-    hit.time = clamp(nearTime, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+          <pre>    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+    hit.<span class="hljs-property">time</span> = <span class="hljs-title function_">clamp</span>(nearTime, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
     <span class="hljs-keyword">if</span> (nearTimeX &gt; nearTimeY) {
-      hit.normal.x = -signX;
-      hit.normal.y = <span class="hljs-number">0</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = -signX;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = <span class="hljs-number">0</span>;
     } <span class="hljs-keyword">else</span> {
-      hit.normal.x = <span class="hljs-number">0</span>;
-      hit.normal.y = -signY;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = <span class="hljs-number">0</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = -signY;
     }
-    hit.delta.x = (<span class="hljs-number">1.0</span> - hit.time) * -delta.x;
-    hit.delta.y = (<span class="hljs-number">1.0</span> - hit.time) * -delta.y;
-    hit.pos.x = pos.x + delta.x * hit.time;
-    hit.pos.y = pos.y + delta.y * hit.time;
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = (<span class="hljs-number">1.0</span> - hit.<span class="hljs-property">time</span>) * -delta.<span class="hljs-property">x</span>;
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = (<span class="hljs-number">1.0</span> - hit.<span class="hljs-property">time</span>) * -delta.<span class="hljs-property">y</span>;
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = pos.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span> * hit.<span class="hljs-property">time</span>;
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = pos.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span> * hit.<span class="hljs-property">time</span>;
     <span class="hljs-keyword">return</span> hit;
   }</pre>
         </div>
@@ -555,32 +555,32 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> intersectAABB(box: AABB): Hit | <span class="hljs-literal">null</span> {
-    <span class="hljs-keyword">const</span> dx = box.pos.x - <span class="hljs-keyword">this</span>.pos.x;
-    <span class="hljs-keyword">const</span> px = (box.half.x + <span class="hljs-keyword">this</span>.half.x) - abs(dx);
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectAABB</span>(<span class="hljs-attr">box</span>: <span class="hljs-variable constant_">AABB</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> dx = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> px = (box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>) - <span class="hljs-title function_">abs</span>(dx);
     <span class="hljs-keyword">if</span> (px &lt;= <span class="hljs-number">0</span>) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
     }
 
-    <span class="hljs-keyword">const</span> dy = box.pos.y - <span class="hljs-keyword">this</span>.pos.y;
-    <span class="hljs-keyword">const</span> py = (box.half.y + <span class="hljs-keyword">this</span>.half.y) - abs(dy);
+    <span class="hljs-keyword">const</span> dy = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> py = (box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>) - <span class="hljs-title function_">abs</span>(dy);
     <span class="hljs-keyword">if</span> (py &lt;= <span class="hljs-number">0</span>) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
     }
 
-    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> Hit(<span class="hljs-keyword">this</span>);
+    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
     <span class="hljs-keyword">if</span> (px &lt; py) {
-      <span class="hljs-keyword">const</span> sx = sign(dx);
-      hit.delta.x = px * sx;
-      hit.normal.x = sx;
-      hit.pos.x = <span class="hljs-keyword">this</span>.pos.x + (<span class="hljs-keyword">this</span>.half.x * sx);
-      hit.pos.y = box.pos.y;
+      <span class="hljs-keyword">const</span> sx = <span class="hljs-title function_">sign</span>(dx);
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = px * sx;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = sx;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> * sx);
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
     } <span class="hljs-keyword">else</span> {
-      <span class="hljs-keyword">const</span> sy = sign(dy);
-      hit.delta.y = py * sy;
-      hit.normal.y = sy;
-      hit.pos.x = box.pos.x;
-      hit.pos.y = <span class="hljs-keyword">this</span>.pos.y + (<span class="hljs-keyword">this</span>.half.y * sy);
+      <span class="hljs-keyword">const</span> sy = <span class="hljs-title function_">sign</span>(dy);
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = py * sy;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = sy;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> * sy);
     }
     <span class="hljs-keyword">return</span> hit;
   }</pre>
@@ -622,8 +622,8 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> sweepAABB(box: AABB, delta: Point): Sweep {
-    <span class="hljs-keyword">const</span> sweep = <span class="hljs-keyword">new</span> Sweep();</pre>
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepAABB</span>(<span class="hljs-attr">box</span>: <span class="hljs-variable constant_">AABB</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">const</span> sweep = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();</pre>
         </div>
 
         <p>
@@ -632,11 +632,11 @@
         </p>
 
         <div class="highlight">
-          <pre>    <span class="hljs-keyword">if</span> (delta.x === <span class="hljs-number">0</span> &amp;&amp; delta.y === <span class="hljs-number">0</span>) {
-      sweep.pos.x = box.pos.x;
-      sweep.pos.y = box.pos.y;
-      sweep.hit = <span class="hljs-keyword">this</span>.intersectAABB(box);
-      sweep.time = sweep.hit ? (sweep.hit.time = <span class="hljs-number">0</span>) : <span class="hljs-number">1</span>;
+          <pre>    <span class="hljs-keyword">if</span> (delta.<span class="hljs-property">x</span> === <span class="hljs-number">0</span> &amp;&amp; delta.<span class="hljs-property">y</span> === <span class="hljs-number">0</span>) {
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+      sweep.<span class="hljs-property">hit</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectAABB</span>(box);
+      sweep.<span class="hljs-property">time</span> = sweep.<span class="hljs-property">hit</span> ? (sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">time</span> = <span class="hljs-number">0</span>) : <span class="hljs-number">1</span>;
       <span class="hljs-keyword">return</span> sweep;
     }</pre>
         </div>
@@ -651,23 +651,23 @@
         </p>
 
         <div class="highlight">
-          <pre>    sweep.hit = <span class="hljs-keyword">this</span>.intersectSegment(box.pos, delta, box.half.x, box.half.y);
-    <span class="hljs-keyword">if</span> (sweep.hit) {
-      sweep.time = clamp(sweep.hit.time - EPSILON, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
-      sweep.pos.x = box.pos.x + delta.x * sweep.time;
-      sweep.pos.y = box.pos.y + delta.y * sweep.time;
-      <span class="hljs-keyword">const</span> direction = delta.clone();
-      direction.normalize();
-      sweep.hit.pos.x = clamp(
-        sweep.hit.pos.x + direction.x * box.half.x,
-        <span class="hljs-keyword">this</span>.pos.x - <span class="hljs-keyword">this</span>.half.x, <span class="hljs-keyword">this</span>.pos.x + <span class="hljs-keyword">this</span>.half.x);
-      sweep.hit.pos.y = clamp(
-        sweep.hit.pos.y + direction.y * box.half.y,
-        <span class="hljs-keyword">this</span>.pos.y - <span class="hljs-keyword">this</span>.half.y, <span class="hljs-keyword">this</span>.pos.y + <span class="hljs-keyword">this</span>.half.y);
+          <pre>    sweep.<span class="hljs-property">hit</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegment</span>(box.<span class="hljs-property">pos</span>, delta, box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>, box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>);
+    <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">hit</span>) {
+      sweep.<span class="hljs-property">time</span> = <span class="hljs-title function_">clamp</span>(sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">time</span> - <span class="hljs-variable constant_">EPSILON</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span> * sweep.<span class="hljs-property">time</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span> * sweep.<span class="hljs-property">time</span>;
+      <span class="hljs-keyword">const</span> direction = delta.<span class="hljs-title function_">clone</span>();
+      direction.<span class="hljs-title function_">normalize</span>();
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-title function_">clamp</span>(
+        sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + direction.<span class="hljs-property">x</span> * box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>,
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>);
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-title function_">clamp</span>(
+        sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + direction.<span class="hljs-property">y</span> * box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>,
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>);
     } <span class="hljs-keyword">else</span> {
-      sweep.pos.x = box.pos.x + delta.x;
-      sweep.pos.y = box.pos.y + delta.y;
-      sweep.time = <span class="hljs-number">1</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+      sweep.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     }
     <span class="hljs-keyword">return</span> sweep;
   }</pre>
@@ -685,14 +685,14 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> sweepInto(staticColliders: Collider[], delta: Point): Sweep {
-    <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> Sweep();
-    nearest.time = <span class="hljs-number">1</span>;
-    nearest.pos.x = <span class="hljs-keyword">this</span>.pos.x + delta.x;
-    nearest.pos.y = <span class="hljs-keyword">this</span>.pos.y + delta.y;
-    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>, il = staticColliders.length; i &lt; il; i++) {
-      <span class="hljs-keyword">const</span> sweep = staticColliders[i].sweepAABB(<span class="hljs-keyword">this</span>, delta);
-      <span class="hljs-keyword">if</span> (sweep.time &lt; nearest.time) {
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
+    nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
+    nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
+    nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>, il = staticColliders.<span class="hljs-property">length</span>; i &lt; il; i++) {
+      <span class="hljs-keyword">const</span> sweep = staticColliders[i].<span class="hljs-title function_">sweepAABB</span>(<span class="hljs-variable language_">this</span>, delta);
+      <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">time</span> &lt; nearest.<span class="hljs-property">time</span>) {
         nearest = sweep;
       }
     }
