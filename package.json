@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "node build.js",
+    "build:container": "podman build -f Containerfile -t intersect-build . && podman run --rm -v \"$PWD\":/app -w /app --userns=keep-id intersect-build npm ci --no-audit --no-fund",
     "clean": "rimraf src/intersect.ts lib/intersect.js* docs/bundle.js* docs/bundle.css* docs/*.ttf docs/*.woff docs/*.woff2",
     "prepare": "npm run build",
     "test": "jest && eslint src test"

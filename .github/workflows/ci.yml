@@ -29,24 +29,25 @@ jobs:
 
   # The tests above check that the library works on several versions of Node.
   # This job is a different question: whether the build output committed to
-  # the repository is what the build actually produces. It runs on a single
-  # version of Node, because that is the claim being made.
+  # the repository is what the pinned toolchain actually produces. It uses the
+  # same image as a local build, so the two can't disagree.
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - run: docker build -f Containerfile -t intersect-build .
+
+      - run: >
+          docker run --rm -v "$PWD":/app -w /app
+          --user "$(id -u):$(id -g)"
+          intersect-build npm ci --no-audit --no-fund
 
       - name: Check committed build output is current
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "Committed build output is stale."
-            echo "Run 'npm run build' and commit the result."
+            echo "Run 'npm run build:container' and commit the result."
             git status --short
             exit 1
           fi
