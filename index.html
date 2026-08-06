@@ -434,10 +434,55 @@
     <span class="hljs-keyword">const</span> scaleY = <span class="hljs-number">1.0</span> / delta.<span class="hljs-property">y</span>;
     <span class="hljs-keyword">const</span> signX = <span class="hljs-title function_">sign</span>(scaleX);
     <span class="hljs-keyword">const</span> signY = <span class="hljs-title function_">sign</span>(scaleY);
-    <span class="hljs-keyword">const</span> nearTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
-    <span class="hljs-keyword">const</span> nearTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;
-    <span class="hljs-keyword">const</span> farTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
-    <span class="hljs-keyword">const</span> farTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;</pre>
+    <span class="hljs-keyword">let</span> nearTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
+    <span class="hljs-keyword">let</span> nearTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;
+    <span class="hljs-keyword">let</span> farTimeX = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + signX * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) - pos.<span class="hljs-property">x</span>) * scaleX;
+    <span class="hljs-keyword">let</span> farTimeY = (<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + signY * (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) - pos.<span class="hljs-property">y</span>) * scaleY;</pre>
+        </div>
+
+        <p>
+          A segment that doesn’t move on one of the axes needs some care here.
+          Dividing by a delta of zero gives an infinite scale, which is usually
+          exactly what we want: the segment never crosses that axis’ edges, so
+          its times come out as negative and positive infinity, and the axis
+          rules nothing out.
+        </p>
+        <p>
+          But if the segment also starts exactly on one of those edges, the
+          distance to that edge is zero, and zero multiplied by infinity is
+          <code>NaN</code>. That <code>NaN</code> then passes every check below,
+          because comparing anything to <code>NaN</code> is false, and the
+          function returns a hit whose every value is <code>NaN</code>.
+        </p>
+        <p>
+          It’s tempting to look for the <code>NaN</code> and replace it, but
+          which of the four times it lands in depends on the sign of the zero,
+          since that decides which edge is the near one. It’s easier to handle a
+          zero delta on its own terms: the axis can’t rule anything out if the
+          segment starts inside the slab, and rules out everything if it
+          doesn’t. A segment running exactly along an edge counts as outside,
+          which is how <code>intersectAABB</code> treats boxes with flush edges
+          too.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">if</span> (delta.<span class="hljs-property">x</span> === <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">if</span> (pos.<span class="hljs-property">x</span> &lt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX) ||
+          pos.<span class="hljs-property">x</span> &gt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> + paddingX)) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+      }
+      nearTimeX = -<span class="hljs-title class_">Infinity</span>;
+      farTimeX = <span class="hljs-title class_">Infinity</span>;
+    }
+
+    <span class="hljs-keyword">if</span> (delta.<span class="hljs-property">y</span> === <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">if</span> (pos.<span class="hljs-property">y</span> &lt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY) ||
+          pos.<span class="hljs-property">y</span> &gt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + (<span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> + paddingY)) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+      }
+      nearTimeY = -<span class="hljs-title class_">Infinity</span>;
+      farTimeY = <span class="hljs-title class_">Infinity</span>;
+    }</pre>
         </div>
 
         <p>
