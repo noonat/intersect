@@ -2,8 +2,10 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "es2015"],
+    "target": "es2015",
     "module": "commonjs",
     "outDir": "./lib",
+    "rootDir": "./src",
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
