@@ -146,7 +146,9 @@ describe("AABB", () => {
 
     test("should work when segment is axis aligned", () => {
       // When the segment is axis aligned, it will cause the near and far values
-      // to be Infinity and -Infinity. Make sure that this case works.
+      // to be Infinity and -Infinity. Make sure that this case works. Here the
+      // segment passes through the middle of the box; running exactly along an
+      // edge is a different case, covered below.
       const aabb = new AABB(new Point(0, 0), new Point(16, 16));
       const pos = new Point(-32, 0);
       const delta = new Point(64, 0);
@@ -154,6 +156,60 @@ describe("AABB", () => {
       assert.equal(hit.time, 0.25);
       assert.equal(hit.normal.x, -1);
       assert.equal(hit.normal.y, 0);
+    });
+
+    test("should return null when the segment runs along an edge", () => {
+      // The segment doesn't move on one axis and starts exactly on an edge, so
+      // the time for that axis is zero multiplied by infinity.
+      const aabb = new AABB(new Point(0, 0), new Point(16, 16));
+      assert.equal(
+        aabb.intersectSegment(new Point(-32, -16), new Point(64, 0)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(-32, 16), new Point(64, 0)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(-16, -32), new Point(0, 64)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(16, -32), new Point(0, 64)),
+        null
+      );
+    });
+
+    test("should return null when the segment runs backwards along an edge", () => {
+      // A delta of negative zero flips which edge of the box counts as the near
+      // one, so both signs of zero need covering.
+      const aabb = new AABB(new Point(0, 0), new Point(16, 16));
+      assert.equal(
+        aabb.intersectSegment(new Point(32, -16), new Point(-64, -0)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(32, 16), new Point(-64, -0)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(-16, 32), new Point(-0, -64)),
+        null
+      );
+      assert.equal(
+        aabb.intersectSegment(new Point(16, 32), new Point(-0, -64)),
+        null
+      );
+    });
+
+    test("should return null for the segment reported in issue 9", () => {
+      // The box's top edge is at 318.5 - 17.5 = 301, which is exactly where
+      // the segment starts, and the segment runs along it.
+      const aabb = new AABB(new Point(907.5, 318.5), new Point(7.5, 17.5));
+      assert.equal(
+        aabb.intersectSegment(new Point(531, 301), new Point(16, 0)),
+        null
+      );
     });
   });
 
@@ -325,6 +381,20 @@ describe("AABB", () => {
       const hit = assertNotNull(sweep.hit);
       almostEqual(hit.normal.x, 0);
       almostEqual(hit.normal.y, -1);
+    });
+
+    test("should not collide when sliding along the top of a box", () => {
+      // Sweeping pads the static box by the moving box's half size, so a box
+      // resting exactly on a surface has its center on the padded edge. Moving
+      // along the surface from there is the case that used to give NaN.
+      const aabb1 = new AABB(new Point(0, 0), new Point(16, 16));
+      const aabb2 = new AABB(new Point(-64, -24), new Point(8, 8));
+      const delta = new Point(128, 0);
+      const sweep = aabb1.sweepAABB(aabb2, delta);
+      assert.equal(sweep.hit, null);
+      almostEqual(sweep.time, 1);
+      almostEqual(sweep.pos.x, aabb2.pos.x + delta.x);
+      almostEqual(sweep.pos.y, aabb2.pos.y + delta.y);
     });
 
     test("should not move when the start position is colliding", () => {

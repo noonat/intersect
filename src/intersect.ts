@@ -127,14 +127,36 @@ export class AABB {
     const scaleY = 1.0 / delta.y;
     const signX = sign(scaleX);
     const signY = sign(scaleY);
-    const nearTimeX =
+    let nearTimeX =
       (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    const nearTimeY =
+    let nearTimeY =
       (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
-    const farTimeX =
+    let farTimeX =
       (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
-    const farTimeY =
+    let farTimeY =
       (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+    if (delta.x === 0) {
+      if (
+        pos.x <= this.pos.x - (this.half.x + paddingX) ||
+        pos.x >= this.pos.x + (this.half.x + paddingX)
+      ) {
+        return null;
+      }
+      nearTimeX = -Infinity;
+      farTimeX = Infinity;
+    }
+
+    if (delta.y === 0) {
+      if (
+        pos.y <= this.pos.y - (this.half.y + paddingY) ||
+        pos.y >= this.pos.y + (this.half.y + paddingY)
+      ) {
+        return null;
+      }
+      nearTimeY = -Infinity;
+      farTimeY = Infinity;
+    }
+
     if (nearTimeX > farTimeY || nearTimeY > farTimeX) {
       return null;
     }

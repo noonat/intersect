@@ -313,10 +313,45 @@ multiplication instead of division to deal with floating point issues.
         const scaleY = 1.0 / delta.y;
         const signX = sign(scaleX);
         const signY = sign(scaleY);
-        const nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
-        const nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
-        const farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
-        const farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+        let nearTimeX = (this.pos.x - signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        let nearTimeY = (this.pos.y - signY * (this.half.y + paddingY) - pos.y) * scaleY;
+        let farTimeX = (this.pos.x + signX * (this.half.x + paddingX) - pos.x) * scaleX;
+        let farTimeY = (this.pos.y + signY * (this.half.y + paddingY) - pos.y) * scaleY;
+
+A segment that doesn't move on one of the axes needs some care here. Dividing
+by a delta of zero gives an infinite scale, which is usually exactly what we
+want: the segment never crosses that axis' edges, so its times come out as
+negative and positive infinity, and the axis rules nothing out.
+
+But if the segment also starts exactly on one of those edges, the distance to
+that edge is zero, and zero multiplied by infinity is `NaN`. That `NaN` then
+passes every check below, because comparing anything to `NaN` is false, and
+the function returns a hit whose every value is `NaN`.
+
+It's tempting to look for the `NaN` and replace it, but which of the four times
+it lands in depends on the sign of the zero, since that decides which edge is
+the near one. It's easier to handle a zero delta on its own terms: the axis
+can't rule anything out if the segment starts inside the slab, and rules out
+everything if it doesn't. A segment running exactly along an edge counts as
+outside, which is how `intersectAABB` treats boxes with flush edges too.
+
+        if (delta.x === 0) {
+          if (pos.x <= this.pos.x - (this.half.x + paddingX) ||
+              pos.x >= this.pos.x + (this.half.x + paddingX)) {
+            return null;
+          }
+          nearTimeX = -Infinity;
+          farTimeX = Infinity;
+        }
+
+        if (delta.y === 0) {
+          if (pos.y <= this.pos.y - (this.half.y + paddingY) ||
+              pos.y >= this.pos.y + (this.half.y + paddingY)) {
+            return null;
+          }
+          nearTimeY = -Infinity;
+          farTimeY = Infinity;
+        }
 
 Now we have to compare these times to see if a collision is possible.
 
