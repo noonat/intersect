@@ -5,5 +5,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "files": ["src/examples.ts"]
+  "files": ["src/examples.ts", "src/css.d.ts"]
 }

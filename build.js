@@ -41,7 +41,9 @@ async function compileSource() {
   };
   md.render(data.toString("UTF-8"));
 
-  const source = prettier.format(blocks.join(""), { parser: "typescript" });
+  const source = await prettier.format(blocks.join(""), {
+    parser: "typescript"
+  });
   await writeFile("src/intersect.ts", source);
 }
 
@@ -56,7 +58,7 @@ async function compileHTML() {
   const data = await readFile("docs/src/intersect.ts.html", {
     encoding: "utf-8"
   });
-  const html = prettier.format(data, { parser: "html" });
+  const html = await prettier.format(data, { parser: "html" });
   await writeFile("index.html", html, { encoding: "utf-8" });
   await unlink("docs/src/intersect.ts.html");
 }

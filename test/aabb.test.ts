@@ -3,7 +3,7 @@ import { AABB, EPSILON, Hit, Point, Sweep } from "../src/intersect";
 
 function almostEqual(actual: number, expected: number, message?: string) {
   if (Math.abs(actual - expected) > 1e-8) {
-    assert.equal(actual, expected, message);
+    assert.equal(actual, expected, message || `${actual} != ${expected}`);
   }
 }
 

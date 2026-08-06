@@ -121,7 +121,7 @@ export class AABB {
     pos: Point,
     delta: Point,
     paddingX: number = 0,
-    paddingY: number = 0
+    paddingY: number = 0,
   ): Hit | null {
     const scaleX = 1.0 / delta.x;
     const scaleY = 1.0 / delta.y;
@@ -233,12 +233,12 @@ export class AABB {
       sweep.hit.pos.x = clamp(
         sweep.hit.pos.x + direction.x * box.half.x,
         this.pos.x - this.half.x,
-        this.pos.x + this.half.x
+        this.pos.x + this.half.x,
       );
       sweep.hit.pos.y = clamp(
         sweep.hit.pos.y + direction.y * box.half.y,
         this.pos.y - this.half.y,
-        this.pos.y + this.half.y
+        this.pos.y + this.half.y,
       );
     } else {
       sweep.pos.x = box.pos.x + delta.x;

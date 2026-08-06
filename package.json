@@ -15,19 +15,19 @@
   },
   "main": "lib/intersect.js",
   "devDependencies": {
-    "@types/jest": "^24.0.18",
-    "@types/katex": "^0.10.2",
-    "@types/node": "^12.7.5",
+    "@types/jest": "^30.0.0",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^26.1.2",
     "docco": "^0.9.2",
     "esbuild": "^0.28.1",
-    "jest": "^24.9.0",
-    "markdown-it": "^10.0.0",
-    "prettier": "^1.18.2",
-    "rimraf": "^3.0.0",
-    "ts-jest": "^24.1.0",
+    "jest": "^30.4.2",
+    "markdown-it": "^15.0.0",
+    "prettier": "^3.9.6",
+    "rimraf": "^6.1.3",
+    "ts-jest": "^29.4.12",
     "tslint": "^5.2.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.3"
+    "typescript": "~6.0.3"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -42,6 +42,6 @@
     "testRegex": "/test/.*\\.(ts|tsx|js|jsx)$"
   },
   "dependencies": {
-    "katex": "^0.11.1"
+    "katex": "^0.18.1"
   }
 }
