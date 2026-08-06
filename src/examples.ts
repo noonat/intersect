@@ -126,7 +126,7 @@ class Example {
     this.context.stroke();
   }
 
-  public tick(elapsed: number) {
+  public tick(_elapsed: number) {
     this.context.fillStyle = "#000";
     this.context.fillRect(0, 0, this.width, this.height);
   }
@@ -148,7 +148,7 @@ class AABBPointExample extends Example {
     this.box = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
-  public tick(elapsed: number) {
+  public override tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
     this.pos.x = Math.cos(this.angle * 0.4) * 32;
@@ -178,7 +178,7 @@ class AABBSegmentExample extends Example {
     this.box = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
-  public tick(elapsed: number) {
+  public override tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
     const pos1 = new Point(
@@ -221,7 +221,7 @@ class AABBAABBExample extends Example {
     this.box2 = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
-  public tick(elapsed: number) {
+  public override tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.2 * Math.PI * elapsed;
     this.box2.pos.x = Math.cos(this.angle) * 96;
@@ -264,13 +264,17 @@ class AABBSweptAABBExample extends Example {
     this.tempBox = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
-  public tick(elapsed: number) {
+  public override tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
     this.drawAABB(this.staticBox, "#666");
     const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
     this.sweepBoxes.forEach((box, i) => {
-      const delta = this.sweepDeltas[i].clone();
+      const sweepDelta = this.sweepDeltas[i];
+      if (!sweepDelta) {
+        return;
+      }
+      const delta = sweepDelta.clone();
       delta.x *= factor;
       delta.y *= factor;
       const sweep = this.staticBox.sweepAABB(box, delta);
@@ -322,7 +326,7 @@ class MultipleAABBSweptAABBExample extends Example {
     ];
   }
 
-  public tick(elapsed: number) {
+  public override tick(elapsed: number) {
     super.tick(elapsed);
     this.delta.x = this.velocity.x * elapsed;
     this.delta.y = this.velocity.y * elapsed;
@@ -359,10 +363,16 @@ function ready(callback: () => void) {
   );
 }
 
+type ExampleConstructor = new (
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number
+) => Example;
+
 ready(() => {
   renderMathInElement(document.body);
 
-  const exampleIds: { [key: string]: any } = {
+  const exampleIds: { [key: string]: ExampleConstructor } = {
     "aabb-vs-aabb": AABBAABBExample,
     "aabb-vs-point": AABBPointExample,
     "aabb-vs-segment": AABBSegmentExample,
@@ -373,6 +383,9 @@ ready(() => {
   const examples: Example[] = [];
   Object.keys(exampleIds).forEach(id => {
     const exampleConstructor = exampleIds[id];
+    if (!exampleConstructor) {
+      return;
+    }
     const anchor = document.getElementById(id);
     if (!anchor || !anchor.parentNode) {
       return;

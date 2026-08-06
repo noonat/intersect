@@ -548,8 +548,8 @@ least distance &mdash; that is, the nearest collision to the start of the path.
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
         nearest.pos.y = this.pos.y + delta.y;
-        for (let i = 0, il = staticColliders.length; i < il; i++) {
-          const sweep = staticColliders[i].sweepAABB(this, delta);
+        for (const collider of staticColliders) {
+          const sweep = collider.sweepAABB(this, delta);
           if (sweep.time < nearest.time) {
             nearest = sweep;
           }

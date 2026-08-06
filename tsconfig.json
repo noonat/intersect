@@ -4,11 +4,26 @@
     "lib": ["dom", "es2015"],
     "target": "es2015",
     "module": "commonjs",
+    "declaration": true,
     "outDir": "./lib",
     "rootDir": "./src",
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
+
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "erasableSyntaxOnly": true,
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
     "types": ["jest", "node"]
   },
   "files": ["src/intersect.ts"]
