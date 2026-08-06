@@ -736,8 +736,8 @@
     nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
-    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>, il = staticColliders.<span class="hljs-property">length</span>; i &lt; il; i++) {
-      <span class="hljs-keyword">const</span> sweep = staticColliders[i].<span class="hljs-title function_">sweepAABB</span>(<span class="hljs-variable language_">this</span>, delta);
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> collider <span class="hljs-keyword">of</span> staticColliders) {
+      <span class="hljs-keyword">const</span> sweep = collider.<span class="hljs-title function_">sweepAABB</span>(<span class="hljs-variable language_">this</span>, delta);
       <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">time</span> &lt; nearest.<span class="hljs-property">time</span>) {
         nearest = sweep;
       }

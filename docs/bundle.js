@@ -14494,8 +14494,8 @@
       nearest.time = 1;
       nearest.pos.x = this.pos.x + delta.x;
       nearest.pos.y = this.pos.y + delta.y;
-      for (let i2 = 0, il = staticColliders.length; i2 < il; i2++) {
-        const sweep = staticColliders[i2].sweepAABB(this, delta);
+      for (const collider of staticColliders) {
+        const sweep = collider.sweepAABB(this, delta);
         if (sweep.time < nearest.time) {
           nearest = sweep;
         }
@@ -14588,7 +14588,7 @@
       this.context.strokeStyle = color;
       this.context.stroke();
     }
-    tick(elapsed) {
+    tick(_elapsed) {
       this.context.fillStyle = "#000";
       this.context.fillRect(0, 0, this.width, this.height);
     }
@@ -14691,7 +14691,11 @@
       this.drawAABB(this.staticBox, "#666");
       const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
       this.sweepBoxes.forEach((box, i2) => {
-        const delta = this.sweepDeltas[i2].clone();
+        const sweepDelta = this.sweepDeltas[i2];
+        if (!sweepDelta) {
+          return;
+        }
+        const delta = sweepDelta.clone();
         delta.x *= factor;
         delta.y *= factor;
         const sweep = this.staticBox.sweepAABB(box, delta);
@@ -14775,6 +14779,9 @@
     const examples = [];
     Object.keys(exampleIds).forEach((id) => {
       const exampleConstructor = exampleIds[id];
+      if (!exampleConstructor) {
+        return;
+      }
       const anchor = document.getElementById(id);
       if (!anchor || !anchor.parentNode) {
         return;

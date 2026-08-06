@@ -253,8 +253,8 @@ export class AABB {
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;
     nearest.pos.y = this.pos.y + delta.y;
-    for (let i = 0, il = staticColliders.length; i < il; i++) {
-      const sweep = staticColliders[i].sweepAABB(this, delta);
+    for (const collider of staticColliders) {
+      const sweep = collider.sweepAABB(this, delta);
       if (sweep.time < nearest.time) {
         nearest = sweep;
       }
