@@ -130,6 +130,18 @@
                 >Sweeping an AABB Through Multiple Objects</a
               >
             </li>
+            <li>
+              <a href="#circles">Circles</a>
+              <ol>
+                <li><a href="#circle-vs-point">Circle vs Point</a></li>
+                <li><a href="#circle-vs-segment">Circle vs Segment</a></li>
+                <li><a href="#circle-vs-aabb">Circle vs AABB</a></li>
+                <li><a href="#circle-vs-circle">Circle vs Circle</a></li>
+                <li>
+                  <a href="#circle-vs-swept-circle">Circle vs Swept Circle</a>
+                </li>
+              </ol>
+            </li>
           </ol>
           <h2 id="helpers">Helpers</h2>
           <p>Let’s define a couple helpers that we’ll use through the code.</p>
@@ -248,7 +260,7 @@
         </p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">type</span> <span class="hljs-title class_">Collider</span> = <span class="hljs-variable constant_">AABB</span>;
+          <pre><span class="hljs-keyword">type</span> <span class="hljs-title class_">Collider</span> = <span class="hljs-variable constant_">AABB</span> | <span class="hljs-title class_">Circle</span>;
 
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Hit</span> {
   <span class="hljs-keyword">public</span> <span class="hljs-attr">collider</span>: <span class="hljs-title class_">Collider</span>;
@@ -969,7 +981,7 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-variable constant_">AABB</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
     <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
     nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
@@ -1010,6 +1022,387 @@
           broad phase for simple games, however, if you aren’t colliding against
           a huge number of objects.
         </p>
+        <h2 id="circles">Circles</h2>
+        <p>Circles are just a center position and a radius.</p>
+
+        <div class="highlight">
+          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Circle</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">radius</span>: <span class="hljs-built_in">number</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">pos: Point, radius: <span class="hljs-built_in">number</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span> = pos;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> = radius;
+  }</pre>
+        </div>
+
+        <p>
+          The tests for circles are similar to the ones for AABB, although their
+          implementation tends to be a bit more complicated.
+        </p>
+        <p>
+          We’ll need to talk about math a bit more for circles. To keep it clear
+          whether we’re talking about vectors or scalars, we’ll use uppercase
+          letters to refer to vectors, and lowercase letters to refer to
+          scalars. For circles specifically, \(C\) will be the circle’s
+          <code>pos</code>, and \(r\) will be the circle’s <code>radius</code>.
+        </p>
+        <h3 id="circle-vs-point">Circle vs Point</h3>
+        <p>
+          When testing whether a point \(P\) collides with a circle, we first
+          need to calculate the delta from \(P\) to the circle’s center, \(C\):
+        </p>
+        <p>\[D = P - C\]</p>
+        <p>
+          If the length of \(D\) is greater than \(r\), then the point is
+          outside the circle. Calculating the length of \(D\) is just the usual
+          Pythagorean theorem, the circle is not colliding if:
+        </p>
+        <p>\[\sqrt{D_{0}D_{0} + D_{1}D_{1}} &gt; r\]</p>
+        <p>
+          When the length is greater than the radius of the circle, it means the
+          point lies outside the circle. We can optimize the check a bit by
+          comparing the distance squared to the radius squared, so that we don’t
+          need to do a square root to calculate the true distance:
+        </p>
+        <p>\[D_{0}D_{0} + D_{1}D_{1} &gt; r^2\]</p>
+        <p>
+          We’ll also allow a padding to be passed into the function for use in
+          other places that we’ll call this function. The padding will just be
+          added to the radius to inflate the size of the circle for the test.
+        </p>
+        <p>
+          In the case of a collision, we’ll just put the hit on the edge of the
+          circle.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectPoint</span>(<span class="hljs-attr">point</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">padding</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> dx = point.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> dy = point.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> distanceSquared = dx * dx + dy * dy;
+    <span class="hljs-keyword">const</span> minDistance = <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> + padding;
+    <span class="hljs-keyword">if</span> (distanceSquared &gt;= minDistance * minDistance) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }
+
+    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = dx;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = dy;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-title function_">normalize</span>();
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * padding - point.<span class="hljs-property">x</span>;
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * padding - point.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre>
+        </div>
+
+        <h3 id="circle-vs-segment">Circle vs Segment</h3>
+        <p>
+          This collision test is one of the more complicated ones that we’ll
+          have to talk about here. You can find another explanation of this
+          formula and algorithm in [Real-Time Collision Detection] section
+          5.3.2. If you’re not interested in the math behind the algorithm, you
+          can skip to the end of this section to see the code.
+        </p>
+        <p>
+          Like we did in <a href="#aabb-vs-segment">AABB vs Segment</a>, we’re
+          going to express a segment as a starting position \(P\) and a delta
+          \(D\) representing the distance from the start to the end. Points
+          along the line can be expressed by multiplying \(D\) by a linear time
+          \(t\), and adding that to the starting position:
+        </p>
+        <p>\[S(t) = P + tD\]</p>
+        <p>
+          Remember that, in this formula, points that exist on the segment must
+          have \(t \in [0, 1]\). If \(t\) is not in that range, the point is
+          collinear with the segment, but exists either before it’s start point
+          or after it’s end point.
+        </p>
+        <p>
+          If we reuse the formula from the previous section for expressing a
+          point on the edge of the circle, \((X - C) \cdot (X - C) = r^2\), but
+          substitute instead the formula for our segment in place of \(X\):
+        </p>
+        <p>\[(P + tD - C) \cdot (P + tD - C) = r^2\]</p>
+        <p>
+          We need to solve this equation to find \(t\), so that we know the time
+          at which the segment intersects with the edge of the circle. It turns
+          out that with some re-ordering and expansion, we can turn this into a
+          quadratic equation. Let’s go through the process.
+        </p>
+        <p>
+          First, let’s say that \(M = P - C\), and use that to simplify a bit:
+        </p>
+        <p>
+          \[(P - C + tD) \cdot (P - C + tD) = r^2\] \[(M + tD) \cdot (M + tD) =
+          r^2\]
+        </p>
+        <p>We can expand the dot product and simplify things a bit:</p>
+        <p>
+          \[(M \cdot M) + (M \cdot tD) + (tD \cdot M) + (tD \cdot tD) = r^2\]
+          \[(M \cdot M) + 2(M \cdot tD) + (D \cdot D)t^2 = r^2\]
+        </p>
+        <p>
+          Then we can re-order things to swap the first and last terms of the
+          left-hand side, and subtract \(r^2\) from both sides:
+        </p>
+        <p>
+          \[(D \cdot D)t^2 + 2(M \cdot D)t + (M \cdot M) = r^2\] \[(D \cdot
+          D)t^2 + 2(M \cdot D)t + (M \cdot M) - r^2 = 0\]
+        </p>
+        <p>
+          It might not be immediately obvious, but this is a
+          <em>quadratic equation</em>. A quadratic equation has the form
+          \({\color{red}a}x^2 + {\color{green}b}x + {\color{blue}c} = 0\). Here
+          is the same equation with the corresponding terms highlighted:
+        </p>
+        <p>
+          \[{\color{red}(D \cdot D)}t^2 + {\color{green}2(M \cdot D)}t +
+          {\color{blue}(M \cdot M) - r^2} = 0\]
+        </p>
+        <p>
+          Why is it helpful to have it in this form? Because the
+          <em>quadratic formula</em> can be used to solve a quadratic equation
+          for \(x\) (or, in our case, \(t\)). The quadratic formula is:
+        </p>
+        <p>\[x = \frac{-b \pm \sqrt{{\color{blue}b^2 - 4ac}}}{2a}\]</p>
+        <p>
+          The part highlighted in blue is important. It’s called the
+          discriminant. The result of this portion of the formula tells us what
+          sort of result we can expect:
+        </p>
+        <ul>
+          <li>
+            If it is negative, it means there aren’t any real roots. For our
+            purposes, this means that the ray missed the circle completely.
+          </li>
+          <li>
+            If it is zero, it means that the ray hit the circle exactly once.
+          </li>
+          <li>
+            If it is greater than zero, it means that the ray hit the circle
+            twice – once entering the circle, and once leaving it again. Note
+            the \(\pm\) in the quadratic formula. This is because it can yield
+            two possible results, one by adding and one by subtracting the root.
+            In this case, the lesser of the two is the one we care about, so we
+            only need to subtract.
+          </li>
+        </ul>
+        <p>
+          If we substitute our terms into the formula, it’s pretty awful to
+          read:
+        </p>
+        <p>
+          \[t = \frac{-2(M \cdot D) \pm \sqrt{2(M \cdot D)^2 - 4(D \cdot D)((M
+          \cdot M) - r^2)}}{2(D \cdot D)}\]
+        </p>
+        <p>
+          This is probably a good time to start expressing this as code, which
+          should make it a bit easier to understand. Let’s start out by defining
+          our equivalents of \(r\), \(M\), and \(D\):
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectSegment</span>(
+    <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>,
+    <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>,
+    <span class="hljs-attr">padding</span>: <span class="hljs-built_in">number</span> = <span class="hljs-number">0</span>
+  ): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> r = <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> + padding;
+    <span class="hljs-keyword">const</span> mx = pos.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> my = pos.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> dx = delta.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> dy = delta.<span class="hljs-property">y</span>;</pre>
+        </div>
+
+        <p>
+          Once we have these, we can define \(a\), \(b\), and \(c\) from the
+          quadratic formula:
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> a = dx * dx + dy * dy; <span class="hljs-comment">// D . D</span>
+    <span class="hljs-keyword">const</span> b = <span class="hljs-number">2</span> * (mx * dx + my * dy); <span class="hljs-comment">// 2(M . D)</span>
+    <span class="hljs-keyword">const</span> c = mx * mx + my * my - r * r; <span class="hljs-comment">// (M . M) - r^2</span></pre>
+        </div>
+
+        <p>
+          Then we can use these to calculate the discriminant. We can also check
+          for the case when it is less than zero, as that means no collision
+          occurred and we can return early.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> discriminant = b * b - <span class="hljs-number">4</span> * a * c; <span class="hljs-comment">// b^2 - 4ac</span>
+    <span class="hljs-keyword">if</span> (discriminant &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre>
+        </div>
+
+        <p>
+          Once we have the discriminant, we can calculate the rest of the
+          quadratic formula to give us the time of intersection. If the time is
+          greater than 1, it means the intersection occurred past the end of the
+          segment, so no collision occurred and we can return early.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">let</span> time = (-b - <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(discriminant)) / (<span class="hljs-number">2</span> * a);
+    <span class="hljs-keyword">if</span> (time &gt; <span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre>
+        </div>
+
+        <p>
+          If we’ve gotten this far, a collision occurred, and we can use the
+          values to calculate and return a hit.
+        </p>
+
+        <div class="highlight">
+          <pre>    time = <span class="hljs-title function_">clamp</span>(time, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = mx + time * dx;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = my + time * dy;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-title function_">normalize</span>();
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = pos.<span class="hljs-property">x</span> + time * dx;
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = pos.<span class="hljs-property">y</span> + time * dy;
+    hit.<span class="hljs-property">time</span> = time;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre>
+        </div>
+
+        <h3 id="circle-vs-aabb">Circle vs AABB</h3>
+        <p>
+          To test for a collision between a circle and an AABB, we can simplify
+          it to a test of the distance of the of the center of the circle from
+          the closest point on the edge of the AABB. We can calculate the
+          closest point by clamping the circle’s position to the edges of the
+          box:
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectAABB</span>(<span class="hljs-attr">box</span>: <span class="hljs-variable constant_">AABB</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">let</span> dx = <span class="hljs-title function_">clamp</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>, box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>, box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>);
+    <span class="hljs-keyword">let</span> dy = <span class="hljs-title function_">clamp</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>, box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>, box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>);</pre>
+        </div>
+
+        <p>
+          Once we have the nearest point, we need to convert it into the
+          circle’s coordinate space – that is, make the point relative to the
+          circle’s center:
+        </p>
+
+        <div class="highlight">
+          <pre>    dx -= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    dy -= <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;</pre>
+        </div>
+
+        <p>
+          Then we can calculate the length of that vector, and if it’s greater
+          than the radius of the circle, the circle isn’t colliding with the
+          box:
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> distanceSquared = dx * dx + dy * dy;
+    <span class="hljs-keyword">if</span> (distanceSquared &gt;= <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre>
+        </div>
+
+        <p>Otherwise, they’re colliding, and we need to create a hit.</p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    hit.<span class="hljs-property">normal</span>.<span class="hljs-title function_">normalize</span>();
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-attr">px</span>: <span class="hljs-built_in">number</span>;
+    <span class="hljs-keyword">let</span> <span class="hljs-attr">py</span>: <span class="hljs-built_in">number</span>;
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">abs</span>(hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span>) &gt; <span class="hljs-title function_">abs</span>(hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span>)) {
+      px = box.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> * <span class="hljs-title function_">sign</span>(hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span>);
+      py = (px * hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span>) / hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span>;
+    } <span class="hljs-keyword">else</span> {
+      py = box.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> * <span class="hljs-title function_">sign</span>(hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span>);
+      px = (py * hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span>) / hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span>;
+    }
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + px - box.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + py - box.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">return</span> hit;
+  }</pre>
+        </div>
+
+        <h3 id="circle-vs-circle">Circle vs Circle</h3>
+        <p>
+          The last few tests were a little complicated, so here’s an easy one
+          for you. Checking for the intersection of a circle with another circle
+          is as simple as inflating the size of one circle by the size of the
+          other, and doing a point check. We can reuse the
+          <code>intersectPoint</code> function we’ve already created to do just
+          that.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectCircle</span>(<span class="hljs-attr">circle</span>: <span class="hljs-title class_">Circle</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectPoint</span>(circle.<span class="hljs-property">pos</span>, circle.<span class="hljs-property">radius</span>);
+  }</pre>
+        </div>
+
+        <h3 id="circle-vs-swept-circle">Circle vs Swept Circle</h3>
+        <p>
+          Much like we were able to simplify the circle vs circle test, we can
+          also simplify this test. By inflating the size of the stationary
+          circle to include the size of the moving one, this check can become a
+          circle vs segment test.
+        </p>
+        <p>
+          If the sweep isn’t actually moving anywhere, we’ll just do a static
+          test, like we’ve done for the other sweep tests.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepCircle</span>(<span class="hljs-attr">circle</span>: <span class="hljs-title class_">Circle</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">const</span> sweep = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
+    <span class="hljs-keyword">if</span> (delta.<span class="hljs-property">x</span> === <span class="hljs-number">0</span> &amp;&amp; delta.<span class="hljs-property">y</span> === <span class="hljs-number">0</span>) {
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+      sweep.<span class="hljs-property">hit</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectCircle</span>(circle);
+      <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">hit</span>) {
+        sweep.<span class="hljs-property">time</span> = sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">time</span> = <span class="hljs-number">0</span>;
+      } <span class="hljs-keyword">else</span> {
+        sweep.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
+      }
+      <span class="hljs-keyword">return</span> sweep;
+    }</pre>
+        </div>
+
+        <p>
+          Otherwise, inflate this circle by the radius of the moving one, and
+          cast the line of movement against it. The hit position comes back on
+          the edge of the inflated circle, so it needs to be pulled back in by
+          that same radius to land on the surface of this one.
+        </p>
+
+        <div class="highlight">
+          <pre>    sweep.<span class="hljs-property">hit</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegment</span>(circle.<span class="hljs-property">pos</span>, delta, circle.<span class="hljs-property">radius</span>);
+    <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">hit</span>) {
+      sweep.<span class="hljs-property">time</span> = <span class="hljs-title function_">clamp</span>(sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">time</span> - <span class="hljs-variable constant_">EPSILON</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span> * sweep.<span class="hljs-property">time</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span> * sweep.<span class="hljs-property">time</span>;
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> -= sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * circle.<span class="hljs-property">radius</span>;
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> -= sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * circle.<span class="hljs-property">radius</span>;
+    } <span class="hljs-keyword">else</span> {
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+    }
+    <span class="hljs-keyword">return</span> sweep;
+  }
+}</pre>
+        </div>
 
         <div class="colophon">
           <p>Source &middot; src/intersect.ts.md</p>

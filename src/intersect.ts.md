@@ -24,6 +24,12 @@ on this page are also written in TypeScript, using the library.
    3. [AABB vs AABB](#aabb-vs-aabb)
    4. [AABB vs Swept AABB](#aabb-vs-swept-aabb)
 4. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
+5. [Circles](#circles)
+   1. [Circle vs Point](#circle-vs-point)
+   2. [Circle vs Segment](#circle-vs-segment)
+   3. [Circle vs AABB](#circle-vs-aabb)
+   4. [Circle vs Circle](#circle-vs-circle)
+   5. [Circle vs Swept Circle](#circle-vs-swept-circle)
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -117,7 +123,7 @@ overlapping.
 
 Intersection tests will return a Hit object when a collision occurs:
 
-    type Collider = AABB;
+    type Collider = AABB | Circle;
 
     export class Hit {
       public collider: Collider;
@@ -547,7 +553,7 @@ allowing it to collide with a list of static AABBs. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.
 
-      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+      public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
@@ -577,3 +583,305 @@ efficiently requires two steps:
 The first step is out of scope for this library, but these tests are great for
 solving the narrow phase. You can usually get away without a broad phase for
 simple games, however, if you aren't colliding against a huge number of objects.
+
+## Circles
+
+Circles are just a center position and a radius.
+
+    export class Circle {
+      public pos: Point;
+      public radius: number;
+
+      constructor(pos: Point, radius: number) {
+        this.pos = pos;
+        this.radius = radius;
+      }
+
+The tests for circles are similar to the ones for AABB, although their
+implementation tends to be a bit more complicated.
+
+We'll need to talk about math a bit more for circles. To keep it clear whether
+we're talking about vectors or scalars, we'll use uppercase letters to refer to
+vectors, and lowercase letters to refer to scalars. For circles specifically,
+\\(C\\) will be the circle's `pos`, and \\(r\\) will be the circle's `radius`.
+
+### Circle vs Point
+
+When testing whether a point \\(P\\) collides with a circle, we first need to
+calculate the delta from \\(P\\) to the circle's center, \\(C\\):
+
+\\[D = P - C\\]
+
+If the length of \\(D\\) is greater than \\(r\\), then the point is outside the
+circle. Calculating the length of \\(D\\) is just the usual Pythagorean
+theorem, the circle is not colliding if:
+
+\\[\\sqrt{D\_{0}D\_{0} + D\_{1}D\_{1}} > r\\]
+
+When the length is greater than the radius of the circle, it means the point
+lies outside the circle. We can optimize the check a bit by comparing the
+distance squared to the radius squared, so that we don't need to do a square
+root to calculate the true distance:
+
+\\[D\_{0}D\_{0} + D\_{1}D\_{1} > r^2\\]
+
+We'll also allow a padding to be passed into the function for use in other
+places that we'll call this function. The padding will just be added to the
+radius to inflate the size of the circle for the test.
+
+In the case of a collision, we'll just put the hit on the edge of the circle.
+
+      public intersectPoint(point: Point, padding: number = 0): Hit | null {
+        const dx = point.x - this.pos.x;
+        const dy = point.y - this.pos.y;
+        const distanceSquared = dx * dx + dy * dy;
+        const minDistance = this.radius + padding;
+        if (distanceSquared >= minDistance * minDistance) {
+          return null;
+        }
+
+        const hit = new Hit(this);
+        hit.normal.x = dx;
+        hit.normal.y = dy;
+        hit.normal.normalize();
+        hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+        hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+        hit.delta.x = hit.pos.x + hit.normal.x * padding - point.x;
+        hit.delta.y = hit.pos.y + hit.normal.y * padding - point.y;
+        return hit;
+      }
+
+### Circle vs Segment
+
+This collision test is one of the more complicated ones that we'll have to
+talk about here. You can find another explanation of this formula and algorithm
+in [Real-Time Collision Detection] section 5.3.2. If you're not interested in
+the math behind the algorithm, you can skip to the end of this section to
+see the code.
+
+Like we did in [AABB vs Segment](#aabb-vs-segment), we're going to express a
+segment as a starting position \\(P\\) and a delta \\(D\\) representing the
+distance from the start to the end. Points along the line can be expressed by
+multiplying \\(D\\) by a linear time \\(t\\), and adding that to the starting
+position:
+
+\\[S(t) = P + tD\\]
+
+Remember that, in this formula, points that exist on the segment must have
+\\(t \\in [0, 1]\\). If \\(t\\) is not in that range, the point is collinear
+with the segment, but exists either before it's start point or after it's
+end point.
+
+If we reuse the formula from the previous section for expressing a point on
+the edge of the circle, \\((X - C) \\cdot (X - C) = r^2\\), but substitute
+instead the formula for our segment in place of \\(X\\):
+
+\\[(P + tD - C) \\cdot (P + tD - C) = r^2\\]
+
+We need to solve this equation to find \\(t\\), so that we know the time at
+which the segment intersects with the edge of the circle. It turns out that
+with some re-ordering and expansion, we can turn this into a quadratic
+equation. Let's go through the process.
+
+First, let's say that \\(M = P - C\\), and use that to simplify a bit:
+
+\\[(P - C + tD) \\cdot (P - C + tD) = r^2\\]
+\\[(M + tD) \\cdot (M + tD) = r^2\\]
+
+We can expand the dot product and simplify things a bit:
+
+\\[(M \\cdot M) + (M \\cdot tD) + (tD \\cdot M) + (tD \\cdot tD) = r^2\\]
+\\[(M \\cdot M) + 2(M \\cdot tD) + (D \\cdot D)t^2 = r^2\\]
+
+Then we can re-order things to swap the first and last terms of the left-hand side,
+and subtract \\(r^2\\) from both sides:
+
+\\[(D \\cdot D)t^2 + 2(M \\cdot D)t + (M \\cdot M) = r^2\\]
+\\[(D \\cdot D)t^2 + 2(M \\cdot D)t + (M \\cdot M) - r^2 = 0\\]
+
+It might not be immediately obvious, but this is a *quadratic equation*. A
+quadratic equation has the form
+\\({\\color{red}a}x^2 + {\\color{green}b}x + {\\color{blue}c} = 0\\). Here is
+the same equation with the corresponding terms highlighted:
+
+\\[{\\color{red}(D \\cdot D)}t^2 + {\\color{green}2(M \\cdot D)}t + {\\color{blue}(M \\cdot M) - r^2} = 0\\]
+
+Why is it helpful to have it in this form? Because the *quadratic formula* can
+be used to solve a quadratic equation for \\(x\\) (or, in our case, \\(t\\)).
+The quadratic formula is:
+
+\\[x = \\frac{-b \\pm \\sqrt{{\\color{blue}b^2 - 4ac}}}{2a}\\]
+
+The part highlighted in blue is important. It's called the discriminant. The
+result of this portion of the formula tells us what sort of result we can
+expect:
+
+- If it is negative, it means there aren't any real roots. For our purposes,
+  this means that the ray missed the circle completely.
+- If it is zero, it means that the ray hit the circle exactly once.
+- If it is greater than zero, it means that the ray hit the circle twice --
+  once entering the circle, and once leaving it again. Note the \\(\\pm\\) in
+  the quadratic formula. This is because it can yield two possible results,
+  one by adding and one by subtracting the root. In this case, the lesser of
+  the two is the one we care about, so we only need to subtract.
+
+If we substitute our terms into the formula, it's pretty awful to read:
+
+\\[t = \\frac{-2(M \\cdot D) \\pm \\sqrt{2(M \\cdot D)^2 - 4(D \\cdot D)((M \\cdot M) - r^2)}}{2(D \\cdot D)}\\]
+
+This is probably a good time to start expressing this as code, which should
+make it a bit easier to understand. Let's start out by defining our equivalents
+of \\(r\\), \\(M\\), and \\(D\\):
+
+      public intersectSegment(
+        pos: Point,
+        delta: Point,
+        padding: number = 0
+      ): Hit | null {
+        const r = this.radius + padding;
+        const mx = pos.x - this.pos.x;
+        const my = pos.y - this.pos.y;
+        const dx = delta.x;
+        const dy = delta.y;
+
+Once we have these, we can define \\(a\\), \\(b\\), and \\(c\\) from the
+quadratic formula:
+
+        const a = dx * dx + dy * dy; // D . D
+        const b = 2 * (mx * dx + my * dy); // 2(M . D)
+        const c = mx * mx + my * my - r * r; // (M . M) - r^2
+
+Then we can use these to calculate the discriminant. We can also check for the
+case when it is less than zero, as that means no collision occurred and we
+can return early.
+
+        const discriminant = b * b - 4 * a * c; // b^2 - 4ac
+        if (discriminant < 0) {
+          return null;
+        }
+
+Once we have the discriminant, we can calculate the rest of the quadratic
+formula to give us the time of intersection. If the time is greater than 1, it
+means the intersection occurred past the end of the segment, so no collision
+occurred and we can return early.
+
+        let time = (-b - Math.sqrt(discriminant)) / (2 * a);
+        if (time > 1) {
+          return null;
+        }
+
+If we've gotten this far, a collision occurred, and we can use the values to
+calculate and return a hit.
+
+        time = clamp(time, 0, 1);
+        const hit = new Hit(this);
+        hit.normal.x = mx + time * dx;
+        hit.normal.y = my + time * dy;
+        hit.normal.normalize();
+        hit.pos.x = pos.x + time * dx;
+        hit.pos.y = pos.y + time * dy;
+        hit.time = time;
+        return hit;
+      }
+
+### Circle vs AABB
+
+To test for a collision between a circle and an AABB, we can simplify it to
+a test of the distance of the of the center of the circle from the closest
+point on the edge of the AABB. We can calculate the closest point by clamping
+the circle's position to the edges of the box:
+
+      public intersectAABB(box: AABB): Hit | null {
+        let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+        let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
+
+Once we have the nearest point, we need to convert it into the circle's
+coordinate space -- that is, make the point relative to the circle's center:
+
+        dx -= this.pos.x;
+        dy -= this.pos.y;
+
+Then we can calculate the length of that vector, and if it's greater than the
+radius of the circle, the circle isn't colliding with the box:
+
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= this.radius * this.radius) {
+          return null;
+        }
+
+Otherwise, they're colliding, and we need to create a hit.
+
+        const hit = new Hit(this);
+        hit.normal.x = box.pos.x - this.pos.x;
+        hit.normal.y = box.pos.y - this.pos.y;
+        hit.normal.normalize();
+        hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+        hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+        let px: number;
+        let py: number;
+        if (abs(hit.normal.x) > abs(hit.normal.y)) {
+          px = box.half.x * sign(hit.normal.x);
+          py = (px * hit.normal.y) / hit.normal.x;
+        } else {
+          py = box.half.y * sign(hit.normal.y);
+          px = (py * hit.normal.x) / hit.normal.y;
+        }
+        hit.delta.x = hit.pos.x + px - box.pos.x;
+        hit.delta.y = hit.pos.y + py - box.pos.y;
+        return hit;
+      }
+
+### Circle vs Circle
+
+The last few tests were a little complicated, so here's an easy one for you.
+Checking for the intersection of a circle with another circle is as simple as
+inflating the size of one circle by the size of the other, and doing a point
+check. We can reuse the `intersectPoint` function we've already created to do
+just that.
+
+      public intersectCircle(circle: Circle): Hit | null {
+        return this.intersectPoint(circle.pos, circle.radius);
+      }
+
+### Circle vs Swept Circle
+
+Much like we were able to simplify the circle vs circle test, we can also
+simplify this test. By inflating the size of the stationary circle to include
+the size of the moving one, this check can become a circle vs segment test.
+
+If the sweep isn't actually moving anywhere, we'll just do a static test, like
+we've done for the other sweep tests.
+
+      public sweepCircle(circle: Circle, delta: Point): Sweep {
+        const sweep = new Sweep();
+        if (delta.x === 0 && delta.y === 0) {
+          sweep.pos.x = circle.pos.x;
+          sweep.pos.y = circle.pos.y;
+          sweep.hit = this.intersectCircle(circle);
+          if (sweep.hit) {
+            sweep.time = sweep.hit.time = 0;
+          } else {
+            sweep.time = 1;
+          }
+          return sweep;
+        }
+
+Otherwise, inflate this circle by the radius of the moving one, and cast the
+line of movement against it. The hit position comes back on the edge of the
+inflated circle, so it needs to be pulled back in by that same radius to land
+on the surface of this one.
+
+        sweep.hit = this.intersectSegment(circle.pos, delta, circle.radius);
+        if (sweep.hit) {
+          sweep.time = clamp(sweep.hit.time - EPSILON, 0, 1);
+          sweep.pos.x = circle.pos.x + delta.x * sweep.time;
+          sweep.pos.y = circle.pos.y + delta.y * sweep.time;
+          sweep.hit.pos.x -= sweep.hit.normal.x * circle.radius;
+          sweep.hit.pos.y -= sweep.hit.normal.y * circle.radius;
+        } else {
+          sweep.pos.x = circle.pos.x + delta.x;
+          sweep.pos.y = circle.pos.y + delta.y;
+        }
+        return sweep;
+      }
+    }
