@@ -20,6 +20,10 @@ portable to your language of choice. To get started, take a look at:
 Note that the compiled JavaScript source is also available in the lib folder,
 if you find TypeScript difficult to read.
 
+If you'd rather use it than port it, it's on npm, with type declarations:
+
+    npm install @noonat/intersect
+
 [annotated]: http://noonat.github.io/intersect
 [examples]: https://github.com/noonat/intersect/blob/master/src/examples.ts
 [intersect]: https://github.com/noonat/intersect/blob/master/src/intersect.ts

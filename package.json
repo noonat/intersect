@@ -1,7 +1,17 @@
 {
-  "name": "intersect",
+  "name": "@noonat/intersect",
   "version": "0.1.0",
   "description": "Example code for simple collision detection",
+  "keywords": [
+    "collision",
+    "collision-detection",
+    "intersection",
+    "aabb",
+    "sweep",
+    "2d",
+    "games"
+  ],
+  "license": "Zlib",
   "homepage": "https://github.com/noonat/intersect",
   "repository": {
     "type": "git",
@@ -15,6 +25,14 @@
   },
   "main": "lib/intersect.js",
   "types": "lib/intersect.d.ts",
+  "files": [
+    "lib",
+    "src/intersect.ts",
+    "src/intersect.ts.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
