@@ -261,6 +261,106 @@ export class AABB {
     }
     return nearest;
   }
+
+  public intersectCircle(circle: Circle): Hit | null {
+    const nearestX = clamp(
+      circle.pos.x,
+      this.pos.x - this.half.x,
+      this.pos.x + this.half.x,
+    );
+    const nearestY = clamp(
+      circle.pos.y,
+      this.pos.y - this.half.y,
+      this.pos.y + this.half.y,
+    );
+    const dx = circle.pos.x - nearestX;
+    const dy = circle.pos.y - nearestY;
+    const distanceSquared = dx * dx + dy * dy;
+    if (distanceSquared >= circle.radius * circle.radius) {
+      return null;
+    }
+
+    const hit = new Hit(this);
+    if (distanceSquared > 0) {
+      const distance = Math.sqrt(distanceSquared);
+      hit.normal.x = dx / distance;
+      hit.normal.y = dy / distance;
+      hit.pos.x = nearestX;
+      hit.pos.y = nearestY;
+      const overlap = circle.radius - distance;
+      hit.delta.x = hit.normal.x * overlap;
+      hit.delta.y = hit.normal.y * overlap;
+    } else {
+      const px = this.half.x - abs(circle.pos.x - this.pos.x);
+      const py = this.half.y - abs(circle.pos.y - this.pos.y);
+      if (px < py) {
+        const sx = sign(circle.pos.x - this.pos.x);
+        hit.normal.x = sx;
+        hit.pos.x = this.pos.x + this.half.x * sx;
+        hit.pos.y = circle.pos.y;
+        hit.delta.x = (px + circle.radius) * sx;
+      } else {
+        const sy = sign(circle.pos.y - this.pos.y);
+        hit.normal.y = sy;
+        hit.pos.x = circle.pos.x;
+        hit.pos.y = this.pos.y + this.half.y * sy;
+        hit.delta.y = (py + circle.radius) * sy;
+      }
+    }
+    return hit;
+  }
+
+  public sweepCircle(circle: Circle, delta: Point): Sweep {
+    const sweep = new Sweep();
+    if (delta.x === 0 && delta.y === 0) {
+      sweep.pos.x = circle.pos.x;
+      sweep.pos.y = circle.pos.y;
+      sweep.hit = this.intersectCircle(circle);
+      sweep.time = sweep.hit ? (sweep.hit.time = 0) : 1;
+      return sweep;
+    }
+
+    let hit = this.intersectSegment(
+      circle.pos,
+      delta,
+      circle.radius,
+      circle.radius,
+    );
+    if (hit) {
+      const x = circle.pos.x + delta.x * hit.time;
+      const y = circle.pos.y + delta.y * hit.time;
+      const cornerX = clamp(
+        x,
+        this.pos.x - this.half.x,
+        this.pos.x + this.half.x,
+      );
+      const cornerY = clamp(
+        y,
+        this.pos.y - this.half.y,
+        this.pos.y + this.half.y,
+      );
+      if (cornerX !== x && cornerY !== y) {
+        const corner = new Circle(new Point(cornerX, cornerY), circle.radius);
+        hit = corner.intersectSegment(circle.pos, delta);
+        if (hit) {
+          hit.collider = this;
+        }
+      }
+    }
+
+    if (hit) {
+      sweep.time = clamp(hit.time - EPSILON, 0, 1);
+      sweep.pos.x = circle.pos.x + delta.x * sweep.time;
+      sweep.pos.y = circle.pos.y + delta.y * sweep.time;
+      hit.pos.x -= hit.normal.x * circle.radius;
+      hit.pos.y -= hit.normal.y * circle.radius;
+      sweep.hit = hit;
+    } else {
+      sweep.pos.x = circle.pos.x + delta.x;
+      sweep.pos.y = circle.pos.y + delta.y;
+    }
+    return sweep;
+  }
 }
 
 export class Circle {
@@ -310,8 +410,10 @@ export class Circle {
       return null;
     }
 
-    let time = (-b - Math.sqrt(discriminant)) / (2 * a);
-    if (time > 1) {
+    const root = Math.sqrt(discriminant);
+    let time = (-b - root) / (2 * a);
+    const exitTime = (-b + root) / (2 * a);
+    if (time > 1 || exitTime <= 0) {
       return null;
     }
 
@@ -384,6 +486,18 @@ export class Circle {
     } else {
       sweep.pos.x = circle.pos.x + delta.x;
       sweep.pos.y = circle.pos.y + delta.y;
+    }
+    return sweep;
+  }
+
+  public sweepAABB(box: AABB, delta: Point): Sweep {
+    const rounded = new AABB(this.pos, box.half);
+    const mover = new Circle(box.pos, this.radius);
+    const sweep = rounded.sweepCircle(mover, delta);
+    if (sweep.hit) {
+      sweep.hit.collider = this;
+      sweep.hit.pos.x = this.pos.x + sweep.hit.normal.x * this.radius;
+      sweep.hit.pos.y = this.pos.y + sweep.hit.normal.y * this.radius;
     }
     return sweep;
   }

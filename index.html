@@ -123,6 +123,10 @@
                 <li><a href="#aabb-vs-segment">AABB vs Segment</a></li>
                 <li><a href="#aabb-vs-aabb">AABB vs AABB</a></li>
                 <li><a href="#aabb-vs-swept-aabb">AABB vs Swept AABB</a></li>
+                <li><a href="#aabb-vs-circle">AABB vs Circle</a></li>
+                <li>
+                  <a href="#aabb-vs-swept-circle">AABB vs Swept Circle</a>
+                </li>
               </ol>
             </li>
             <li>
@@ -139,6 +143,9 @@
                 <li><a href="#circle-vs-circle">Circle vs Circle</a></li>
                 <li>
                   <a href="#circle-vs-swept-circle">Circle vs Swept Circle</a>
+                </li>
+                <li>
+                  <a href="#circle-vs-swept-aabb">Circle vs Swept AABB</a>
                 </li>
               </ol>
             </li>
@@ -993,6 +1000,155 @@
       }
     }
     <span class="hljs-keyword">return</span> nearest;
+  }</pre>
+        </div>
+
+        <h3 id="aabb-vs-circle">AABB vs Circle</h3>
+        <p>
+          This one and the next belong to the box, because the box is the static
+          object in both, but they need circles, which are covered in the
+          <a href="#circles">next section</a>. Feel free to read that first and
+          come back.
+        </p>
+        <p>
+          To find out whether a circle overlaps a box, take the point on the box
+          nearest to the circle’s center. If that point is closer than the
+          radius, they overlap.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectCircle</span>(<span class="hljs-attr">circle</span>: <span class="hljs-title class_">Circle</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> nearestX = <span class="hljs-title function_">clamp</span>(
+      circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>);
+    <span class="hljs-keyword">const</span> nearestY = <span class="hljs-title function_">clamp</span>(
+      circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>);
+    <span class="hljs-keyword">const</span> dx = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - nearestX;
+    <span class="hljs-keyword">const</span> dy = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - nearestY;
+    <span class="hljs-keyword">const</span> distanceSquared = dx * dx + dy * dy;
+    <span class="hljs-keyword">if</span> (distanceSquared &gt;= circle.<span class="hljs-property">radius</span> * circle.<span class="hljs-property">radius</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }
+
+    <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);</pre>
+        </div>
+
+        <p>
+          If the center is outside the box, the nearest point is the contact
+          point, and the circle needs to move out along the line between them.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">if</span> (distanceSquared &gt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">const</span> distance = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(distanceSquared);
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = dx / distance;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = dy / distance;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = nearestX;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = nearestY;
+      <span class="hljs-keyword">const</span> overlap = circle.<span class="hljs-property">radius</span> - distance;
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * overlap;
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * overlap;</pre>
+        </div>
+
+        <p>
+          Otherwise the center is inside the box, the nearest point is the
+          center itself, and there’s no line to push out along. Use the nearest
+          face instead, the same way the point test does.
+        </p>
+
+        <div class="highlight">
+          <pre>    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">const</span> px = <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> - <span class="hljs-title function_">abs</span>(circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>);
+      <span class="hljs-keyword">const</span> py = <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> - <span class="hljs-title function_">abs</span>(circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>);
+      <span class="hljs-keyword">if</span> (px &lt; py) {
+        <span class="hljs-keyword">const</span> sx = <span class="hljs-title function_">sign</span>(circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>);
+        hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = sx;
+        hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span> * sx;
+        hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+        hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = (px + circle.<span class="hljs-property">radius</span>) * sx;
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">const</span> sy = <span class="hljs-title function_">sign</span>(circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>);
+        hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = sy;
+        hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+        hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span> * sy;
+        hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = (py + circle.<span class="hljs-property">radius</span>) * sy;
+      }
+    }
+    <span class="hljs-keyword">return</span> hit;
+  }</pre>
+        </div>
+
+        <h3 id="aabb-vs-swept-circle">AABB vs Swept Circle</h3>
+        <p>
+          The other sweeps inflate the static object by the size of the moving
+          one and cast a line at the result. That works here too, but the shape
+          it produces is not a box: inflating a rectangle by a circle rounds off
+          its corners. Casting at the inflated box alone would report hits in
+          the four corner squares that the rounded shape doesn’t actually cover.
+        </p>
+        <p>
+          So do it in two steps. Cast at the inflated box first, since anything
+          that misses that misses the rounded shape too.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepCircle</span>(<span class="hljs-attr">circle</span>: <span class="hljs-title class_">Circle</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">const</span> sweep = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
+    <span class="hljs-keyword">if</span> (delta.<span class="hljs-property">x</span> === <span class="hljs-number">0</span> &amp;&amp; delta.<span class="hljs-property">y</span> === <span class="hljs-number">0</span>) {
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+      sweep.<span class="hljs-property">hit</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectCircle</span>(circle);
+      sweep.<span class="hljs-property">time</span> = sweep.<span class="hljs-property">hit</span> ? (sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">time</span> = <span class="hljs-number">0</span>) : <span class="hljs-number">1</span>;
+      <span class="hljs-keyword">return</span> sweep;
+    }
+
+    <span class="hljs-keyword">let</span> hit = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegment</span>(
+      circle.<span class="hljs-property">pos</span>, delta, circle.<span class="hljs-property">radius</span>, circle.<span class="hljs-property">radius</span>);</pre>
+        </div>
+
+        <p>
+          Then check where the circle’s center ended up. If it’s past the end of
+          the box on both axes at once, the contact was in one of the corner
+          squares, and the real shape there is an arc. Cast at a circle sitting
+          on that corner instead, which may well miss.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">if</span> (hit) {
+      <span class="hljs-keyword">const</span> x = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span> * hit.<span class="hljs-property">time</span>;
+      <span class="hljs-keyword">const</span> y = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span> * hit.<span class="hljs-property">time</span>;
+      <span class="hljs-keyword">const</span> cornerX = <span class="hljs-title function_">clamp</span>(
+        x, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">x</span>);
+      <span class="hljs-keyword">const</span> cornerY = <span class="hljs-title function_">clamp</span>(
+        y, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">half</span>.<span class="hljs-property">y</span>);
+      <span class="hljs-keyword">if</span> (cornerX !== x &amp;&amp; cornerY !== y) {
+        <span class="hljs-keyword">const</span> corner = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Circle</span>(
+          <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(cornerX, cornerY), circle.<span class="hljs-property">radius</span>);
+        hit = corner.<span class="hljs-title function_">intersectSegment</span>(circle.<span class="hljs-property">pos</span>, delta);
+        <span class="hljs-keyword">if</span> (hit) {
+          hit.<span class="hljs-property">collider</span> = <span class="hljs-variable language_">this</span>;
+        }
+      }
+    }</pre>
+        </div>
+
+        <p>
+          Either way, the hit position is where the circle’s center stopped, so
+          pull it back along the normal to put it on the surface of the box.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">if</span> (hit) {
+      sweep.<span class="hljs-property">time</span> = <span class="hljs-title function_">clamp</span>(hit.<span class="hljs-property">time</span> - <span class="hljs-variable constant_">EPSILON</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>);
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span> * sweep.<span class="hljs-property">time</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span> * sweep.<span class="hljs-property">time</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> -= hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * circle.<span class="hljs-property">radius</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> -= hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * circle.<span class="hljs-property">radius</span>;
+      sweep.<span class="hljs-property">hit</span> = hit;
+    } <span class="hljs-keyword">else</span> {
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
+      sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+    }
+    <span class="hljs-keyword">return</span> sweep;
   }
 }</pre>
         </div>
@@ -1186,8 +1342,10 @@
             twice – once entering the circle, and once leaving it again. Note
             the \(\pm\) in the quadratic formula. This is because it can yield
             two possible results, one by adding and one by subtracting the root.
-            In this case, the lesser of the two is the one we care about, so we
-            only need to subtract.
+            Subtracting gives the time it entered, which is the one we care
+            about, but the other one is still worth calculating: both times
+            being negative is how we tell that the circle is behind the segment
+            rather than in front of it.
           </li>
         </ul>
         <p>
@@ -1243,14 +1401,23 @@
 
         <p>
           Once we have the discriminant, we can calculate the rest of the
-          quadratic formula to give us the time of intersection. If the time is
-          greater than 1, it means the intersection occurred past the end of the
-          segment, so no collision occurred and we can return early.
+          quadratic formula to give us the times at which the segment enters and
+          leaves the circle.
+        </p>
+        <p>
+          If the entry time is greater than 1, the segment stopped short of the
+          circle. If the exit time is less than zero, the segment is heading
+          away from a circle that is already behind it. Either way there’s no
+          collision. This mirrors the check that
+          <a href="#aabb-vs-segment">AABB vs Segment</a> makes against its near
+          and far times.
         </p>
 
         <div class="highlight">
-          <pre>    <span class="hljs-keyword">let</span> time = (-b - <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(discriminant)) / (<span class="hljs-number">2</span> * a);
-    <span class="hljs-keyword">if</span> (time &gt; <span class="hljs-number">1</span>) {
+          <pre>    <span class="hljs-keyword">const</span> root = <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(discriminant);
+    <span class="hljs-keyword">let</span> time = (-b - root) / (<span class="hljs-number">2</span> * a);
+    <span class="hljs-keyword">const</span> exitTime = (-b + root) / (<span class="hljs-number">2</span> * a);
+    <span class="hljs-keyword">if</span> (time &gt; <span class="hljs-number">1</span> || exitTime &lt;= <span class="hljs-number">0</span>) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
     }</pre>
         </div>
@@ -1398,6 +1565,40 @@
     } <span class="hljs-keyword">else</span> {
       sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
       sweep.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = circle.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+    }
+    <span class="hljs-keyword">return</span> sweep;
+  }</pre>
+        </div>
+
+        <h3 id="circle-vs-swept-aabb">Circle vs Swept AABB</h3>
+        <p>
+          This is the same problem as
+          <a href="#aabb-vs-swept-circle">AABB vs Swept Circle</a> wearing a
+          different hat. The positions where a box touches a circle make a
+          rectangle the size of the box, centered on the circle, with its
+          corners rounded off by the circle’s radius. That’s the same shape, so
+          build the stand-in box and hand the work over.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepAABB</span>(<span class="hljs-attr">box</span>: <span class="hljs-variable constant_">AABB</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">const</span> rounded = <span class="hljs-keyword">new</span> <span class="hljs-title function_">AABB</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>, box.<span class="hljs-property">half</span>);
+    <span class="hljs-keyword">const</span> mover = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Circle</span>(box.<span class="hljs-property">pos</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>);
+    <span class="hljs-keyword">const</span> sweep = rounded.<span class="hljs-title function_">sweepCircle</span>(mover, delta);</pre>
+        </div>
+
+        <p>
+          The sweep comes back describing the box’s movement, which is what we
+          want, but the hit describes that stand-in rectangle. The normal is
+          right either way, since the two surfaces are tangent where they touch,
+          so the contact point is just that normal on the edge of this circle.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">hit</span>) {
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">collider</span> = <span class="hljs-variable language_">this</span>;
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+      sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
     }
     <span class="hljs-keyword">return</span> sweep;
   }

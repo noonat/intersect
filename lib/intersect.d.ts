@@ -33,6 +33,8 @@ export declare class AABB {
     intersectAABB(box: AABB): Hit | null;
     sweepAABB(box: AABB, delta: Point): Sweep;
     sweepInto(staticColliders: AABB[], delta: Point): Sweep;
+    intersectCircle(circle: Circle): Hit | null;
+    sweepCircle(circle: Circle, delta: Point): Sweep;
 }
 export declare class Circle {
     pos: Point;
@@ -43,5 +45,6 @@ export declare class Circle {
     intersectAABB(box: AABB): Hit | null;
     intersectCircle(circle: Circle): Hit | null;
     sweepCircle(circle: Circle, delta: Point): Sweep;
+    sweepAABB(box: AABB, delta: Point): Sweep;
 }
 export {};

@@ -23,6 +23,8 @@ on this page are also written in TypeScript, using the library.
    2. [AABB vs Segment](#aabb-vs-segment)
    3. [AABB vs AABB](#aabb-vs-aabb)
    4. [AABB vs Swept AABB](#aabb-vs-swept-aabb)
+   5. [AABB vs Circle](#aabb-vs-circle)
+   6. [AABB vs Swept Circle](#aabb-vs-swept-circle)
 4. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
 5. [Circles](#circles)
    1. [Circle vs Point](#circle-vs-point)
@@ -30,6 +32,7 @@ on this page are also written in TypeScript, using the library.
    3. [Circle vs AABB](#circle-vs-aabb)
    4. [Circle vs Circle](#circle-vs-circle)
    5. [Circle vs Swept Circle](#circle-vs-swept-circle)
+   6. [Circle vs Swept AABB](#circle-vs-swept-aabb)
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -566,6 +569,129 @@ least distance &mdash; that is, the nearest collision to the start of the path.
         }
         return nearest;
       }
+
+### AABB vs Circle
+
+This one and the next belong to the box, because the box is the static object
+in both, but they need circles, which are covered in the [next
+section](#circles). Feel free to read that first and come back.
+
+To find out whether a circle overlaps a box, take the point on the box nearest
+to the circle's center. If that point is closer than the radius, they overlap.
+
+      public intersectCircle(circle: Circle): Hit | null {
+        const nearestX = clamp(
+          circle.pos.x, this.pos.x - this.half.x, this.pos.x + this.half.x);
+        const nearestY = clamp(
+          circle.pos.y, this.pos.y - this.half.y, this.pos.y + this.half.y);
+        const dx = circle.pos.x - nearestX;
+        const dy = circle.pos.y - nearestY;
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= circle.radius * circle.radius) {
+          return null;
+        }
+
+        const hit = new Hit(this);
+
+If the center is outside the box, the nearest point is the contact point, and
+the circle needs to move out along the line between them.
+
+        if (distanceSquared > 0) {
+          const distance = Math.sqrt(distanceSquared);
+          hit.normal.x = dx / distance;
+          hit.normal.y = dy / distance;
+          hit.pos.x = nearestX;
+          hit.pos.y = nearestY;
+          const overlap = circle.radius - distance;
+          hit.delta.x = hit.normal.x * overlap;
+          hit.delta.y = hit.normal.y * overlap;
+
+Otherwise the center is inside the box, the nearest point is the center itself,
+and there's no line to push out along. Use the nearest face instead, the same
+way the point test does.
+
+        } else {
+          const px = this.half.x - abs(circle.pos.x - this.pos.x);
+          const py = this.half.y - abs(circle.pos.y - this.pos.y);
+          if (px < py) {
+            const sx = sign(circle.pos.x - this.pos.x);
+            hit.normal.x = sx;
+            hit.pos.x = this.pos.x + this.half.x * sx;
+            hit.pos.y = circle.pos.y;
+            hit.delta.x = (px + circle.radius) * sx;
+          } else {
+            const sy = sign(circle.pos.y - this.pos.y);
+            hit.normal.y = sy;
+            hit.pos.x = circle.pos.x;
+            hit.pos.y = this.pos.y + this.half.y * sy;
+            hit.delta.y = (py + circle.radius) * sy;
+          }
+        }
+        return hit;
+      }
+
+### AABB vs Swept Circle
+
+The other sweeps inflate the static object by the size of the moving one and
+cast a line at the result. That works here too, but the shape it produces is
+not a box: inflating a rectangle by a circle rounds off its corners. Casting
+at the inflated box alone would report hits in the four corner squares that
+the rounded shape doesn't actually cover.
+
+So do it in two steps. Cast at the inflated box first, since anything that
+misses that misses the rounded shape too.
+
+      public sweepCircle(circle: Circle, delta: Point): Sweep {
+        const sweep = new Sweep();
+        if (delta.x === 0 && delta.y === 0) {
+          sweep.pos.x = circle.pos.x;
+          sweep.pos.y = circle.pos.y;
+          sweep.hit = this.intersectCircle(circle);
+          sweep.time = sweep.hit ? (sweep.hit.time = 0) : 1;
+          return sweep;
+        }
+
+        let hit = this.intersectSegment(
+          circle.pos, delta, circle.radius, circle.radius);
+
+Then check where the circle's center ended up. If it's past the end of the box
+on both axes at once, the contact was in one of the corner squares, and the
+real shape there is an arc. Cast at a circle sitting on that corner instead,
+which may well miss.
+
+        if (hit) {
+          const x = circle.pos.x + delta.x * hit.time;
+          const y = circle.pos.y + delta.y * hit.time;
+          const cornerX = clamp(
+            x, this.pos.x - this.half.x, this.pos.x + this.half.x);
+          const cornerY = clamp(
+            y, this.pos.y - this.half.y, this.pos.y + this.half.y);
+          if (cornerX !== x && cornerY !== y) {
+            const corner = new Circle(
+              new Point(cornerX, cornerY), circle.radius);
+            hit = corner.intersectSegment(circle.pos, delta);
+            if (hit) {
+              hit.collider = this;
+            }
+          }
+        }
+
+Either way, the hit position is where the circle's center stopped, so pull it
+back along the normal to put it on the surface of the box.
+
+        if (hit) {
+          sweep.time = clamp(hit.time - EPSILON, 0, 1);
+          sweep.pos.x = circle.pos.x + delta.x * sweep.time;
+          sweep.pos.y = circle.pos.y + delta.y * sweep.time;
+          hit.pos.x -= hit.normal.x * circle.radius;
+          hit.pos.y -= hit.normal.y * circle.radius;
+          sweep.hit = hit;
+        } else {
+          sweep.pos.x = circle.pos.x + delta.x;
+          sweep.pos.y = circle.pos.y + delta.y;
+        }
+        return sweep;
+      }
     }
 
 It's a common use case to have a single object that needs to move through a
@@ -722,8 +848,10 @@ expect:
 - If it is greater than zero, it means that the ray hit the circle twice --
   once entering the circle, and once leaving it again. Note the \\(\\pm\\) in
   the quadratic formula. This is because it can yield two possible results,
-  one by adding and one by subtracting the root. In this case, the lesser of
-  the two is the one we care about, so we only need to subtract.
+  one by adding and one by subtracting the root. Subtracting gives the time it
+  entered, which is the one we care about, but the other one is still worth
+  calculating: both times being negative is how we tell that the circle is
+  behind the segment rather than in front of it.
 
 If we substitute our terms into the formula, it's pretty awful to read:
 
@@ -761,12 +889,18 @@ can return early.
         }
 
 Once we have the discriminant, we can calculate the rest of the quadratic
-formula to give us the time of intersection. If the time is greater than 1, it
-means the intersection occurred past the end of the segment, so no collision
-occurred and we can return early.
+formula to give us the times at which the segment enters and leaves the circle.
 
-        let time = (-b - Math.sqrt(discriminant)) / (2 * a);
-        if (time > 1) {
+If the entry time is greater than 1, the segment stopped short of the circle.
+If the exit time is less than zero, the segment is heading away from a circle
+that is already behind it. Either way there's no collision. This mirrors the
+check that [AABB vs Segment](#aabb-vs-segment) makes against its near and far
+times.
+
+        const root = Math.sqrt(discriminant);
+        let time = (-b - root) / (2 * a);
+        const exitTime = (-b + root) / (2 * a);
+        if (time > 1 || exitTime <= 0) {
           return null;
         }
 
@@ -881,6 +1015,32 @@ on the surface of this one.
         } else {
           sweep.pos.x = circle.pos.x + delta.x;
           sweep.pos.y = circle.pos.y + delta.y;
+        }
+        return sweep;
+      }
+
+### Circle vs Swept AABB
+
+This is the same problem as [AABB vs Swept Circle](#aabb-vs-swept-circle)
+wearing a different hat. The positions where a box touches a circle make a
+rectangle the size of the box, centered on the circle, with its corners
+rounded off by the circle's radius. That's the same shape, so build the
+stand-in box and hand the work over.
+
+      public sweepAABB(box: AABB, delta: Point): Sweep {
+        const rounded = new AABB(this.pos, box.half);
+        const mover = new Circle(box.pos, this.radius);
+        const sweep = rounded.sweepCircle(mover, delta);
+
+The sweep comes back describing the box's movement, which is what we want, but
+the hit describes that stand-in rectangle. The normal is right either way,
+since the two surfaces are tangent where they touch, so the contact point is
+just that normal on the edge of this circle.
+
+        if (sweep.hit) {
+          sweep.hit.collider = this;
+          sweep.hit.pos.x = this.pos.x + sweep.hit.normal.x * this.radius;
+          sweep.hit.pos.y = this.pos.y + sweep.hit.normal.y * this.radius;
         }
         return sweep;
       }
