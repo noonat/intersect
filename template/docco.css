@@ -1,337 +1,768 @@
-/*--------------------- Typography ----------------------------*/
+/*---------------------------------------------------------------------
+  Intersection Tests in 2D
+
+  A single-column tutorial with a sticky contents rail. Black and white,
+  hairline rules; colour appears only inside a diagram, where it means
+  something. See the semantic tokens below.
+---------------------------------------------------------------------*/
+
+/*--------------------------- Typefaces ------------------------------*/
+
+/* Variable fonts: one file per family covers every weight used here. */
 
 @font-face {
-    font-family: 'aller-light';
-    src: url('public/fonts/aller-light.eot');
-    src: url('public/fonts/aller-light.eot?#iefix') format('embedded-opentype'),
-         url('public/fonts/aller-light.woff') format('woff'),
-         url('public/fonts/aller-light.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("fonts/ibm-plex-sans.woff2") format("woff2");
 }
 
 @font-face {
-    font-family: 'aller-bold';
-    src: url('public/fonts/aller-bold.eot');
-    src: url('public/fonts/aller-bold.eot?#iefix') format('embedded-opentype'),
-         url('public/fonts/aller-bold.woff') format('woff'),
-         url('public/fonts/aller-bold.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "Inter Tight";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url("fonts/inter-tight.woff2") format("woff2");
 }
 
 @font-face {
-    font-family: 'roboto-black';
-    src: url('public/fonts/roboto-black.eot');
-    src: url('public/fonts/roboto-black.eot?#iefix') format('embedded-opentype'),
-         url('public/fonts/roboto-black.woff') format('woff'),
-         url('public/fonts/roboto-black.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono.woff2") format("woff2");
 }
 
-@font-face {
-    font-family: 'fleurons';
-    src: url('public/fonts/fleurons.eot');
-    src: url('public/fonts/fleurons.eot?#iefix') format('embedded-opentype'),
-         url('public/fonts/fleurons.woff') format('woff'),
-         url('public/fonts/fleurons.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+/*----------------------------- Tokens -------------------------------*/
+
+:root {
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Inter Tight", var(--sans);
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Page. Rules, headings and the active nav bar stay pure black; body
+     prose is softened, because #000 on #fff glares over long reading. */
+  --paper: #ffffff;
+  --ink: #1c1c1c;
+  --hard: #000000;
+  --grey: #6a6a6a;
+  --soft: #d9d9d9;
+  --panel: #f3f3f3;
+
+  /* Diagrams. In light mode there is no ground: they draw straight onto
+     the page. The rejected state also carries a hatch, so the triad
+     never depends on hue alone. */
+  --d-ground: transparent;
+  --d-world: #000000;
+  --d-edge: #8a8a8a;
+  --d-quiet: #cfcfcf;
+  --d-query: #55bfed;
+  --d-clear: #72c175;
+  --d-correct: #d6a541;
+  --d-collide: #ed4b78;
+  --d-frame: var(--soft);
+  --d-label: var(--grey);
 }
 
-/*--------------------- Base Styles ----------------------------*/
+/* Dark: the diagram becomes a plate, lifted just off the page so it
+   reads as an inset rather than a hole. Every role keeps its hue and
+   only moves in lightness. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0b0b0b;
+    --ink: #e2e2e2;
+    --hard: #ffffff;
+    --grey: #949494;
+    --soft: #2e2e2e;
+    --panel: #151515;
+
+    --d-ground: #16191c;
+    --d-world: #eef1f3;
+    --d-edge: #5b646a;
+    --d-quiet: #3f464b;
+    --d-query: #67cffe;
+    --d-clear: #82d185;
+    --d-correct: #e7b552;
+    --d-collide: #ff5c87;
+    --d-frame: #2e2e2e;
+    --d-label: #5b646a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0b0b0b;
+  --ink: #e2e2e2;
+  --hard: #ffffff;
+  --grey: #949494;
+  --soft: #2e2e2e;
+  --panel: #151515;
+
+  --d-ground: #16191c;
+  --d-world: #eef1f3;
+  --d-edge: #5b646a;
+  --d-quiet: #3f464b;
+  --d-query: #67cffe;
+  --d-clear: #82d185;
+  --d-correct: #e7b552;
+  --d-collide: #ff5c87;
+  --d-frame: #2e2e2e;
+  --d-label: #5b646a;
+}
+
+/*------------------------------ Base --------------------------------*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
-  font-family: "aller-light";
-  background: url('public/images/gray.png') #fff;
-  background-size: 322px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--hard);
+  outline-offset: 2px;
+}
+
+/*----------------------------- Layout -------------------------------*/
+
+.container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+/* Type is sized from the width of the reading column, not the window.
+   iOS Display Zoom narrows the viewport while magnifying every pixel,
+   so a fixed size gets hit twice. */
+.page {
+  container-type: inline-size;
+  min-width: 0;
+  padding: 26px 20px 64px;
+}
+
+@media (min-width: 760px) {
+  .container {
+    grid-template-columns: 236px minmax(0, 1fr);
+  }
+  .page {
+    padding: 40px 44px 96px;
+  }
+}
+
+/*--------------------------- Contents rail --------------------------*/
+
+.toc {
+  border-bottom: 1px solid var(--hard);
+}
+
+@media (min-width: 760px) {
+  .toc {
+    align-self: start;
+    border-bottom: 0;
+    border-right: 1px solid var(--hard);
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 40px 0 40px 20px;
+    position: sticky;
+    top: 0;
+  }
+}
+
+.toc summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  padding: 14px 20px;
+}
+
+.toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.toc summary .label {
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.toc summary .current {
+  color: var(--hard);
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.toc summary .caret {
+  color: var(--grey);
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  transition: transform 0.15s;
+}
+
+.toc details[open] > summary .caret {
+  transform: rotate(90deg);
+}
+
+@media (min-width: 760px) {
+  .toc summary {
+    cursor: default;
+    padding: 0 0 14px;
+  }
+  .toc summary .current,
+  .toc summary .caret {
+    display: none;
+  }
+}
+
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px 18px;
+}
+
+@media (min-width: 760px) {
+  .toc ol {
+    padding: 0;
+  }
+}
+
+.toc li {
+  line-height: 1.35;
+}
+
+.toc a {
+  color: var(--grey);
+  display: block;
+  font-size: 14px;
+  padding: 7px 0 7px 15px;
+  position: relative;
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--ink);
+}
+
+.toc .top > a {
+  color: var(--ink);
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.toc li:first-child > a {
+  margin-top: 0;
+}
+
+.toc a.on {
+  color: var(--hard);
+  font-weight: 600;
+}
+
+.toc a.on::before {
+  background: var(--hard);
+  content: "";
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 3px;
+}
+
+.toc .num {
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  margin-right: 7px;
+}
+
+.toc ol ol {
+  padding: 0;
+}
+
+/*----------------------------- Header -------------------------------*/
+
+/* docco's first section runs from the title all the way to the first
+   code block, so .header wraps more than the introduction. Everything
+   from the first heading onwards has to fall back to body styling. */
+
+.header h1 {
+  color: var(--hard);
+  font-family: var(--display);
+  font-size: clamp(32px, 8px + 6cqi, 54px);
+  font-weight: 700;
+  letter-spacing: -0.038em;
+  line-height: 0.97;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+/* The intro paragraphs under the title read as a standfirst — but only
+   the ones before the first heading. */
+.header > p {
+  color: var(--grey);
+  font-size: clamp(15px, 10px + 1.3cqi, 17px);
+  line-height: 1.55;
+  margin: 0 0 12px;
+  max-width: 56ch;
+}
+
+.header > h2 ~ p {
+  color: var(--ink);
+  font-size: clamp(16px, 10px + 1.54cqi, 18px);
+  line-height: 1.65;
+  margin: 0 0 18px;
+  max-width: 66ch;
+}
+
+/* The hand-written contents list in the markdown is the fallback; once
+   the rail has been built from the headings it becomes a duplicate.
+   Scoped to the first list so a real one in the same section survives. */
+.has-toc .header > ol:first-of-type {
+  display: none;
+}
+
+/*--------------------------- Typography -----------------------------*/
+
+h2,
+h3,
+h4 {
+  color: var(--hard);
+  font-family: var(--display);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h2 {
+  border-top: 4px solid var(--hard);
+  font-size: clamp(24px, 15px + 2.4cqi, 30px);
+  font-weight: 700;
+  line-height: 1.08;
+  margin: 56px 0 16px;
+  padding-top: 12px;
+}
+
+h3 {
+  font-size: clamp(19px, 14px + 1.2cqi, 21px);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 40px 0 12px;
+}
+
+h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 28px 0 10px;
+}
+
+p,
+li {
+  font-size: clamp(16px, 10px + 1.54cqi, 18px);
+  line-height: 1.65;
+}
+
+p {
+  margin: 0 0 18px;
+  max-width: 66ch;
+}
+
+.page ul,
+.page ol {
+  margin: 0 0 18px;
+  max-width: 66ch;
+  padding-left: 22px;
+}
+
+.page li {
+  margin-bottom: 7px;
+}
+
+em {
+  font-style: italic;
+}
+
+strong,
+b {
+  font-weight: 600;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--grey);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
 }
 
 hr {
-  height: 1px;
-  background: #ddd;
+  background: var(--soft);
   border: 0;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: #112233;
-  font-weight: normal;
-  font-family: "roboto-black";
-  text-transform: uppercase;
-  line-height: 1em;
-  margin-top: 50px;
-}
-  h1 {
-    margin: 0;
-    text-align: center;
-  }
-  h2 {
-    font-size: 1.26em;
-  }
-  h1:after {
-    content: "8";
-    display: block;
-    font-family: "fleurons";
-    color: #999;
-    font-size: 80px;
-    padding: 10px 0 25px;
-  }
-
-a {
-  color: #000;
-}
-
-b, strong {
-  font-weight: normal;
-  font-family: "aller-bold";
+  height: 1px;
+  margin: 40px 0;
 }
 
 blockquote {
-  border-left: 5px solid #ccc;
-  margin-left: 0;
-  padding: 1px 0 1px 1em;
-}
-  .page blockquote p {
-    font-family: Menlo, Consolas, Monaco, monospace;
-    font-size: 14px; line-height: 19px;
-    color: #999;
-    margin: 10px 0 0;
-    white-space: pre-wrap;
-  }
-
-pre, tt, code {
-  font-family: Menlo, Consolas, Monaco, monospace;
-  font-size: 12px;
-  display: inline-block;
-  border: 1px solid #EAEAEA;
-  background: #f8f8f8;
-  color: #555;
-  padding: 0 5px;
-  line-height: 20px;
-}
-  .page pre {
-    margin: 0;
-    width: 608px;
-    padding: 10px 15px;
-    background: #fcfcfc;
-    -moz-box-shadow:    inset 0 0 10px rgba(0,0,0,0.1);
-    -webkit-box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-    box-shadow:         inset 0 0 10px rgba(0,0,0,0.1);
-    overflow-x: auto;
-  }
-    .page pre code {
-      border: 0;
-      padding: 0;
-      background: transparent;
-    }
-
-.fleur {
-  font-family: "fleurons";
-  font-size: 100px;
-  text-align: center;
-  margin: 40px 0;
-  color: #ccc;
+  border-left: 3px solid var(--soft);
+  margin: 0 0 18px;
+  padding-left: 16px;
 }
 
-/*--------------------- Layout ----------------------------*/
+/*------------------------------ Code --------------------------------*/
 
-.container {
-  width: 760px;
-  margin: 0 auto;
-  background: #fff;
-  background: rgba(255,255,255, 0.4);
-  overflow: hidden;
-}
-  .page {
-    width: 640px;
-    padding: 30px;
-    margin: 30px;
-    background: #fff;
-    font-size: 17px;
-    line-height: 26px;
-  }
-    .page p {
-      color: #30404f;
-      margin: 26px 0;
-    }
+/* Half of this document is code, so it is set only a step below the
+   prose rather than the five it used to be. */
 
-ul.sections {
-  list-style: none;
-  padding:0 0 5px 0;;
-  margin:0;
+code,
+tt {
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 0.88em;
+  padding: 1px 5px;
 }
 
-.page li p {
-  margin: 12px 0;
+.highlight {
+  margin: 0 0 22px;
 }
 
-.toc {
-  max-height: 0;
-  overflow: hidden;
-  text-align: center;
-  font-size: 13px;
-  line-height: 20px;
-  -moz-transition: max-height 1s;
-  -webkit-transition: max-height 1s;
-  transition: max-height 1s;
+pre {
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: clamp(13.5px, 9px + 1.15cqi, 15px);
+  line-height: 1.62;
+  margin: 0;
+  overflow-x: auto;
+  padding: 16px 18px;
 }
-  .header:hover .toc {
-    max-height: 500px;
-  }
-  .toc h3 {
-    margin-top: 20px;
-  }
-  .toc ol {
-    margin: 0 0 20px 0;
-    display: inline-block;
-    text-align: left;
-    list-style-type: upper-roman;
-  }
-    .toc li {
-      font-family: 'roboto-black';
-    }
-      .toc li a {
-        font-family: 'aller-light';
-      }
-
-
-/*---------------------- Syntax Highlighting -----------------------------*/
-
-td.linenos { background-color: #f0f0f0; padding-right: 10px; }
-span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
-/*
-
-github.com style (c) Vasily Polovnyov <vast@whiteants.net>
-
-*/
 
 pre code {
-  display: block; padding: 0.5em;
-  color: #000;
-  background: #f8f8ff
+  background: transparent;
+  font-size: inherit;
+  padding: 0;
 }
 
-pre .hljs-comment,
-pre .hljs-template_comment,
-pre .hljs-diff .hljs-header,
-pre .hljs-javadoc {
-  color: #408080;
-  font-style: italic
+/*------------------------ Syntax highlighting -----------------------*/
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--grey);
+  font-style: italic;
 }
 
-pre .hljs-keyword,
-pre .hljs-assignment,
-pre .hljs-literal,
-pre .hljs-css .hljs-rule .hljs-keyword,
-pre .hljs-winutils,
-pre .hljs-javascript .hljs-title,
-pre .hljs-lisp .hljs-title,
-pre .hljs-subst {
-  color: #954121;
-  /*font-weight: bold*/
+.hljs-keyword,
+.hljs-literal,
+.hljs-variable.language_ {
+  color: var(--hard);
+  font-weight: 700;
 }
 
-pre .hljs-number,
-pre .hljs-hexcolor {
-  color: #40a070
+.hljs-string,
+.hljs-number,
+.hljs-regexp {
+  color: var(--ink);
 }
 
-pre .hljs-string,
-pre .hljs-tag .hljs-value,
-pre .hljs-phpdoc,
-pre .hljs-tex .hljs-formula {
-  color: #219161;
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-built_in,
+.hljs-type {
+  color: var(--ink);
+  font-weight: 600;
 }
 
-pre .hljs-title,
-pre .hljs-id {
-  color: #19469D;
-}
-pre .hljs-params {
-  color: #00F;
-}
-
-pre .hljs-javascript .hljs-title,
-pre .hljs-lisp .hljs-title,
-pre .hljs-subst {
-  font-weight: normal
+.hljs-attr,
+.hljs-property,
+.hljs-params,
+.hljs-punctuation {
+  color: var(--ink);
 }
 
-pre .hljs-class .hljs-title,
-pre .hljs-haskell .hljs-label,
-pre .hljs-tex .hljs-command {
-  color: #458;
-  font-weight: bold
+/*---------------------------- Figures -------------------------------*/
+
+figure {
+  border-top: 1px solid var(--hard);
+  margin: 0 0 20px;
+  max-width: 260px;
+  padding-top: 9px;
 }
 
-pre .hljs-tag,
-pre .hljs-tag .hljs-title,
-pre .hljs-rules .hljs-property,
-pre .hljs-django .hljs-tag .hljs-keyword {
-  color: #000080;
-  font-weight: normal
+@media (min-width: 760px) {
+  figure {
+    float: right;
+    margin: 6px 0 20px 30px;
+    width: 190px;
+  }
 }
 
-pre .hljs-attribute,
-pre .hljs-variable,
-pre .hljs-instancevar,
-pre .hljs-lisp .hljs-body {
-  color: #008080
+/* The figures are inlined into the page at build time rather than
+   linked as <img>, because an <img>-embedded SVG is an isolated
+   document: it cannot read these tokens or follow the theme toggle. */
+
+figure svg {
+  background: var(--d-ground);
+  display: block;
+  height: auto;
+  width: 100%;
 }
 
-pre .hljs-regexp {
-  color: #B68
+/*---------------------- Diagram semantics ---------------------------*/
+
+/* Order matters below: the outcome roles are defined after the
+   structural ones so that, for an element carrying both, the outcome
+   wins at equal specificity. */
+
+.d-world {
+  fill: none;
+  stroke: var(--d-world);
+  stroke-width: 2;
 }
 
-pre .hljs-class {
-  color: #458;
-  font-weight: bold
+.d-edge {
+  fill: none;
+  stroke: var(--d-edge);
+  stroke-width: 2;
 }
 
-pre .hljs-symbol,
-pre .hljs-ruby .hljs-symbol .hljs-string,
-pre .hljs-ruby .hljs-symbol .hljs-keyword,
-pre .hljs-ruby .hljs-symbol .hljs-keymethods,
-pre .hljs-lisp .hljs-keyword,
-pre .hljs-tex .hljs-special,
-pre .hljs-input_number {
-  color: #990073
+.d-text {
+  fill: var(--d-world);
+  font-family: var(--mono);
+  font-size: 12px;
 }
 
-pre .hljs-builtin,
-pre .hljs-constructor,
-pre .hljs-built_in,
-pre .hljs-lisp .hljs-title {
-  color: #0086b3
+.d-query {
+  fill: none;
+  marker-start: url(#fig-dot);
+  marker-end: url(#fig-arrow);
+  stroke: var(--d-query);
+  stroke-width: 2;
 }
 
-pre .hljs-preprocessor,
-pre .hljs-pi,
-pre .hljs-doctype,
-pre .hljs-shebang,
-pre .hljs-cdata {
-  color: #999;
-  font-weight: bold
+.d-query.no-start {
+  marker-start: none;
 }
 
-pre .hljs-deletion {
-  background: #fdd
+.d-query.no-end {
+  marker-end: none;
 }
 
-pre .hljs-addition {
-  background: #dfd
+.d-correct {
+  fill: var(--d-correct);
+  stroke: var(--d-correct);
 }
 
-pre .hljs-diff .hljs-change {
-  background: #0086b3
+.d-clear {
+  fill: var(--d-clear);
+  stroke: var(--d-clear);
 }
 
-pre .hljs-chunk {
-  color: #aaa
+.d-collide {
+  fill: var(--d-collide);
+  stroke: var(--d-collide);
 }
 
-pre .hljs-tex .hljs-formula {
-  opacity: 0.5;
+.d-quiet {
+  fill: var(--d-quiet);
+  stroke: var(--d-quiet);
+}
+
+/* An outlined box carries its outcome as a stroke; only the rejected
+   one is also hatched, so the triad survives without colour. */
+rect.d-world.d-clear,
+rect.d-world.d-quiet {
+  fill: none;
+}
+
+rect.d-world.d-collide {
+  fill: url(#fig-hatch);
+}
+
+.fig-hatch-line {
+  fill: none;
+  stroke: var(--d-collide);
+  stroke-width: 1.4;
+}
+
+.fig-marker {
+  fill: var(--d-query);
+  stroke: none;
+}
+
+figcaption {
+  color: var(--grey);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+/* Two figures side by side, as used for the near/far and sweep pairs. */
+.figure-row {
+  display: flex;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.figure-row figure {
+  flex: 1 1 0;
+  float: none;
+  margin: 0;
+  max-width: none;
+  width: auto;
+}
+
+@media (min-width: 760px) {
+  .figure-row.right {
+    float: right;
+    margin: 6px 0 20px 30px;
+    width: 400px;
+  }
+  .figure-row figure {
+    width: auto;
+  }
+}
+
+/*------------------------ Animated examples -------------------------*/
+
+/* The canvases are inserted by src/examples.ts after their heading. */
+
+/* The examples are <figure> elements too, so the floated figure rules
+   above have to be undone: these run the full width of the column. */
+.example {
+  border: 1px solid var(--d-frame);
+  border-top: 1px solid var(--d-frame);
+  clear: both;
+  float: none;
+  margin: 0 0 26px;
+  max-width: none;
+  padding-top: 0;
+  width: auto;
+}
+
+.example-bar {
+  background: var(--d-ground);
+  border-bottom: 1px solid var(--d-frame);
+  color: var(--d-label);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  gap: 6px 16px;
+  justify-content: space-between;
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+.example-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.example-legend span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.example-legend i {
+  display: block;
+  height: 2px;
+  width: 15px;
+}
+
+.example-legend .clear i {
+  background: var(--d-clear);
+}
+
+.example-legend .correct i {
+  background: var(--d-correct);
+}
+
+.example-legend .collide i {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--d-collide) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+.example canvas {
+  background: var(--d-ground);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+/*------------------------------ Maths -------------------------------*/
+
+.katex {
+  font-size: 1.04em;
+}
+
+/*---------------------------- Utilities -----------------------------*/
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--soft);
+  color: var(--grey);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 6px 10px;
+  text-transform: uppercase;
+}
+
+.theme-toggle:hover {
+  border-color: var(--hard);
+  color: var(--ink);
+}
+
+.colophon {
+  border-top: 1px solid var(--soft);
+  color: var(--grey);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  justify-content: space-between;
+  margin-top: 56px;
+  padding-top: 16px;
+}
+
+.colophon p {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  margin: 0;
+  max-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
 }

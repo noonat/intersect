@@ -47,6 +47,86 @@ async function compileSource() {
   await writeFile("src/intersect.ts", source);
 }
 
+// The figures have to live in the page itself rather than in <img> tags.
+// An <img>-embedded SVG is an isolated document: it cannot see the
+// stylesheet's custom properties, so it could neither pick up the
+// diagram palette nor follow the theme toggle.
+//
+// Each file is reduced to geometry here. Its own <defs> and <style> are
+// dropped, along with the opaque background it used to carry, and its
+// class names are mapped onto the semantic ones in template/docco.css.
+// Markers and the hatch pattern are defined once in the template, which
+// also stops nine copies of the same ids colliding in one document.
+const FIGURE_CLASSES = {
+  "static-text": "d-text",
+  "static-edge": "d-edge",
+  static: "d-world",
+  segment: "d-query",
+  hit: "d-correct",
+  good: "d-clear",
+  bad: "d-collide",
+  quiet: "d-quiet"
+};
+
+async function inlineFigure(name) {
+  const source = await readFile(`docs/svg/${name}.svg`, { encoding: "utf-8" });
+
+  const size = source.match(/<svg[^>]*\swidth="(\d+)"[^>]*\sheight="(\d+)"/);
+  if (!size) {
+    throw new Error(`docs/svg/${name}.svg: no width/height on the root element`);
+  }
+
+  const body = source
+    .replace(/<\?xml[^>]*\?>/g, "")
+    .replace(/<defs>[\s\S]*?<\/defs>/g, "")
+    .replace(/<rect[^>]*id="background"[^>]*\/>/g, "")
+    .replace(/<svg[^>]*>/, "")
+    .replace(/<\/svg>/, "")
+    // The palette lives in the stylesheet now, so any colour baked into
+    // an attribute would silently override it.
+    .replace(/\s(?:fill|stroke)="#[0-9a-fA-F]{3,6}"/g, "")
+    .replace(/class="([^"]+)"/g, (_, names) =>
+      `class="${names
+        .split(/\s+/)
+        .map(n => FIGURE_CLASSES[n] || n)
+        .join(" ")}"`
+    )
+    .trim();
+
+  return (
+    `<svg class="figure" viewBox="0 0 ${size[1]} ${size[2]}" ` +
+    `role="img" aria-label="Diagram: ${name.replace(/-/g, " ")}">` +
+    `${body}</svg>`
+  );
+}
+
+async function inlineFigures(html) {
+  const names = new Set();
+  for (const match of html.matchAll(/src="\.\/docs\/svg\/([\w-]+)\.svg"/g)) {
+    names.add(match[1]);
+  }
+
+  const figures = new Map();
+  await Promise.all(
+    [...names].map(async name => figures.set(name, await inlineFigure(name)))
+  );
+
+  let count = 0;
+  const out = html.replace(
+    /<img[^>]*src="\.\/docs\/svg\/([\w-]+)\.svg"[^>]*\/?>/g,
+    (_, name) => {
+      count += 1;
+      return figures.get(name);
+    }
+  );
+
+  if (count !== names.size) {
+    throw new Error(`inlined ${count} figures for ${names.size} files`);
+  }
+  console.log(`inlined ${count} figures`);
+  return out;
+}
+
 async function compileHTML() {
   await run("docco", [
     "--css",
@@ -58,7 +138,9 @@ async function compileHTML() {
   const data = await readFile("docs/src/intersect.ts.html", {
     encoding: "utf-8"
   });
-  const html = await prettier.format(data, { parser: "html" });
+  const html = await prettier.format(await inlineFigures(data), {
+    parser: "html"
+  });
   await writeFile("index.html", html, { encoding: "utf-8" });
   await unlink("docs/src/intersect.ts.html");
 }

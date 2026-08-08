@@ -122,7 +122,7 @@
       default: "#cc0000",
       cli: "-c, --error-color <color>",
       cliDescription: "A color string given in the format 'rgb' or 'rrggbb' (no #). This option determines the color of errors rendered by the -t option.",
-      cliProcessor: (color) => "#" + color
+      cliProcessor: (color2) => "#" + color2
     },
     macros: {
       type: "object",
@@ -785,9 +785,9 @@
       if (options.style.isTight()) {
         this.classes.push("mtight");
       }
-      var color = options.getColor();
-      if (color) {
-        this.style.color = color;
+      var color2 = options.getColor();
+      if (color2) {
+        this.style.color = color2;
       }
     }
   };
@@ -4293,9 +4293,9 @@
       if (options.style.isTight()) {
         symbolNode.classes.push("mtight");
       }
-      var color = options.getColor();
-      if (color) {
-        symbolNode.style.color = color;
+      var color2 = options.getColor();
+      if (color2) {
+        symbolNode.style.color = color2;
       }
     }
     return symbolNode;
@@ -5551,9 +5551,9 @@
     /**
      * Create a new options object with the given color.
      */
-    withColor(color) {
+    withColor(color2) {
       return this.extend({
-        color
+        color: color2
       });
     }
     /**
@@ -5902,9 +5902,9 @@
     if (/fbox|color|angl/.test(label)) {
       img = makeSpan(["katex-stretchy", label], [], options);
       if (label === "fbox") {
-        var color = options.color && options.getColor();
-        if (color) {
-          img.style.borderColor = color;
+        var color2 = options.color && options.getColor();
+        if (color2) {
+          img.style.borderColor = color2;
         }
       }
     } else {
@@ -6722,12 +6722,12 @@
     argTypes: ["color", "original"],
     handler(_ref, args) {
       var parser = _ref.parser;
-      var color = assertNodeType(args[0], "color-token").color;
+      var color2 = assertNodeType(args[0], "color-token").color;
       var body = args[1];
       return {
         type: "color",
         mode: parser.mode,
-        color,
+        color: color2,
         body: ordargument(body)
       };
     },
@@ -6742,13 +6742,13 @@
     argTypes: ["color"],
     handler(_ref2, args) {
       var parser = _ref2.parser, breakOnTokenText = _ref2.breakOnTokenText;
-      var color = assertNodeType(args[0], "color-token").color;
-      parser.gullet.macros.set("\\current@color", color);
+      var color2 = assertNodeType(args[0], "color-token").color;
+      parser.gullet.macros.set("\\current@color", color2);
       var body = parser.parseExpression(true, breakOnTokenText);
       return {
         type: "color",
         mode: parser.mode,
-        color,
+        color: color2,
         body
       };
     }
@@ -7574,15 +7574,15 @@
     numArgs: 1,
     primitive: true,
     handler: (context, args) => {
-      var color = context.parser.gullet.macros.get("\\current@color");
-      if (color && typeof color !== "string") {
+      var color2 = context.parser.gullet.macros.get("\\current@color");
+      if (color2 && typeof color2 !== "string") {
         throw new ParseError("\\current@color set to non-string in \\right");
       }
       return {
         type: "leftright-right",
         mode: context.parser.mode,
         delim: checkDelimiter(args[0], context).text,
-        color
+        color: color2
         // undefined if not set via \color
       };
     }
@@ -7892,13 +7892,13 @@
     argTypes: ["color", "hbox"],
     handler(_ref, args, optArgs) {
       var parser = _ref.parser, funcName = _ref.funcName;
-      var color = assertNodeType(args[0], "color-token").color;
+      var color2 = assertNodeType(args[0], "color-token").color;
       var body = args[1];
       return {
         type: "enclose",
         mode: parser.mode,
         label: funcName,
-        backgroundColor: color,
+        backgroundColor: color2,
         body
       };
     },
@@ -10652,9 +10652,9 @@
       var width = calculateSize(group.width, options);
       var height = calculateSize(group.height, options);
       var shift = group.shift ? calculateSize(group.shift, options) : 0;
-      var color = options.color && options.getColor() || "black";
+      var color2 = options.color && options.getColor() || "black";
       var rule = new MathNode("mspace");
-      rule.setAttribute("mathbackground", color);
+      rule.setAttribute("mathbackground", color2);
       rule.setAttribute("width", makeEm(width));
       rule.setAttribute("height", makeEm(height));
       var wrapper = new MathNode("mpadded", [rule]);
@@ -13653,14 +13653,14 @@
       if (!match) {
         throw new ParseError("Invalid color: '" + res.text + "'", res);
       }
-      var color = match[0];
-      if (/^[0-9a-f]{6}$/i.test(color)) {
-        color = "#" + color;
+      var color2 = match[0];
+      if (/^[0-9a-f]{6}$/i.test(color2)) {
+        color2 = "#" + color2;
       }
       return {
         type: "color-token",
         mode: this.mode,
-        color
+        color: color2
       };
     }
     /**
@@ -14505,6 +14505,30 @@
   };
 
   // src/examples.ts
+  var PROPERTIES = {
+    ground: "--d-ground",
+    world: "--d-world",
+    edge: "--d-edge",
+    query: "--d-query",
+    clear: "--d-clear",
+    correct: "--d-correct",
+    collide: "--d-collide"
+  };
+  var cache = null;
+  function color(role) {
+    if (!cache) {
+      const styles2 = getComputedStyle(document.documentElement);
+      const resolved = {};
+      Object.keys(PROPERTIES).forEach((key) => {
+        resolved[key] = styles2.getPropertyValue(PROPERTIES[key]).trim();
+      });
+      cache = resolved;
+    }
+    return cache[role];
+  }
+  function forgetColors() {
+    cache = null;
+  }
   function reflect(velocity, normal, out) {
     const dot = velocity.x * normal.x + velocity.y * normal.y;
     const ux = normal.x * dot;
@@ -14524,7 +14548,7 @@
         this.width * this.width + this.height * this.height
       );
     }
-    drawAABB(box, color = "#fff", thickness = 1) {
+    drawAABB(box, color2 = "#fff", thickness = 1) {
       const x1 = Math.floor(this.origin.x + box.pos.x - box.half.x);
       const y1 = Math.floor(this.origin.y + box.pos.y - box.half.y);
       const x2 = Math.floor(this.origin.x + box.pos.x + box.half.x);
@@ -14537,45 +14561,45 @@
       this.context.lineTo(x1, y1);
       this.context.closePath();
       this.context.lineWidth = thickness;
-      this.context.strokeStyle = color;
+      this.context.strokeStyle = color2;
       this.context.stroke();
     }
-    drawCircle(circle, color = "#fff", thickness = 1) {
+    drawCircle(circle, color2 = "#fff", thickness = 1) {
       const x = Math.floor(this.origin.x + circle.pos.x);
       const y = Math.floor(this.origin.y + circle.pos.y);
       this.context.beginPath();
       this.context.arc(x, y, circle.radius, 0, 2 * Math.PI, true);
       this.context.closePath();
       this.context.lineWidth = thickness;
-      this.context.strokeStyle = color;
+      this.context.strokeStyle = color2;
       this.context.stroke();
     }
-    drawPoint(point, color = "#fff", text2 = "", thickness = 1) {
+    drawPoint(point, color2 = "#fff", text2 = "", thickness = 1) {
       const x = Math.floor(this.origin.x + point.x - thickness / 2);
       const y = Math.floor(this.origin.y + point.y - thickness / 2);
       this.context.lineWidth = thickness;
-      this.context.fillStyle = color;
-      this.context.strokeStyle = color;
+      this.context.fillStyle = color2;
+      this.context.strokeStyle = color2;
       this.context.fillRect(x, y, thickness, thickness);
       this.context.strokeRect(x, y, thickness, thickness);
       if (text2) {
         this.context.fillText(text2, x + thickness * 4, y + thickness * 2);
       }
     }
-    drawRay(pos, dir, length, color = "#fff", arrow = true, thickness = 1) {
+    drawRay(pos, dir, length, color2 = "#fff", arrow = true, thickness = 1) {
       const pos2 = new Point(pos.x + dir.x * length, pos.y + dir.y * length);
-      this.drawSegment(pos, pos2, color, thickness);
+      this.drawSegment(pos, pos2, color2, thickness);
       if (arrow) {
         pos = pos2.clone();
         pos2.x = pos.x - dir.x * 4 + dir.y * 4;
         pos2.y = pos.y - dir.y * 4 - dir.x * 4;
-        this.drawSegment(pos, pos2, color, thickness);
+        this.drawSegment(pos, pos2, color2, thickness);
         pos2.x = pos.x - dir.x * 4 - dir.y * 4;
         pos2.y = pos.y - dir.y * 4 + dir.x * 4;
-        this.drawSegment(pos, pos2, color, thickness);
+        this.drawSegment(pos, pos2, color2, thickness);
       }
     }
-    drawSegment(point1, point2, color = "#fff", thickness = 1) {
+    drawSegment(point1, point2, color2 = "#fff", thickness = 1) {
       const x1 = Math.floor(this.origin.x + point1.x);
       const y1 = Math.floor(this.origin.y + point1.y);
       const x2 = Math.floor(this.origin.x + point2.x);
@@ -14585,12 +14609,39 @@
       this.context.lineTo(x2, y2);
       this.context.closePath();
       this.context.lineWidth = thickness;
-      this.context.strokeStyle = color;
+      this.context.strokeStyle = color2;
       this.context.stroke();
     }
+    // The rejected state is hatched as well as coloured, so that it stays
+    // distinguishable from the clear one without relying on hue.
+    drawAABBHatched(box, color2, thickness = 1) {
+      const x1 = Math.floor(this.origin.x + box.pos.x - box.half.x);
+      const y1 = Math.floor(this.origin.y + box.pos.y - box.half.y);
+      const x2 = Math.floor(this.origin.x + box.pos.x + box.half.x);
+      const y2 = Math.floor(this.origin.y + box.pos.y + box.half.y);
+      this.context.save();
+      this.context.beginPath();
+      this.context.rect(x1, y1, x2 - x1, y2 - y1);
+      this.context.clip();
+      this.context.lineWidth = 1;
+      this.context.strokeStyle = color2;
+      this.context.beginPath();
+      for (let x = x1 - (y2 - y1); x < x2; x += 6) {
+        this.context.moveTo(x, y2);
+        this.context.lineTo(x + (y2 - y1), y1);
+      }
+      this.context.stroke();
+      this.context.restore();
+      this.drawAABB(box, color2, thickness);
+    }
     tick(_elapsed) {
-      this.context.fillStyle = "#000";
-      this.context.fillRect(0, 0, this.width, this.height);
+      const ground = color("ground");
+      if (!ground || ground === "transparent") {
+        this.context.clearRect(0, 0, this.width, this.height);
+      } else {
+        this.context.fillStyle = ground;
+        this.context.fillRect(0, 0, this.width, this.height);
+      }
     }
   };
   var AABBPointExample = class extends Example {
@@ -14606,12 +14657,12 @@
       this.pos.x = Math.cos(this.angle * 0.4) * 32;
       this.pos.y = Math.sin(this.angle) * 12;
       const hit = this.box.intersectPoint(this.pos);
-      this.drawAABB(this.box, "#666");
+      this.drawAABB(this.box, color("edge"));
       if (hit) {
-        this.drawPoint(this.pos, "#f00");
-        this.drawPoint(hit.pos, "#ff0");
+        this.drawPoint(this.pos, color("collide"));
+        this.drawPoint(hit.pos, color("correct"));
       } else {
-        this.drawPoint(this.pos, "#0f0");
+        this.drawPoint(this.pos, color("clear"));
       }
     }
   };
@@ -14636,14 +14687,14 @@
       const hit = this.box.intersectSegment(pos1, delta);
       const dir = delta.clone();
       const length = dir.normalize();
-      this.drawAABB(this.box, "#666");
+      this.drawAABB(this.box, color("edge"));
       if (hit) {
-        this.drawRay(pos1, dir, length, "#f00");
-        this.drawSegment(pos1, hit.pos, "#ff0");
-        this.drawPoint(hit.pos, "#ff0");
-        this.drawRay(hit.pos, hit.normal, 6, "#ff0", false);
+        this.drawRay(pos1, dir, length, color("collide"));
+        this.drawSegment(pos1, hit.pos, color("correct"));
+        this.drawPoint(hit.pos, color("correct"));
+        this.drawRay(hit.pos, hit.normal, 6, color("correct"), false);
       } else {
-        this.drawRay(pos1, dir, length, "#0f0");
+        this.drawRay(pos1, dir, length, color("clear"));
       }
     }
   };
@@ -14660,16 +14711,16 @@
       this.box2.pos.x = Math.cos(this.angle) * 96;
       this.box2.pos.y = Math.sin(this.angle * 2.4) * 24;
       const hit = this.box1.intersectAABB(this.box2);
-      this.drawAABB(this.box1, "#666");
+      this.drawAABB(this.box1, color("edge"));
       if (hit) {
-        this.drawAABB(this.box2, "#f00");
+        this.drawAABBHatched(this.box2, color("collide"));
         this.box2.pos.x += hit.delta.x;
         this.box2.pos.y += hit.delta.y;
-        this.drawAABB(this.box2, "#ff0");
-        this.drawPoint(hit.pos, "#ff0");
-        this.drawRay(hit.pos, hit.normal, 4, "#ff0", false);
+        this.drawAABB(this.box2, color("correct"));
+        this.drawPoint(hit.pos, color("correct"));
+        this.drawRay(hit.pos, hit.normal, 4, color("correct"), false);
       } else {
-        this.drawAABB(this.box2, "#0f0");
+        this.drawAABB(this.box2, color("clear"));
       }
     }
   };
@@ -14688,7 +14739,7 @@
     tick(elapsed) {
       super.tick(elapsed);
       this.angle += 0.5 * Math.PI * elapsed;
-      this.drawAABB(this.staticBox, "#666");
+      this.drawAABB(this.staticBox, color("edge"));
       const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
       this.sweepBoxes.forEach((box, i2) => {
         const sweepDelta = this.sweepDeltas[i2];
@@ -14701,22 +14752,22 @@
         const sweep = this.staticBox.sweepAABB(box, delta);
         const dir = delta.clone();
         const length = dir.normalize();
-        this.drawAABB(box, "#666");
+        this.drawAABB(box, color("edge"));
         if (sweep.hit) {
-          this.drawRay(box.pos, dir, length, "#f00");
+          this.drawRay(box.pos, dir, length, color("collide"));
           this.tempBox.pos.x = box.pos.x + delta.x;
           this.tempBox.pos.y = box.pos.y + delta.y;
-          this.drawAABB(this.tempBox, "#f00");
+          this.drawAABBHatched(this.tempBox, color("collide"));
           this.tempBox.pos.x = sweep.pos.x;
           this.tempBox.pos.y = sweep.pos.y;
-          this.drawAABB(this.tempBox, "#ff0");
-          this.drawPoint(sweep.hit.pos, "#ff0");
-          this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, "#ff0", false);
+          this.drawAABB(this.tempBox, color("correct"));
+          this.drawPoint(sweep.hit.pos, color("correct"));
+          this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, color("correct"), false);
         } else {
           this.tempBox.pos.x = sweep.pos.x;
           this.tempBox.pos.y = sweep.pos.y;
-          this.drawAABB(this.tempBox, "#0f0");
-          this.drawRay(box.pos, dir, length, "#0f0");
+          this.drawAABB(this.tempBox, color("clear"));
+          this.drawRay(box.pos, dir, length, color("clear"));
         }
       });
     }
@@ -14744,13 +14795,13 @@
       }
       this.staticBoxes.forEach((staticBox) => {
         if (sweep.hit && sweep.hit.collider === staticBox) {
-          this.drawAABB(staticBox, "#aaa");
+          this.drawAABB(staticBox, color("world"));
         } else {
-          this.drawAABB(staticBox, "#666");
+          this.drawAABB(staticBox, color("edge"));
         }
       });
       this.movingBox.pos = sweep.pos;
-      this.drawAABB(this.movingBox, sweep.hit ? "#ff0" : "#0f0");
+      this.drawAABB(this.movingBox, sweep.hit ? color("correct") : color("clear"));
     }
   };
   function ready(callback) {
@@ -14776,6 +14827,35 @@
       "aabb-vs-swept-aabb": AABBSweptAABBExample,
       "sweeping-an-aabb-through-multiple-objects": MultipleAABBSweptAABBExample
     };
+    const WIDTH = 640;
+    const HEIGHT = 160;
+    const LEGEND = [
+      ["clear", "Clear"],
+      ["collide", "Colliding"],
+      ["correct", "Corrected"]
+    ];
+    function frame() {
+      const figure = document.createElement("figure");
+      figure.className = "example";
+      const bar = document.createElement("div");
+      bar.className = "example-bar";
+      const title = document.createElement("span");
+      title.textContent = "Animated example";
+      bar.appendChild(title);
+      const legend = document.createElement("span");
+      legend.className = "example-legend";
+      LEGEND.forEach(([role, label]) => {
+        const item = document.createElement("span");
+        item.className = role;
+        item.appendChild(document.createElement("i"));
+        item.appendChild(document.createTextNode(label));
+        legend.appendChild(item);
+      });
+      bar.appendChild(legend);
+      figure.appendChild(bar);
+      return figure;
+    }
+    const canvases = [];
     const examples = [];
     Object.keys(exampleIds).forEach((id) => {
       const exampleConstructor = exampleIds[id];
@@ -14787,22 +14867,40 @@
         return;
       }
       const canvas = document.createElement("canvas");
-      if (!canvas) {
-        return;
-      }
-      anchor.parentNode.insertBefore(canvas, anchor.nextSibling);
-      const width = canvas.width = 640;
-      const height = canvas.height = 160;
       const context = canvas.getContext("2d");
       if (!context) {
         return;
       }
-      context.translate(0.5, 0.5);
-      const example = new exampleConstructor(context, width, height);
-      if (example) {
-        examples.push(example);
-      }
+      const figure = frame();
+      figure.appendChild(canvas);
+      anchor.parentNode.insertBefore(figure, anchor.nextSibling);
+      canvases.push(canvas);
+      examples.push(new exampleConstructor(context, WIDTH, HEIGHT));
     });
+    function resize() {
+      const ratio = window.devicePixelRatio || 1;
+      canvases.forEach((canvas) => {
+        const width = canvas.clientWidth || WIDTH;
+        const scale = width / WIDTH;
+        const height = HEIGHT * scale;
+        canvas.style.height = `${height}px`;
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.setTransform(scale * ratio, 0, 0, scale * ratio, 0, 0);
+          context.translate(0.5, 0.5);
+        }
+      });
+    }
+    let pending = 0;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(pending);
+      pending = window.setTimeout(resize, 100);
+    });
+    resize();
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", forgetColors);
+    document.documentElement.addEventListener("themechange", forgetColors);
     setInterval(() => {
       examples.forEach((example) => example.tick(1 / 30));
     }, 1e3 / 30);

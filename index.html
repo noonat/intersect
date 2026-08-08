@@ -3,18 +3,76 @@
   <head>
     <title>Intersection Tests in 2D</title>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-    <link
-      rel="stylesheet"
-      media="all"
-      href="dpcs/public/stylesheets/normalize.css"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" media="all" href="docs/docco.css" />
-    <link rel="stylesheet" media="all" href="docs/intersect.css" />
     <link rel="stylesheet" media="all" href="docs/bundle.css" />
+    <script>
+      // Applied before first paint so a chosen theme never flashes.
+      try {
+        var t = localStorage.getItem("intersect-theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
+    <!-- Markers and the hatch pattern, defined once for every inlined
+       figure. Kept out of the individual files so their ids cannot
+       collide when nine of them share one document. -->
+    <svg
+      width="0"
+      height="0"
+      aria-hidden="true"
+      focusable="false"
+      style="position: absolute"
+    >
+      <defs>
+        <marker
+          id="fig-arrow"
+          orient="auto"
+          markerWidth="3"
+          markerHeight="6"
+          refX="0.1"
+          refY="3"
+        >
+          <path class="fig-marker" d="M0,0 V6 L3,3 Z" />
+        </marker>
+        <marker
+          id="fig-dot"
+          orient="auto"
+          markerWidth="4"
+          markerHeight="4"
+          refX="2"
+          refY="2"
+        >
+          <circle class="fig-marker" cx="2" cy="2" r="2" />
+        </marker>
+        <pattern
+          id="fig-hatch"
+          width="6"
+          height="6"
+          patternUnits="userSpaceOnUse"
+        >
+          <path class="fig-hatch-line" d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" />
+        </pattern>
+      </defs>
+    </svg>
+
     <div class="container">
-      <div class="page">
+      <nav class="toc" aria-label="Contents">
+        <details id="toc-details">
+          <summary>
+            <span class="label">Contents</span>
+            <span class="current" id="toc-current"></span>
+            <span class="caret" aria-hidden="true">&#9656;</span>
+          </summary>
+          <ol id="toc-list"></ol>
+        </details>
+      </nav>
+
+      <main class="page">
         <div class="header">
           <h1 id="intersection-tests-in-2d">Intersection Tests in 2D</h1>
           <p>
@@ -160,7 +218,20 @@
         </p>
         <h3 id="intersection-tests">Intersection Tests</h3>
         <figure class="right">
-          <img src="./docs/svg/box-intersection-test.svg" class="small" />
+          <svg
+            class="figure"
+            viewBox="0 0 170 170"
+            role="img"
+            aria-label="Diagram: box intersection test"
+          >
+            <g transform="translate(0, 0)">
+              <rect class="d-world" x="20" y="20" width="80" height="80" />
+              <rect class="d-world" x="70" y="70" width="80" height="80" />
+              <text class="d-text" x="30" y="40">A</text>
+              <text class="d-text" x="130" y="135">B</text>
+              <line class="d-query no-start" x1="100" y1="85" x2="75" y2="85" />
+            </g>
+          </svg>
           <figcaption>
             A intersects with B and needs to be pushed out
           </figcaption>
@@ -224,7 +295,29 @@
           first collides with the other object along that path of movement.
         </p>
         <figure class="right">
-          <img src="./docs/svg/box-bad-intersection-test.svg" class="small" />
+          <svg
+            class="figure"
+            viewBox="0 0 170 170"
+            role="img"
+            aria-label="Diagram: box bad intersection test"
+          >
+            <g transform="translate(0, 0)">
+              <rect class="d-world" x="45" y="45" width="80" height="80" />
+              <rect class="d-world" x="10" y="25" width="50" height="120" />
+              <rect class="d-world" x="110" y="25" width="50" height="120" />
+              <text class="d-text" x="80" y="90">A</text>
+              <text class="d-text" x="20" y="45">B</text>
+              <text class="d-text" x="140" y="135">C</text>
+              <line class="d-query no-start" x1="45" y1="85" x2="54" y2="85" />
+              <line
+                class="d-query no-start"
+                x1="125"
+                y1="85"
+                x2="116"
+                y2="85"
+              />
+            </g>
+          </svg>
           <figcaption>
             A intersects both B and C, and is incorrectly pushed <em>into</em> a
             bad state
@@ -363,11 +456,46 @@
         </p>
         <div class="figure-row right">
           <figure>
-            <img src="./docs/svg/box-near-far-x.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 250 250"
+              role="img"
+              aria-label="Diagram: box near far x"
+            >
+              <g transform="translate(25, 25)">
+                <line class="d-edge" x1="60" y1="20" x2="60" y2="180" />
+                <line class="d-edge" x1="140" y1="20" x2="140" y2="180" />
+                <rect class="d-world" x="60" y="60" width="80" height="80" />
+                <line class="d-query" x1="70" y1="20" x2="150" y2="180" />
+                <circle class="d-correct" cx="60" cy="0" r="3" />
+                <circle class="d-correct" cx="140" cy="160" r="3" />
+                <text class="d-correct" x="67" y="10">near x</text>
+                <text class="d-correct" x="110" y="170">far x</text>
+              </g>
+            </svg>
             <figcaption>Near x is greater than far y</figcaption>
           </figure>
           <figure>
-            <img src="./docs/svg/box-near-far-y.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 250 250"
+              role="img"
+              aria-label="Diagram: box near far y"
+            >
+              <g transform="translate(25, 25)">
+                <!-- box -->
+                <line class="d-edge" x1="20" y1="60" x2="180" y2="60" />
+                <line class="d-edge" x1="20" y1="140" x2="180" y2="140" />
+                <rect class="d-world" x="60" y="60" width="80" height="80" />
+                <!-- segment -->
+                <line class="d-query" x1="70" y1="20" x2="150" y2="180" />
+                <!-- near and far points -->
+                <circle class="d-correct" cx="90" cy="60" r="3" />
+                <circle class="d-correct" cx="130" cy="140" r="3" />
+                <text class="d-correct" x="93" y="55">near y</text>
+                <text class="d-correct" x="105" y="155">far y</text>
+              </g>
+            </svg>
             <figcaption>Near x is greater than far y</figcaption>
           </figure>
         </div>
@@ -489,7 +617,23 @@
           Now we have to compare these times to see if a collision is possible.
         </p>
         <figure class="right">
-          <img src="./docs/svg/box-outside.svg" class="small" />
+          <svg
+            class="figure"
+            viewBox="0 0 190 190"
+            role="img"
+            aria-label="Diagram: box outside"
+          >
+            <g transform="translate(25, 25)">
+              <line class="d-edge" x1="20" y1="60" x2="140" y2="60" />
+              <line class="d-edge" x1="60" y1="20" x2="60" y2="140" />
+              <rect class="d-world" x="60" y="60" width="80" height="80" />
+              <line class="d-query" x1="10" y1="70" x2="70" y2="10" />
+              <circle class="d-correct" cx="60" cy="20" r="3" />
+              <circle class="d-correct" cx="20" cy="60" r="3" />
+              <text class="d-correct" x="20" y="15">near x</text>
+              <text class="d-correct" x="-10" y="55">far y</text>
+            </g>
+          </svg>
           <figcaption>Near x is greater than far y</figcaption>
         </figure>
 
@@ -526,11 +670,39 @@
 
         <div class="figure-row right">
           <figure>
-            <img src="./docs/svg/box-behind.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 190 190"
+              role="img"
+              aria-label="Diagram: box behind"
+            >
+              <g transform="translate(-35, -5)">
+                <line class="d-edge" x1="140" y1="40" x2="140" y2="160" />
+                <rect class="d-world" x="60" y="60" width="80" height="80" />
+                <line class="d-query" x1="160" y1="100" x2="205" y2="100" />
+                <circle class="d-correct" cx="140" cy="100" r="4" />
+                <text class="d-correct" x="148" y="75">nearest</text>
+                <text class="d-correct" x="148" y="89">far edge</text>
+              </g>
+            </svg>
             <figcaption>Behind the segment</figcaption>
           </figure>
           <figure>
-            <img src="./docs/svg/box-front.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 190 190"
+              role="img"
+              aria-label="Diagram: box front"
+            >
+              <g transform="translate(25, -5)">
+                <line class="d-edge" x1="60" y1="40" x2="60" y2="160" />
+                <rect class="d-world" x="60" y="60" width="80" height="80" />
+                <line class="d-query" x1="-5" y1="100" x2="40" y2="100" />
+                <circle class="d-correct" cx="60" cy="100" r="4" />
+                <text class="d-correct" x="10" y="74">furthest</text>
+                <text class="d-correct" x="-2" y="88">near edge</text>
+              </g>
+            </svg>
             <figcaption>In front of the segment</figcaption>
           </figure>
         </div>
@@ -635,13 +807,77 @@
         <h3 id="aabb-vs-swept-aabb">AABB vs Swept AABB</h3>
         <div class="figure-row right">
           <figure>
-            <img src="./docs/svg/box-sweep-test.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 170 170"
+              role="img"
+              aria-label="Diagram: box sweep test"
+            >
+              <g transform="translate(0, 0)">
+                <!-- boxes -->
+                <rect class="d-world" x="90" y="90" width="60" height="60" />
+                <text class="d-text" x="130" y="135">B</text>
+                <line
+                  class="d-query d-quiet no-start no-end"
+                  x1="40"
+                  y1="40"
+                  x2="100"
+                  y2="140"
+                />
+                <rect class="d-world" x="20" y="20" width="40" height="40" />
+                <text class="d-text" x="35" y="45">A</text>
+                <rect
+                  class="d-world d-collide"
+                  x="80"
+                  y="120"
+                  width="40"
+                  height="40"
+                />
+                <circle class="d-correct d-collide" cx="100" cy="140" r="4" />
+                <rect
+                  class="d-world d-clear"
+                  x="48"
+                  y="68"
+                  width="40"
+                  height="40"
+                />
+                <circle class="d-correct d-clear" cx="68" cy="88" r="4" />
+              </g>
+            </svg>
             <figcaption>
               The sweep test prevents A from moving into B
             </figcaption>
           </figure>
           <figure>
-            <img src="./docs/svg/box-sweep-padded-test.svg" class="small" />
+            <svg
+              class="figure"
+              viewBox="0 0 170 170"
+              role="img"
+              aria-label="Diagram: box sweep padded test"
+            >
+              <g transform="translate(-10, -10)">
+                <rect class="d-world" x="90" y="90" width="60" height="60" />
+                <text class="d-text" x="130" y="135">B</text>
+                <rect
+                  class="d-world d-quiet"
+                  x="70"
+                  y="70"
+                  width="100"
+                  height="100"
+                />
+                <line
+                  class="d-query d-quiet no-start no-end"
+                  x1="40"
+                  y1="40"
+                  x2="100"
+                  y2="140"
+                />
+                <rect class="d-world" x="20" y="20" width="40" height="40" />
+                <text class="d-text" x="35" y="45">A</text>
+                <circle class="d-correct d-collide" cx="100" cy="140" r="4" />
+                <circle class="d-correct d-clear" cx="70" cy="90" r="4" />
+              </g>
+            </svg>
             <figcaption>
               If B is padded with the size of A, this segment test is the same
               as sweeping A.
@@ -773,9 +1009,102 @@
           a huge number of objects.
         </p>
 
-        <div class="fleur">h</div>
-      </div>
+        <div class="colophon">
+          <p>Source &middot; src/intersect.ts.md</p>
+          <button type="button" class="theme-toggle" id="theme-toggle">
+            Theme
+          </button>
+        </div>
+      </main>
     </div>
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+
+        /* ---- theme -------------------------------------------------- */
+        var toggle = document.getElementById("theme-toggle");
+        function currentTheme() {
+          var set = root.getAttribute("data-theme");
+          if (set) return set;
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        toggle.addEventListener("click", function () {
+          var next = currentTheme() === "dark" ? "light" : "dark";
+          root.setAttribute("data-theme", next);
+          try {
+            localStorage.setItem("intersect-theme", next);
+          } catch (e) {}
+          root.dispatchEvent(new CustomEvent("themechange"));
+        });
+
+        /* ---- contents ----------------------------------------------- */
+        /* Built from the headings so the markdown stays the only source
+         of truth for the structure. */
+        var page = document.querySelector(".page");
+        var list = document.getElementById("toc-list");
+        var details = document.getElementById("toc-details");
+        var current = document.getElementById("toc-current");
+        var headings = page.querySelectorAll("h2[id], h3[id]");
+        var links = [];
+        var counter = 0;
+
+        headings.forEach(function (h) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          a.href = "#" + h.id;
+          if (h.tagName === "H2") {
+            li.className = "top";
+            counter += 1;
+            var n = document.createElement("span");
+            n.className = "num";
+            n.textContent = counter < 10 ? "0" + counter : String(counter);
+            a.appendChild(n);
+          }
+          a.appendChild(document.createTextNode(h.textContent));
+          li.appendChild(a);
+          list.appendChild(li);
+          links.push({ a: a, h: h });
+        });
+
+        if (links.length) {
+          document.body.classList.add("has-toc");
+        }
+
+        function markActive(entry) {
+          links.forEach(function (l) {
+            l.a.classList.toggle("on", l.h === entry);
+          });
+          if (entry) current.textContent = entry.textContent;
+        }
+
+        /* Track the heading nearest the top of the viewport. */
+        function onScroll() {
+          var best = null;
+          links.forEach(function (l) {
+            if (l.h.getBoundingClientRect().top <= 120) best = l.h;
+          });
+          markActive(best || (links[0] && links[0].h));
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
+        /* Wide: always an open list. Narrow: a disclosure, so the rail
+         can never cover the page. */
+        var wide = window.matchMedia("(min-width: 760px)");
+        function syncDisclosure() {
+          details.open = wide.matches;
+        }
+        wide.addEventListener("change", syncDisclosure);
+        syncDisclosure();
+
+        list.addEventListener("click", function () {
+          if (!wide.matches) details.open = false;
+        });
+      })();
+    </script>
     <script src="docs/bundle.js"></script>
   </body>
 </html>

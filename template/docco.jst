@@ -3,14 +3,51 @@
 <head>
   <title><%= title %></title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <link rel="stylesheet" media="all" href="dpcs/public/stylesheets/normalize.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" media="all" href="docs/docco.css" />
-  <link rel="stylesheet" media="all" href="docs/intersect.css" />
   <link rel="stylesheet" media="all" href="docs/bundle.css" />
+  <script>
+    // Applied before first paint so a chosen theme never flashes.
+    try {
+      var t = localStorage.getItem("intersect-theme");
+      if (t === "light" || t === "dark") {
+        document.documentElement.setAttribute("data-theme", t);
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
+  <!-- Markers and the hatch pattern, defined once for every inlined
+       figure. Kept out of the individual files so their ids cannot
+       collide when nine of them share one document. -->
+  <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+    <defs>
+      <marker id="fig-arrow" orient="auto" markerWidth="3" markerHeight="6" refX="0.1" refY="3">
+        <path class="fig-marker" d="M0,0 V6 L3,3 Z" />
+      </marker>
+      <marker id="fig-dot" orient="auto" markerWidth="4" markerHeight="4" refX="2" refY="2">
+        <circle class="fig-marker" cx="2" cy="2" r="2" />
+      </marker>
+      <pattern id="fig-hatch" width="6" height="6" patternUnits="userSpaceOnUse">
+        <path class="fig-hatch-line" d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" />
+      </pattern>
+    </defs>
+  </svg>
+
   <div class="container">
-    <div class="page">
+    <nav class="toc" aria-label="Contents">
+      <details id="toc-details">
+        <summary>
+          <span class="label">Contents</span>
+          <span class="current" id="toc-current"></span>
+          <span class="caret" aria-hidden="true">&#9656;</span>
+        </summary>
+        <ol id="toc-list"></ol>
+      </details>
+    </nav>
+
+    <main class="page">
       <div class="header">
         <% if (hasTitle) { %>
           <% var section = sections.shift(); %>
@@ -21,22 +58,6 @@
         <% } else { %>
           <h1><%= title %></h1>
         <% } %>
-
-        <% if (sources.length > 1) { %>
-          <div class="toc">
-            <h3>Table of Contents</h3>
-            <ol>
-              <% for (var i=0, l = sources.length; i < l; i++) { %>
-                <% var source = sources[i]; %>
-                <li>
-                  <a class="source" href="<%= path.basename(destination(source)) %>">
-                    <%= path.basename(source) %>
-                  </a>
-                </li>
-              <% } %>
-            </ol>
-          </div>
-        <% } %>
       </div>
 
       <% for (var i = 0, l = sections.length; i<l; i++) { %>
@@ -46,9 +67,101 @@
           <%= section.codeHtml %>
         <% } %>
       <% } %>
-      <div class="fleur">h</div>
-    </div>
+
+      <div class="colophon">
+        <p>Source &middot; src/intersect.ts.md</p>
+        <button type="button" class="theme-toggle" id="theme-toggle">Theme</button>
+      </div>
+    </main>
   </div>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+
+      /* ---- theme -------------------------------------------------- */
+      var toggle = document.getElementById("theme-toggle");
+      function currentTheme() {
+        var set = root.getAttribute("data-theme");
+        if (set) return set;
+        return window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+      toggle.addEventListener("click", function () {
+        var next = currentTheme() === "dark" ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try {
+          localStorage.setItem("intersect-theme", next);
+        } catch (e) {}
+        root.dispatchEvent(new CustomEvent("themechange"));
+      });
+
+      /* ---- contents ----------------------------------------------- */
+      /* Built from the headings so the markdown stays the only source
+         of truth for the structure. */
+      var page = document.querySelector(".page");
+      var list = document.getElementById("toc-list");
+      var details = document.getElementById("toc-details");
+      var current = document.getElementById("toc-current");
+      var headings = page.querySelectorAll("h2[id], h3[id]");
+      var links = [];
+      var counter = 0;
+
+      headings.forEach(function (h) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        if (h.tagName === "H2") {
+          li.className = "top";
+          counter += 1;
+          var n = document.createElement("span");
+          n.className = "num";
+          n.textContent = counter < 10 ? "0" + counter : String(counter);
+          a.appendChild(n);
+        }
+        a.appendChild(document.createTextNode(h.textContent));
+        li.appendChild(a);
+        list.appendChild(li);
+        links.push({ a: a, h: h });
+      });
+
+      if (links.length) {
+        document.body.classList.add("has-toc");
+      }
+
+      function markActive(entry) {
+        links.forEach(function (l) {
+          l.a.classList.toggle("on", l.h === entry);
+        });
+        if (entry) current.textContent = entry.textContent;
+      }
+
+      /* Track the heading nearest the top of the viewport. */
+      function onScroll() {
+        var best = null;
+        links.forEach(function (l) {
+          if (l.h.getBoundingClientRect().top <= 120) best = l.h;
+        });
+        markActive(best || (links[0] && links[0].h));
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      /* Wide: always an open list. Narrow: a disclosure, so the rail
+         can never cover the page. */
+      var wide = window.matchMedia("(min-width: 760px)");
+      function syncDisclosure() {
+        details.open = wide.matches;
+      }
+      wide.addEventListener("change", syncDisclosure);
+      syncDisclosure();
+
+      list.addEventListener("click", function () {
+        if (!wide.matches) details.open = false;
+      });
+    })();
+  </script>
   <script src="docs/bundle.js"></script>
 </body>
 </html>

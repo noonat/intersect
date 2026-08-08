@@ -5,6 +5,47 @@ import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
 import { AABB, Point } from "./intersect";
 
+// The diagram palette lives in template/docco.css so that the figures,
+// the canvases and the page itself cannot drift apart. A canvas can't
+// read a custom property directly, so resolve them once and drop the
+// cache whenever the theme changes.
+type Role =
+  | "ground"
+  | "world"
+  | "edge"
+  | "query"
+  | "clear"
+  | "correct"
+  | "collide";
+
+const PROPERTIES: { [key in Role]: string } = {
+  ground: "--d-ground",
+  world: "--d-world",
+  edge: "--d-edge",
+  query: "--d-query",
+  clear: "--d-clear",
+  correct: "--d-correct",
+  collide: "--d-collide"
+};
+
+let cache: { [key in Role]: string } | null = null;
+
+function color(role: Role): string {
+  if (!cache) {
+    const styles = getComputedStyle(document.documentElement);
+    const resolved = {} as { [key in Role]: string };
+    (Object.keys(PROPERTIES) as Role[]).forEach(key => {
+      resolved[key] = styles.getPropertyValue(PROPERTIES[key]).trim();
+    });
+    cache = resolved;
+  }
+  return cache[role];
+}
+
+function forgetColors() {
+  cache = null;
+}
+
 function reflect(velocity: Point, normal: Point, out: Point) {
   const dot = velocity.x * normal.x + velocity.y * normal.y;
   const ux = normal.x * dot;
@@ -126,9 +167,41 @@ class Example {
     this.context.stroke();
   }
 
+  // The rejected state is hatched as well as coloured, so that it stays
+  // distinguishable from the clear one without relying on hue.
+  public drawAABBHatched(box: AABB, color: string, thickness: number = 1) {
+    const x1 = Math.floor(this.origin.x + box.pos.x - box.half.x);
+    const y1 = Math.floor(this.origin.y + box.pos.y - box.half.y);
+    const x2 = Math.floor(this.origin.x + box.pos.x + box.half.x);
+    const y2 = Math.floor(this.origin.y + box.pos.y + box.half.y);
+
+    this.context.save();
+    this.context.beginPath();
+    this.context.rect(x1, y1, x2 - x1, y2 - y1);
+    this.context.clip();
+    this.context.lineWidth = 1;
+    this.context.strokeStyle = color;
+    this.context.beginPath();
+    for (let x = x1 - (y2 - y1); x < x2; x += 6) {
+      this.context.moveTo(x, y2);
+      this.context.lineTo(x + (y2 - y1), y1);
+    }
+    this.context.stroke();
+    this.context.restore();
+
+    this.drawAABB(box, color, thickness);
+  }
+
   public tick(_elapsed: number) {
-    this.context.fillStyle = "#000";
-    this.context.fillRect(0, 0, this.width, this.height);
+    const ground = color("ground");
+    // In light mode the diagrams have no ground of their own: they draw
+    // straight onto the page.
+    if (!ground || ground === "transparent") {
+      this.context.clearRect(0, 0, this.width, this.height);
+    } else {
+      this.context.fillStyle = ground;
+      this.context.fillRect(0, 0, this.width, this.height);
+    }
   }
 }
 
@@ -154,12 +227,12 @@ class AABBPointExample extends Example {
     this.pos.x = Math.cos(this.angle * 0.4) * 32;
     this.pos.y = Math.sin(this.angle) * 12;
     const hit = this.box.intersectPoint(this.pos);
-    this.drawAABB(this.box, "#666");
+    this.drawAABB(this.box, color("edge"));
     if (hit) {
-      this.drawPoint(this.pos, "#f00");
-      this.drawPoint(hit.pos, "#ff0");
+      this.drawPoint(this.pos, color("collide"));
+      this.drawPoint(hit.pos, color("correct"));
     } else {
-      this.drawPoint(this.pos, "#0f0");
+      this.drawPoint(this.pos, color("clear"));
     }
   }
 }
@@ -193,14 +266,14 @@ class AABBSegmentExample extends Example {
     const hit = this.box.intersectSegment(pos1, delta);
     const dir = delta.clone();
     const length = dir.normalize();
-    this.drawAABB(this.box, "#666");
+    this.drawAABB(this.box, color("edge"));
     if (hit) {
-      this.drawRay(pos1, dir, length, "#f00");
-      this.drawSegment(pos1, hit.pos, "#ff0");
-      this.drawPoint(hit.pos, "#ff0");
-      this.drawRay(hit.pos, hit.normal, 6, "#ff0", false);
+      this.drawRay(pos1, dir, length, color("collide"));
+      this.drawSegment(pos1, hit.pos, color("correct"));
+      this.drawPoint(hit.pos, color("correct"));
+      this.drawRay(hit.pos, hit.normal, 6, color("correct"), false);
     } else {
-      this.drawRay(pos1, dir, length, "#0f0");
+      this.drawRay(pos1, dir, length, color("clear"));
     }
   }
 }
@@ -227,16 +300,16 @@ class AABBAABBExample extends Example {
     this.box2.pos.x = Math.cos(this.angle) * 96;
     this.box2.pos.y = Math.sin(this.angle * 2.4) * 24;
     const hit = this.box1.intersectAABB(this.box2);
-    this.drawAABB(this.box1, "#666");
+    this.drawAABB(this.box1, color("edge"));
     if (hit) {
-      this.drawAABB(this.box2, "#f00");
+      this.drawAABBHatched(this.box2, color("collide"));
       this.box2.pos.x += hit.delta.x;
       this.box2.pos.y += hit.delta.y;
-      this.drawAABB(this.box2, "#ff0");
-      this.drawPoint(hit.pos, "#ff0");
-      this.drawRay(hit.pos, hit.normal, 4, "#ff0", false);
+      this.drawAABB(this.box2, color("correct"));
+      this.drawPoint(hit.pos, color("correct"));
+      this.drawRay(hit.pos, hit.normal, 4, color("correct"), false);
     } else {
-      this.drawAABB(this.box2, "#0f0");
+      this.drawAABB(this.box2, color("clear"));
     }
   }
 }
@@ -267,7 +340,7 @@ class AABBSweptAABBExample extends Example {
   public override tick(elapsed: number) {
     super.tick(elapsed);
     this.angle += 0.5 * Math.PI * elapsed;
-    this.drawAABB(this.staticBox, "#666");
+    this.drawAABB(this.staticBox, color("edge"));
     const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
     this.sweepBoxes.forEach((box, i) => {
       const sweepDelta = this.sweepDeltas[i];
@@ -280,24 +353,24 @@ class AABBSweptAABBExample extends Example {
       const sweep = this.staticBox.sweepAABB(box, delta);
       const dir = delta.clone();
       const length = dir.normalize();
-      this.drawAABB(box, "#666");
+      this.drawAABB(box, color("edge"));
       if (sweep.hit) {
         // Draw a red box at the point where it was trying to move to
-        this.drawRay(box.pos, dir, length, "#f00");
+        this.drawRay(box.pos, dir, length, color("collide"));
         this.tempBox.pos.x = box.pos.x + delta.x;
         this.tempBox.pos.y = box.pos.y + delta.y;
-        this.drawAABB(this.tempBox, "#f00");
+        this.drawAABBHatched(this.tempBox, color("collide"));
         // Draw a yellow box at the point it actually got to
         this.tempBox.pos.x = sweep.pos.x;
         this.tempBox.pos.y = sweep.pos.y;
-        this.drawAABB(this.tempBox, "#ff0");
-        this.drawPoint(sweep.hit.pos, "#ff0");
-        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, "#ff0", false);
+        this.drawAABB(this.tempBox, color("correct"));
+        this.drawPoint(sweep.hit.pos, color("correct"));
+        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, color("correct"), false);
       } else {
         this.tempBox.pos.x = sweep.pos.x;
         this.tempBox.pos.y = sweep.pos.y;
-        this.drawAABB(this.tempBox, "#0f0");
-        this.drawRay(box.pos, dir, length, "#0f0");
+        this.drawAABB(this.tempBox, color("clear"));
+        this.drawRay(box.pos, dir, length, color("clear"));
       }
     });
   }
@@ -338,13 +411,13 @@ class MultipleAABBSweptAABBExample extends Example {
     }
     this.staticBoxes.forEach(staticBox => {
       if (sweep.hit && sweep.hit.collider === staticBox) {
-        this.drawAABB(staticBox, "#aaa");
+        this.drawAABB(staticBox, color("world"));
       } else {
-        this.drawAABB(staticBox, "#666");
+        this.drawAABB(staticBox, color("edge"));
       }
     });
     this.movingBox.pos = sweep.pos;
-    this.drawAABB(this.movingBox, sweep.hit ? "#ff0" : "#0f0");
+    this.drawAABB(this.movingBox, sweep.hit ? color("correct") : color("clear"));
   }
 }
 
@@ -380,7 +453,47 @@ ready(() => {
     "sweeping-an-aabb-through-multiple-objects": MultipleAABBSweptAABBExample
   };
 
+  // Every example is authored against this coordinate space. The canvas
+  // is laid out at whatever width the column gives it and the context is
+  // scaled to match, so the drawing code never has to care.
+  const WIDTH = 640;
+  const HEIGHT = 160;
+
+  const LEGEND: ReadonlyArray<readonly [string, string]> = [
+    ["clear", "Clear"],
+    ["collide", "Colliding"],
+    ["correct", "Corrected"]
+  ];
+
+  function frame(): HTMLElement {
+    const figure = document.createElement("figure");
+    figure.className = "example";
+
+    const bar = document.createElement("div");
+    bar.className = "example-bar";
+
+    const title = document.createElement("span");
+    title.textContent = "Animated example";
+    bar.appendChild(title);
+
+    const legend = document.createElement("span");
+    legend.className = "example-legend";
+    LEGEND.forEach(([role, label]) => {
+      const item = document.createElement("span");
+      item.className = role;
+      item.appendChild(document.createElement("i"));
+      item.appendChild(document.createTextNode(label));
+      legend.appendChild(item);
+    });
+    bar.appendChild(legend);
+
+    figure.appendChild(bar);
+    return figure;
+  }
+
+  const canvases: HTMLCanvasElement[] = [];
   const examples: Example[] = [];
+
   Object.keys(exampleIds).forEach(id => {
     const exampleConstructor = exampleIds[id];
     if (!exampleConstructor) {
@@ -391,22 +504,51 @@ ready(() => {
       return;
     }
     const canvas = document.createElement("canvas");
-    if (!canvas) {
-      return;
-    }
-    anchor.parentNode.insertBefore(canvas, anchor.nextSibling);
-    const width = (canvas.width = 640);
-    const height = (canvas.height = 160);
     const context = canvas.getContext("2d");
     if (!context) {
       return;
     }
-    context.translate(0.5, 0.5);
-    const example = new exampleConstructor(context, width, height);
-    if (example) {
-      examples.push(example);
-    }
+    const figure = frame();
+    figure.appendChild(canvas);
+    anchor.parentNode.insertBefore(figure, anchor.nextSibling);
+
+    canvases.push(canvas);
+    examples.push(new exampleConstructor(context, WIDTH, HEIGHT));
   });
+
+  // Size the backing store to the element and the display density, then
+  // scale the context back onto the authored coordinate space. The half
+  // pixel keeps one pixel strokes crisp.
+  function resize() {
+    const ratio = window.devicePixelRatio || 1;
+    canvases.forEach(canvas => {
+      const width = canvas.clientWidth || WIDTH;
+      const scale = width / WIDTH;
+      const height = HEIGHT * scale;
+      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.setTransform(scale * ratio, 0, 0, scale * ratio, 0, 0);
+        context.translate(0.5, 0.5);
+      }
+    });
+  }
+
+  let pending = 0;
+  window.addEventListener("resize", () => {
+    window.clearTimeout(pending);
+    pending = window.setTimeout(resize, 100);
+  });
+  resize();
+
+  // The palette differs between themes, so a change has to invalidate
+  // the resolved colours; the next tick repaints with the new ones.
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", forgetColors);
+  document.documentElement.addEventListener("themechange", forgetColors);
 
   setInterval(() => {
     examples.forEach(example => example.tick(1 / 30));
