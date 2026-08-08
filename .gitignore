@@ -2,3 +2,7 @@
 docs/src/intersect.ts.html
 node_modules
 
+# Output from the visual tests. The baselines in visual/__screenshots__ are
+# committed; these are the diffs, traces and reports of a given run.
+visual/.report
+visual/.results

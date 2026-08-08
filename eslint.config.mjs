@@ -14,8 +14,28 @@ export default tseslint.config(
   // Turn off the rules that would argue with prettier over formatting.
   prettier,
 
+  // The static server for the visual tests is a CommonJS script run by node,
+  // not part of the bundle, so it has node's globals rather than the
+  // browser's and requires its way to them.
   {
-    files: ["src/**/*.ts", "test/**/*.ts"],
+    files: ["visual/*.js"],
+    languageOptions: {
+      globals: {
+        URL: "readonly",
+        __dirname: "readonly",
+        console: "readonly",
+        module: "writable",
+        process: "readonly",
+        require: "readonly"
+      }
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off"
+    }
+  },
+
+  {
+    files: ["src/**/*.ts", "test/**/*.ts", "visual/**/*.ts"],
     rules: {
       // Match the compiler, which treats a leading underscore as "this
       // argument is here to satisfy the signature, not to be used".

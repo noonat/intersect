@@ -50,3 +50,39 @@ jobs:
             git status --short
             exit 1
           fi
+
+  # Whether the page still looks like the page. Kept out of the matrix above
+  # because it is not a question about Node: it needs a browser, and the
+  # baselines are images of one particular browser rendering the built page.
+  #
+  # The container is the same version @playwright/test is pinned to, so the
+  # browser here is the binary the baselines were recorded with. Running this
+  # on a bare runner would compare against a different Chromium, and every
+  # antialiased edge would differ.
+  visual:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # --ignore-scripts skips the build, so the page under test is the one
+      # committed to the repository. The job above is what checks that those
+      # two are the same thing.
+      - run: npm ci --ignore-scripts
+
+      - run: npx playwright test
+
+      # The report carries the expected, actual and diff images for anything
+      # that failed, which is the only practical way to judge a difference
+      # from here.
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: visual-report
+          path: visual/.report
+          retention-days: 14

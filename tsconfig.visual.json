@@ -1,0 +1,21 @@
+// Playwright transpiles the specs itself and does not type check them, the
+// same way esbuild only strips the types off the examples. Without this they
+// aren't checked by anything at all.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Nothing is emitted, so the rootDir the library builds against does not
+    // apply here.
+    "rootDir": ".",
+    // Playwright ships a protocol definition full of `declare module`, which
+    // erasableSyntaxOnly rejects. That flag is about how this repository
+    // writes TypeScript, not about how its dependencies do.
+    "skipLibCheck": true,
+    // Playwright's own test runner types, in place of jest's globals: these
+    // import what they use.
+    "types": ["node"]
+  },
+  "include": ["visual/**/*.ts", "playwright.config.ts"],
+  "files": []
+}

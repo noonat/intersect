@@ -21,7 +21,10 @@
     "build": "node build.js",
     "clean": "rimraf src/intersect.ts lib/intersect.js* docs/bundle.js* docs/bundle.css* docs/*.ttf docs/*.woff docs/*.woff2",
     "prepare": "npm run build",
-    "test": "jest && eslint src test"
+    "test": "jest && eslint src test visual playwright.config.ts && tsc --project tsconfig.visual.json",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:update:docker": "docker run --rm -v \"$PWD\":/work -v intersect-visual-modules:/work/node_modules -w /work mcr.microsoft.com/playwright:v1.56.0-noble sh -c \"npm ci --ignore-scripts && npx playwright test --update-snapshots\""
   },
   "main": "lib/intersect.js",
   "types": "lib/intersect.d.ts",
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.56.0",
     "@types/jest": "^30.0.0",
     "@types/katex": "^0.16.8",
     "@types/node": "^26.1.2",
