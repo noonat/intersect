@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="170" height="170">
+    <rect id="background" x="0" y="0" width="100%" height="100%"/>
+    <rect class="static quiet" x="35" y="35" width="100" height="100"/>
+    <path class="static quiet" d="M35,35 L60,35 A25,25 0 0 0 35,60 Z"/>
+    <path class="static quiet" d="M135,35 L135,60 A25,25 0 0 0 110,35 Z"/>
+    <path class="static quiet" d="M135,135 L110,135 A25,25 0 0 0 135,110 Z"/>
+    <path class="static quiet" d="M35,135 L35,110 A25,25 0 0 0 60,135 Z"/>
+    <rect class="static-edge" x="35" y="35" width="100" height="100" rx="25"/>
+    <rect class="static" x="60" y="60" width="50" height="50"/>
+    <text class="static-text" text-anchor="middle" x="85" y="89">B</text>
+    <circle class="static-edge" cx="85" cy="35" r="25"/>
+    <text class="static-text" text-anchor="middle" x="85" y="26">A</text>
+    <circle class="hit good" cx="85" cy="35" r="3"/>
+    <defs>
+        <style type="text/css"><![CDATA[
+            #background {
+                fill: #000;
+            }
+            .hit {
+                fill: #ff0;
+                stroke-width: 0;
+            }
+            .static {
+                fill-opacity: 0;
+                stroke: #fff;
+                stroke-width: 2;
+            }
+            .static-edge {
+                fill-opacity: 0;
+                stroke: #666;
+                stroke-width: 2;
+            }
+            .static-text {
+                fill: #fff;
+                font-family: Arial;
+                font-size: 12px;
+            }
+            .good {
+                fill: #0f0;
+                stroke: #0f0;
+            }
+            .quiet {
+                fill: #999;
+                stroke: #999;
+            }
+        ]]></style>
+    </defs>
+</svg>

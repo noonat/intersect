@@ -1190,7 +1190,7 @@ ready(() => {
   resize();
 
   // Nothing is gained by animating a canvas that is not on screen, and
-  // there are five of them.
+  // there are a lot of them.
   //
   // Except when something is looking at the page without scrolling it, like
   // a screenshot of a section further down, where the examples would sit

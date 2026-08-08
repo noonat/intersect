@@ -612,6 +612,17 @@ way the point test does.
 
 ### AABB vs Swept Circle
 
+<div class="figure-row right">
+<figure>
+  <img src="./docs/svg/circle-sweep-padded-test.svg" class="small"/>
+  <figcaption>Padding B by A rounds off the corners, so the hatched squares are not part of it</figcaption>
+</figure>
+<figure>
+  <img src="./docs/svg/circle-sweep-corner-test.svg" class="small"/>
+  <figcaption>A path across a corner hits the padded box, but misses the arc that is really there</figcaption>
+</figure>
+</div>
+
 The other sweeps inflate the static object by the size of the moving one and
 cast a line at the result. That works here too, but the shape it produces is
 not a box: inflating a rectangle by a circle rounds off its corners. Casting

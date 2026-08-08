@@ -18,9 +18,9 @@
   </script>
 </head>
 <body>
-  <!-- Markers and the hatch pattern, defined once for every inlined
+  <!-- Markers and the hatch patterns, defined once for every inlined
        figure. Kept out of the individual files so their ids cannot
-       collide when nine of them share one document. -->
+       collide when they all share one document. -->
   <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
     <defs>
       <marker id="fig-arrow" orient="auto" markerWidth="3" markerHeight="6" refX="0.1" refY="3">
@@ -31,6 +31,9 @@
       </marker>
       <pattern id="fig-hatch" width="6" height="6" patternUnits="userSpaceOnUse">
         <path class="fig-hatch-line" d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" />
+      </pattern>
+      <pattern id="fig-hatch-quiet" width="6" height="6" patternUnits="userSpaceOnUse">
+        <path class="fig-hatch-line quiet" d="M-1,1 L1,-1 M0,6 L6,0 M5,7 L7,5" />
       </pattern>
     </defs>
   </svg>

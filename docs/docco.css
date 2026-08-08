@@ -639,10 +639,27 @@ rect.d-world.d-collide {
   fill: url(#fig-hatch);
 }
 
+/* A region that is not a box has no outline to carry its outcome, so it
+   is the hatch alone. The quiet one marks a shape that is merely being
+   discussed rather than rejected, and takes the fainter thread. */
+path.d-world.d-collide {
+  fill: url(#fig-hatch);
+  stroke: none;
+}
+
+path.d-world.d-quiet {
+  fill: url(#fig-hatch-quiet);
+  stroke: none;
+}
+
 .fig-hatch-line {
   fill: none;
   stroke: var(--d-collide);
   stroke-width: 1.4;
+}
+
+.fig-hatch-line.quiet {
+  stroke: var(--d-quiet);
 }
 
 .fig-marker {
