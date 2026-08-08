@@ -30,9 +30,14 @@ const PROPERTIES: { [key in Role]: string } = {
 
 let cache: { [key in Role]: string } | null = null;
 
+// Resolved from an example rather than from the root, because the
+// examples override these tokens: they keep the dark plate in both
+// themes, while the static figures follow the page.
+let source: Element | null = null;
+
 function color(role: Role): string {
   if (!cache) {
-    const styles = getComputedStyle(document.documentElement);
+    const styles = getComputedStyle(source || document.documentElement);
     const resolved = {} as { [key in Role]: string };
     (Object.keys(PROPERTIES) as Role[]).forEach(key => {
       resolved[key] = styles.getPropertyValue(PROPERTIES[key]).trim();
@@ -465,16 +470,15 @@ ready(() => {
     ["correct", "Corrected"]
   ];
 
-  function frame(): HTMLElement {
+  // The legend sits below the canvas so the example itself is the first
+  // thing in view.
+  function frame(canvas: HTMLCanvasElement): HTMLElement {
     const figure = document.createElement("figure");
     figure.className = "example";
+    figure.appendChild(canvas);
 
     const bar = document.createElement("div");
     bar.className = "example-bar";
-
-    const title = document.createElement("span");
-    title.textContent = "Animated example";
-    bar.appendChild(title);
 
     const legend = document.createElement("span");
     legend.className = "example-legend";
@@ -508,10 +512,12 @@ ready(() => {
     if (!context) {
       return;
     }
-    const figure = frame();
-    figure.appendChild(canvas);
-    anchor.parentNode.insertBefore(figure, anchor.nextSibling);
+    anchor.parentNode.insertBefore(frame(canvas), anchor.nextSibling);
 
+    if (!source) {
+      source = canvas;
+      cache = null;
+    }
     canvases.push(canvas);
     examples.push(new exampleConstructor(context, WIDTH, HEIGHT));
   });

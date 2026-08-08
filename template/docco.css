@@ -63,6 +63,16 @@
   --d-collide: #ed4b78;
   --d-frame: var(--soft);
   --d-label: var(--grey);
+
+  /* Syntax. Code is half the lines in this document, so these are the
+     page's most-used colours after the ink. Light takes a muted version
+     of the usual mapping, dark a warmer and lower chroma one. */
+  --code-comment: #6f6f6f;
+  --code-keyword: #8a3fa0;
+  --code-string: #3d7a33;
+  --code-number: #99570d;
+  --code-title: #1f5fa8;
+  --code-type: #10707f;
 }
 
 /* Dark: the diagram becomes a plate, lifted just off the page so it
@@ -88,6 +98,13 @@
     --d-collide: #ff5c87;
     --d-frame: #2e2e2e;
     --d-label: #5b646a;
+
+    --code-comment: #8d8579;
+    --code-keyword: #d9909a;
+    --code-string: #b2c288;
+    --code-number: #d9a97a;
+    --code-title: #a3b0c4;
+    --code-type: #c4b391;
   }
 }
 
@@ -109,6 +126,13 @@
   --d-collide: #ff5c87;
   --d-frame: #2e2e2e;
   --d-label: #5b646a;
+
+  --code-comment: #8d8579;
+  --code-keyword: #d9909a;
+  --code-string: #b2c288;
+  --code-number: #d9a97a;
+  --code-title: #a3b0c4;
+  --code-type: #c4b391;
 }
 
 /*------------------------------ Base --------------------------------*/
@@ -466,30 +490,35 @@ pre code {
 
 .hljs-comment,
 .hljs-quote {
-  color: var(--grey);
+  color: var(--code-comment);
   font-style: italic;
 }
 
 .hljs-keyword,
 .hljs-literal,
 .hljs-variable.language_ {
-  color: var(--hard);
-  font-weight: 700;
+  color: var(--code-keyword);
+  font-weight: 600;
 }
 
 .hljs-string,
-.hljs-number,
 .hljs-regexp {
-  color: var(--ink);
+  color: var(--code-string);
+}
+
+.hljs-number {
+  color: var(--code-number);
 }
 
 .hljs-title,
 .hljs-title.function_,
-.hljs-title.class_,
+.hljs-title.class_ {
+  color: var(--code-title);
+}
+
 .hljs-built_in,
 .hljs-type {
-  color: var(--ink);
-  font-weight: 600;
+  color: var(--code-type);
 }
 
 .hljs-attr,
@@ -525,6 +554,14 @@ figure svg {
   display: block;
   height: auto;
   width: 100%;
+}
+
+/* Sized here rather than per role, so a label can never fall back to
+   inheriting the page's body size. These are user units in a 170 unit
+   viewBox, so they scale with the figure. */
+.figure text {
+  font-family: var(--mono);
+  font-size: 9px;
 }
 
 /*---------------------- Diagram semantics ---------------------------*/
@@ -616,6 +653,9 @@ figcaption {
   letter-spacing: 0.04em;
   line-height: 1.45;
   margin-top: 8px;
+  /* These captions are narrow enough to strand a single word on the
+     last line otherwise. */
+  text-wrap: balance;
 }
 
 /* Two figures side by side, as used for the near/far and sweep pairs. */
@@ -648,11 +688,26 @@ figcaption {
 
 /* The canvases are inserted by src/examples.ts after their heading. */
 
-/* The examples are <figure> elements too, so the floated figure rules
-   above have to be undone: these run the full width of the column. */
+/* The animated examples keep the dark plate in both themes. They run
+   the full width of the column and are mostly empty space, so on white
+   the thin strokes had nothing to sit against. The static figures are
+   small enough to read as line art on the page, and stay that way.
+   Overriding the tokens here means the canvases and the legend both
+   follow without a second palette to maintain. */
 .example {
-  border: 1px solid var(--d-frame);
-  border-top: 1px solid var(--d-frame);
+  --d-ground: #16191c;
+  --d-world: #eef1f3;
+  --d-edge: #5b646a;
+  --d-quiet: #3f464b;
+  --d-query: #67cffe;
+  --d-clear: #82d185;
+  --d-correct: #e7b552;
+  --d-collide: #ff5c87;
+  --d-label: #5b646a;
+
+  /* The examples are <figure> elements too, so the floated figure rules
+     above have to be undone. */
+  border: 1px solid var(--hard);
   clear: both;
   float: none;
   margin: 0 0 26px;
@@ -661,9 +716,20 @@ figcaption {
   width: auto;
 }
 
+/* On a dark page --hard is white, which would ring the plate. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .example {
+    border-color: var(--soft);
+  }
+}
+
+:root[data-theme="dark"] .example {
+  border-color: var(--soft);
+}
+
 .example-bar {
   background: var(--d-ground);
-  border-bottom: 1px solid var(--d-frame);
+  border-top: 1px solid var(--d-edge);
   color: var(--d-label);
   display: flex;
   flex-wrap: wrap;

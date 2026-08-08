@@ -14515,9 +14515,10 @@
     collide: "--d-collide"
   };
   var cache = null;
+  var source = null;
   function color(role) {
     if (!cache) {
-      const styles2 = getComputedStyle(document.documentElement);
+      const styles2 = getComputedStyle(source || document.documentElement);
       const resolved = {};
       Object.keys(PROPERTIES).forEach((key) => {
         resolved[key] = styles2.getPropertyValue(PROPERTIES[key]).trim();
@@ -14834,14 +14835,12 @@
       ["collide", "Colliding"],
       ["correct", "Corrected"]
     ];
-    function frame() {
+    function frame(canvas) {
       const figure = document.createElement("figure");
       figure.className = "example";
+      figure.appendChild(canvas);
       const bar = document.createElement("div");
       bar.className = "example-bar";
-      const title = document.createElement("span");
-      title.textContent = "Animated example";
-      bar.appendChild(title);
       const legend = document.createElement("span");
       legend.className = "example-legend";
       LEGEND.forEach(([role, label]) => {
@@ -14871,9 +14870,11 @@
       if (!context) {
         return;
       }
-      const figure = frame();
-      figure.appendChild(canvas);
-      anchor.parentNode.insertBefore(figure, anchor.nextSibling);
+      anchor.parentNode.insertBefore(frame(canvas), anchor.nextSibling);
+      if (!source) {
+        source = canvas;
+        cache = null;
+      }
       canvases.push(canvas);
       examples.push(new exampleConstructor(context, WIDTH, HEIGHT));
     });
