@@ -15312,7 +15312,7 @@
     constructor(context, width, height) {
       super(context, width, height);
       this.angle = 0;
-      this.circle = new Circle(new Point(0, 0), 56);
+      this.circle = new Circle(new Point(0, 0), 112);
       this.sweepBoxes = [
         new AABB(new Point(-152, 24), new Point(16, 16)),
         new AABB(new Point(128, -48), new Point(16, 16))
@@ -15448,7 +15448,7 @@
       {
         id: "circle-vs-swept-aabb",
         constructor: CircleSweptAABBExample,
-        content: [312, 160],
+        content: [312, 128],
         caption: "The same test from the other side: the box stops against the circle, on its faces and on its corners alike."
       }
     ];
