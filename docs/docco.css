@@ -466,6 +466,10 @@ tt {
 }
 
 .highlight {
+  /* Prose can wrap around a floated figure, but code cannot: pre is a
+     block formatting context, so it shrinks to avoid the float and the
+     lines start scrolling sideways instead. Drop below it instead. */
+  clear: both;
   margin: 0 0 22px;
 }
 
