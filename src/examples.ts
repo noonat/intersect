@@ -51,6 +51,9 @@ function forgetColors() {
   cache = null;
 }
 
+const ARROW_LENGTH = 7;
+const ARROW_HALF_WIDTH = 0.4;
+
 function reflect(velocity: Point, normal: Point, out: Point) {
   const dot = velocity.x * normal.x + velocity.y * normal.y;
   const ux = normal.x * dot;
@@ -132,6 +135,32 @@ class Example {
     }
   }
 
+  // A filled triangle, the same shape the static figures use for their
+  // markers. Drawn as one path so the two edges meet at the point,
+  // rather than as two butt-capped strokes crossing there.
+  public drawArrowhead(
+    tip: Point,
+    dir: Point,
+    color: string,
+    length: number = ARROW_LENGTH
+  ) {
+    const direction = dir.clone();
+    direction.normalize();
+    const x = this.origin.x + tip.x;
+    const y = this.origin.y + tip.y;
+    const baseX = x - direction.x * length;
+    const baseY = y - direction.y * length;
+    const half = length * ARROW_HALF_WIDTH;
+
+    this.context.beginPath();
+    this.context.moveTo(x, y);
+    this.context.lineTo(baseX + direction.y * half, baseY - direction.x * half);
+    this.context.lineTo(baseX - direction.y * half, baseY + direction.x * half);
+    this.context.closePath();
+    this.context.fillStyle = color;
+    this.context.fill();
+  }
+
   public drawRay(
     pos: Point,
     dir: Point,
@@ -140,16 +169,23 @@ class Example {
     arrow: boolean = true,
     thickness: number = 1
   ) {
-    const pos2 = new Point(pos.x + dir.x * length, pos.y + dir.y * length);
-    this.drawSegment(pos, pos2, color, thickness);
+    // Stop the shaft just inside the head, so it cannot show through the
+    // point when the two are the same colour.
+    const head = arrow ? Math.min(ARROW_LENGTH, length) : 0;
+    const shaft = Math.max(0, length - head * 0.8);
+    this.drawSegment(
+      pos,
+      new Point(pos.x + dir.x * shaft, pos.y + dir.y * shaft),
+      color,
+      thickness
+    );
     if (arrow) {
-      pos = pos2.clone();
-      pos2.x = pos.x - dir.x * 4 + dir.y * 4;
-      pos2.y = pos.y - dir.y * 4 - dir.x * 4;
-      this.drawSegment(pos, pos2, color, thickness);
-      pos2.x = pos.x - dir.x * 4 - dir.y * 4;
-      pos2.y = pos.y - dir.y * 4 + dir.x * 4;
-      this.drawSegment(pos, pos2, color, thickness);
+      this.drawArrowhead(
+        new Point(pos.x + dir.x * length, pos.y + dir.y * length),
+        dir,
+        color,
+        head
+      );
     }
   }
 
@@ -159,15 +195,11 @@ class Example {
     color: string = "#fff",
     thickness: number = 1
   ) {
-    const x1 = Math.floor(this.origin.x + point1.x);
-    const y1 = Math.floor(this.origin.y + point1.y);
-    const x2 = Math.floor(this.origin.x + point2.x);
-    const y2 = Math.floor(this.origin.y + point2.y);
     this.context.beginPath();
-    this.context.moveTo(x1, y1);
-    this.context.lineTo(x2, y2);
-    this.context.closePath();
+    this.context.moveTo(this.origin.x + point1.x, this.origin.y + point1.y);
+    this.context.lineTo(this.origin.x + point2.x, this.origin.y + point2.y);
     this.context.lineWidth = thickness;
+    this.context.lineCap = "round";
     this.context.strokeStyle = color;
     this.context.stroke();
   }
