@@ -707,23 +707,40 @@ figcaption {
 
   /* The examples are <figure> elements too, so the floated figure rules
      above have to be undone. */
-  border: 1px solid var(--hard);
+  border: 0;
   clear: both;
   float: none;
-  margin: 0 0 26px;
+  margin: 0 0 30px;
   max-width: none;
   padding-top: 0;
   width: auto;
 }
 
+/* The plate runs wider than the prose measure, out to the page's
+   padding, so an example reads as a different kind of object rather
+   than as another block of body content. The caption stays aligned
+   with the text. */
+.example-plate {
+  border: 1px solid var(--hard);
+  margin: 0 -12px;
+}
+
+@media (min-width: 760px) {
+  .example-plate {
+    /* Short of the page padding, so the plate does not butt against the
+       contents rule. */
+    margin: 0 -28px;
+  }
+}
+
 /* On a dark page --hard is white, which would ring the plate. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .example {
+  :root:not([data-theme="light"]) .example-plate {
     border-color: var(--soft);
   }
 }
 
-:root[data-theme="dark"] .example {
+:root[data-theme="dark"] .example-plate {
   border-color: var(--soft);
 }
 

@@ -14546,16 +14546,29 @@
       this.context = context;
       this.width = width;
       this.height = height;
-      this.origin = new Point(this.width * 0.5, this.height * 0.5);
-      this.infiniteLength = Math.sqrt(
-        this.width * this.width + this.height * this.height
-      );
+      this.origin = new Point(width * 0.5, height * 0.5);
+      this.zoom = 1;
+      this.infiniteLength = Math.sqrt(width * width + height * height);
+    }
+    layout(width, height, zoom) {
+      this.width = width;
+      this.height = height;
+      this.zoom = zoom;
+      this.origin.x = width * 0.5;
+      this.origin.y = height * 0.5;
+      this.infiniteLength = Math.sqrt(width * width + height * height) / zoom;
+    }
+    toX(x) {
+      return this.origin.x + x * this.zoom;
+    }
+    toY(y) {
+      return this.origin.y + y * this.zoom;
     }
     drawAABB(box, color2 = "#fff", thickness = 1) {
-      const x1 = Math.floor(this.origin.x + box.pos.x - box.half.x);
-      const y1 = Math.floor(this.origin.y + box.pos.y - box.half.y);
-      const x2 = Math.floor(this.origin.x + box.pos.x + box.half.x);
-      const y2 = Math.floor(this.origin.y + box.pos.y + box.half.y);
+      const x1 = Math.round(this.toX(box.pos.x - box.half.x));
+      const y1 = Math.round(this.toY(box.pos.y - box.half.y));
+      const x2 = Math.round(this.toX(box.pos.x + box.half.x));
+      const y2 = Math.round(this.toY(box.pos.y + box.half.y));
       this.context.beginPath();
       this.context.moveTo(x1, y1);
       this.context.lineTo(x2, y1);
@@ -14568,18 +14581,23 @@
       this.context.stroke();
     }
     drawCircle(circle, color2 = "#fff", thickness = 1) {
-      const x = Math.floor(this.origin.x + circle.pos.x);
-      const y = Math.floor(this.origin.y + circle.pos.y);
       this.context.beginPath();
-      this.context.arc(x, y, circle.radius, 0, 2 * Math.PI, true);
+      this.context.arc(
+        this.toX(circle.pos.x),
+        this.toY(circle.pos.y),
+        circle.radius * this.zoom,
+        0,
+        2 * Math.PI,
+        true
+      );
       this.context.closePath();
       this.context.lineWidth = thickness;
       this.context.strokeStyle = color2;
       this.context.stroke();
     }
     drawPoint(point, color2 = "#fff", text2 = "", thickness = 1) {
-      const x = Math.floor(this.origin.x + point.x - thickness / 2);
-      const y = Math.floor(this.origin.y + point.y - thickness / 2);
+      const x = Math.round(this.toX(point.x) - thickness / 2);
+      const y = Math.round(this.toY(point.y) - thickness / 2);
       this.context.lineWidth = thickness;
       this.context.fillStyle = color2;
       this.context.strokeStyle = color2;
@@ -14595,8 +14613,8 @@
     drawArrowhead(tip, dir, color2, length = ARROW_LENGTH) {
       const direction = dir.clone();
       direction.normalize();
-      const x = this.origin.x + tip.x;
-      const y = this.origin.y + tip.y;
+      const x = this.toX(tip.x);
+      const y = this.toY(tip.y);
       const baseX = x - direction.x * length;
       const baseY = y - direction.y * length;
       const half = length * ARROW_HALF_WIDTH;
@@ -14609,8 +14627,8 @@
       this.context.fill();
     }
     drawRay(pos, dir, length, color2 = "#fff", arrow = true, thickness = 1) {
-      const head = arrow ? Math.min(ARROW_LENGTH, length) : 0;
-      const shaft = Math.max(0, length - head * 0.8);
+      const head = arrow ? Math.min(ARROW_LENGTH, length * this.zoom) : 0;
+      const shaft = Math.max(0, length - head * 0.8 / this.zoom);
       this.drawSegment(
         pos,
         new Point(pos.x + dir.x * shaft, pos.y + dir.y * shaft),
@@ -14628,8 +14646,8 @@
     }
     drawSegment(point1, point2, color2 = "#fff", thickness = 1) {
       this.context.beginPath();
-      this.context.moveTo(this.origin.x + point1.x, this.origin.y + point1.y);
-      this.context.lineTo(this.origin.x + point2.x, this.origin.y + point2.y);
+      this.context.moveTo(this.toX(point1.x), this.toY(point1.y));
+      this.context.lineTo(this.toX(point2.x), this.toY(point2.y));
       this.context.lineWidth = thickness;
       this.context.lineCap = "round";
       this.context.strokeStyle = color2;
@@ -14638,10 +14656,10 @@
     // The rejected state is hatched as well as coloured, so that it stays
     // distinguishable from the clear one without relying on hue.
     drawAABBHatched(box, color2, thickness = 1) {
-      const x1 = Math.floor(this.origin.x + box.pos.x - box.half.x);
-      const y1 = Math.floor(this.origin.y + box.pos.y - box.half.y);
-      const x2 = Math.floor(this.origin.x + box.pos.x + box.half.x);
-      const y2 = Math.floor(this.origin.y + box.pos.y + box.half.y);
+      const x1 = Math.round(this.toX(box.pos.x - box.half.x));
+      const y1 = Math.round(this.toY(box.pos.y - box.half.y));
+      const x2 = Math.round(this.toX(box.pos.x + box.half.x));
+      const y2 = Math.round(this.toY(box.pos.y + box.half.y));
       this.context.save();
       this.context.beginPath();
       this.context.rect(x1, y1, x2 - x1, y2 - y1);
@@ -14843,24 +14861,52 @@
   }
   ready(() => {
     renderMathInElement(document.body);
-    const exampleIds = {
-      "aabb-vs-aabb": AABBAABBExample,
-      "aabb-vs-point": AABBPointExample,
-      "aabb-vs-segment": AABBSegmentExample,
-      "aabb-vs-swept-aabb": AABBSweptAABBExample,
-      "sweeping-an-aabb-through-multiple-objects": MultipleAABBSweptAABBExample
-    };
-    const WIDTH = 640;
-    const HEIGHT = 160;
+    const EXAMPLES = [
+      {
+        id: "aabb-vs-point",
+        constructor: AABBPointExample,
+        content: [64, 32],
+        caption: "The point is red while it is inside the box. Amber marks where it would be pushed out to."
+      },
+      {
+        id: "aabb-vs-segment",
+        constructor: AABBSegmentExample,
+        content: [128, 128],
+        caption: "The ray is red when it hits. Amber marks the contact point and the surface normal there."
+      },
+      {
+        id: "aabb-vs-aabb",
+        constructor: AABBAABBExample,
+        content: [224, 80],
+        caption: "Where the boxes overlap the moving one is hatched, with the corrected position beside it in amber."
+      },
+      {
+        id: "aabb-vs-swept-aabb",
+        constructor: AABBSweptAABBExample,
+        content: [312, 128],
+        caption: "Sweeping stops each box at first contact rather than letting it reach the hatched position it was aiming for."
+      },
+      {
+        id: "sweeping-an-aabb-through-multiple-objects",
+        constructor: MultipleAABBSweptAABBExample,
+        content: [208, 128],
+        caption: "The box is swept against every wall in turn, so it never passes through one."
+      }
+    ];
+    const PLATE_ASPECT = 3;
+    const FILL = 0.82;
+    const MAX_ZOOM = 5;
     const LEGEND = [
       ["clear", "Clear"],
       ["collide", "Colliding"],
       ["correct", "Corrected"]
     ];
-    function frame(canvas) {
+    function frame(canvas, caption) {
       const figure = document.createElement("figure");
       figure.className = "example";
-      figure.appendChild(canvas);
+      const plate = document.createElement("div");
+      plate.className = "example-plate";
+      plate.appendChild(canvas);
       const bar = document.createElement("div");
       bar.className = "example-bar";
       const legend = document.createElement("span");
@@ -14873,17 +14919,16 @@
         legend.appendChild(item);
       });
       bar.appendChild(legend);
-      figure.appendChild(bar);
+      plate.appendChild(bar);
+      figure.appendChild(plate);
+      const figcaption = document.createElement("figcaption");
+      figcaption.textContent = caption;
+      figure.appendChild(figcaption);
       return figure;
     }
-    const canvases = [];
-    const examples = [];
-    Object.keys(exampleIds).forEach((id) => {
-      const exampleConstructor = exampleIds[id];
-      if (!exampleConstructor) {
-        return;
-      }
-      const anchor = document.getElementById(id);
+    const mounted = [];
+    EXAMPLES.forEach((spec) => {
+      const anchor = document.getElementById(spec.id);
       if (!anchor || !anchor.parentNode) {
         return;
       }
@@ -14892,28 +14937,39 @@
       if (!context) {
         return;
       }
-      anchor.parentNode.insertBefore(frame(canvas), anchor.nextSibling);
+      anchor.parentNode.insertBefore(
+        frame(canvas, spec.caption),
+        anchor.nextSibling
+      );
       if (!source) {
         source = canvas;
         cache = null;
       }
-      canvases.push(canvas);
-      examples.push(new exampleConstructor(context, WIDTH, HEIGHT));
+      mounted.push({
+        example: new spec.constructor(context, canvas.clientWidth, 0),
+        canvas,
+        content: spec.content,
+        visible: true
+      });
     });
     function resize() {
       const ratio = window.devicePixelRatio || 1;
-      canvases.forEach((canvas) => {
-        const width = canvas.clientWidth || WIDTH;
-        const scale = width / WIDTH;
-        const height = HEIGHT * scale;
-        canvas.style.height = `${height}px`;
-        canvas.width = Math.round(width * ratio);
-        canvas.height = Math.round(height * ratio);
-        const context = canvas.getContext("2d");
+      mounted.forEach((item) => {
+        const width = item.canvas.clientWidth || 640;
+        const height = Math.round(width / PLATE_ASPECT);
+        item.canvas.style.height = height + "px";
+        item.canvas.width = Math.round(width * ratio);
+        item.canvas.height = Math.round(height * ratio);
+        const context = item.canvas.getContext("2d");
         if (context) {
-          context.setTransform(scale * ratio, 0, 0, scale * ratio, 0, 0);
-          context.translate(0.5, 0.5);
+          context.setTransform(ratio, 0, 0, ratio, 0, 0);
         }
+        const zoom = Math.min(
+          width * FILL / item.content[0],
+          height * FILL / item.content[1],
+          MAX_ZOOM
+        );
+        item.example.layout(width, height, zoom);
       });
     }
     let pending = 0;
@@ -14922,11 +14978,34 @@
       pending = window.setTimeout(resize, 100);
     });
     resize();
+    if (typeof IntersectionObserver === "function") {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const item = mounted.find((m) => m.canvas === entry.target);
+            if (item) {
+              item.visible = entry.isIntersecting;
+            }
+          });
+        },
+        { rootMargin: "100px" }
+      );
+      mounted.forEach((item) => observer.observe(item.canvas));
+    }
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", forgetColors);
     document.documentElement.addEventListener("themechange", forgetColors);
-    setInterval(() => {
-      examples.forEach((example) => example.tick(1 / 30));
-    }, 1e3 / 30);
+    let last = 0;
+    function loop(now) {
+      const elapsed = last ? Math.min((now - last) / 1e3, 1 / 15) : 1 / 60;
+      last = now;
+      mounted.forEach((item) => {
+        if (item.visible) {
+          item.example.tick(elapsed);
+        }
+      });
+      window.requestAnimationFrame(loop);
+    }
+    window.requestAnimationFrame(loop);
   });
 })();
 //# sourceMappingURL=bundle.js.map
