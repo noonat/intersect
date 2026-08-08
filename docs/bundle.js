@@ -15048,6 +15048,32 @@
       });
     }
   };
+  var AABBCircleExample = class extends Example {
+    constructor(context, width, height) {
+      super(context, width, height);
+      this.angle = 0;
+      this.box = new AABB(new Point(0, 0), new Point(64, 16));
+      this.circle = new Circle(new Point(0, 0), 16);
+    }
+    tick(elapsed) {
+      super.tick(elapsed);
+      this.angle += 0.2 * Math.PI * elapsed;
+      this.circle.pos.x = Math.cos(this.angle) * 96;
+      this.circle.pos.y = Math.sin(this.angle * 2.4) * 24;
+      const hit = this.box.intersectCircle(this.circle);
+      this.drawAABB(this.box, color("edge"));
+      if (hit) {
+        this.drawCircleHatched(this.circle, color("collide"));
+        this.circle.pos.x += hit.delta.x;
+        this.circle.pos.y += hit.delta.y;
+        this.drawCircle(this.circle, color("correct"));
+        this.drawPoint(hit.pos, color("correct"));
+        this.drawRay(hit.pos, hit.normal, 4, color("correct"), false);
+      } else {
+        this.drawCircle(this.circle, color("clear"));
+      }
+    }
+  };
   var MultipleAABBSweptAABBExample = class extends Example {
     constructor(context, width, height) {
       super(context, width, height);
@@ -15370,6 +15396,12 @@
         constructor: AABBSweptAABBExample,
         content: [312, 128],
         caption: "Sweeping stops each box at first contact rather than letting it reach the hatched position it was aiming for."
+      },
+      {
+        id: "aabb-vs-circle",
+        constructor: AABBCircleExample,
+        content: [224, 80],
+        caption: "Where the circle overlaps the box it is hatched, with the corrected position beside it in amber."
       },
       {
         id: "sweeping-an-aabb-through-multiple-objects",
