@@ -784,7 +784,8 @@ In the case of a collision, we'll just put the hit on the edge of the circle.
 
 This collision test is one of the more complicated ones that we'll have to
 talk about here. You can find another explanation of this formula and algorithm
-in [Real-Time Collision Detection] section 5.3.2. If you're not interested in
+in [Real-Time Collision Detection](http://realtimecollisiondetection.net/)
+section 5.3.2. If you're not interested in
 the math behind the algorithm, you can skip to the end of this section to
 see the code.
 
@@ -830,16 +831,16 @@ and subtract \\(r^2\\) from both sides:
 
 It might not be immediately obvious, but this is a *quadratic equation*. A
 quadratic equation has the form
-\\({\\color{red}a}x^2 + {\\color{green}b}x + {\\color{blue}c} = 0\\). Here is
-the same equation with the corresponding terms highlighted:
+\\(\\htmlClass{m-a}{a}x^2 + \\htmlClass{m-b}{b}x + \\htmlClass{m-c}{c} = 0\\).
+Here is the same equation with the corresponding terms highlighted:
 
-\\[{\\color{red}(D \\cdot D)}t^2 + {\\color{green}2(M \\cdot D)}t + {\\color{blue}(M \\cdot M) - r^2} = 0\\]
+\\[\\htmlClass{m-a}{(D \\cdot D)}t^2 + \\htmlClass{m-b}{2(M \\cdot D)}t + \\htmlClass{m-c}{(M \\cdot M) - r^2} = 0\\]
 
 Why is it helpful to have it in this form? Because the *quadratic formula* can
 be used to solve a quadratic equation for \\(x\\) (or, in our case, \\(t\\)).
 The quadratic formula is:
 
-\\[x = \\frac{-b \\pm \\sqrt{{\\color{blue}b^2 - 4ac}}}{2a}\\]
+\\[x = \\frac{-b \\pm \\sqrt{\\htmlClass{m-c}{b^2 - 4ac}}}{2a}\\]
 
 The part highlighted in blue is important. It's called the discriminant. The
 result of this portion of the formula tells us what sort of result we can
@@ -1025,7 +1026,7 @@ Otherwise, they're colliding, and we need to create a hit.
 ### Circle vs Swept AABB
 
 This is the same problem as [AABB vs Swept Circle](#aabb-vs-swept-circle)
-wearing a different hat. The positions where a box touches a circle make a
+from the other side. The positions where a box touches a circle make a
 rectangle the size of the box, centered on the circle, with its corners
 rounded off by the circle's radius. That's the same shape, so build the
 stand-in box and hand the work over.

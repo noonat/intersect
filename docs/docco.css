@@ -2,7 +2,7 @@
   Intersection Tests in 2D
 
   A single-column tutorial with a sticky contents rail. Black and white,
-  hairline rules; colour appears only inside a diagram, where it means
+  hairline rules; color appears only inside a diagram, where it means
   something. See the semantic tokens below.
 ---------------------------------------------------------------------*/
 
@@ -46,7 +46,7 @@
   --paper: #ffffff;
   --ink: #1c1c1c;
   --hard: #000000;
-  --grey: #6a6a6a;
+  --gray: #6a6a6a;
   --soft: #d9d9d9;
   --panel: #f3f3f3;
 
@@ -62,10 +62,10 @@
   --d-correct: #d6a541;
   --d-collide: #ed4b78;
   --d-frame: var(--soft);
-  --d-label: var(--grey);
+  --d-label: var(--gray);
 
   /* Syntax. Code is half the lines in this document, so these are the
-     page's most-used colours after the ink. Light takes a muted version
+     page's most-used colors after the ink. Light takes a muted version
      of the usual mapping, dark a warmer and lower chroma one. */
   --code-comment: #6f6f6f;
   --code-keyword: #8a3fa0;
@@ -84,7 +84,7 @@
     --paper: #0b0b0b;
     --ink: #e2e2e2;
     --hard: #ffffff;
-    --grey: #949494;
+    --gray: #949494;
     --soft: #2e2e2e;
     --panel: #151515;
 
@@ -112,7 +112,7 @@
   --paper: #0b0b0b;
   --ink: #e2e2e2;
   --hard: #ffffff;
-  --grey: #949494;
+  --gray: #949494;
   --soft: #2e2e2e;
   --panel: #151515;
 
@@ -220,7 +220,7 @@ body {
 }
 
 .toc summary .label {
-  color: var(--grey);
+  color: var(--gray);
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.16em;
@@ -235,7 +235,7 @@ body {
 }
 
 .toc summary .caret {
-  color: var(--grey);
+  color: var(--gray);
   display: inline-block;
   font-family: var(--mono);
   font-size: 11px;
@@ -274,7 +274,7 @@ body {
 }
 
 .toc a {
-  color: var(--grey);
+  color: var(--gray);
   display: block;
   font-size: 14px;
   padding: 7px 0 7px 15px;
@@ -312,7 +312,7 @@ body {
 }
 
 .toc .num {
-  color: var(--grey);
+  color: var(--gray);
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 400;
@@ -343,7 +343,7 @@ body {
 /* The intro paragraphs under the title read as a standfirst — but only
    the ones before the first heading. */
 .header > p {
-  color: var(--grey);
+  color: var(--gray);
   font-size: clamp(15px, 10px + 1.3cqi, 17px);
   line-height: 1.55;
   margin: 0 0 12px;
@@ -431,7 +431,7 @@ b {
 
 a {
   color: inherit;
-  text-decoration-color: var(--grey);
+  text-decoration-color: var(--gray);
   text-underline-offset: 3px;
 }
 
@@ -629,7 +629,7 @@ figure svg {
 }
 
 /* An outlined box carries its outcome as a stroke; only the rejected
-   one is also hatched, so the triad survives without colour. */
+   one is also hatched, so the triad survives without color. */
 rect.d-world.d-clear,
 rect.d-world.d-quiet {
   fill: none;
@@ -651,7 +651,7 @@ rect.d-world.d-collide {
 }
 
 figcaption {
-  color: var(--grey);
+  color: var(--gray);
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -804,10 +804,25 @@ figcaption {
   width: 100%;
 }
 
-/*------------------------------ Maths -------------------------------*/
+/*------------------------------- Math -------------------------------*/
 
 .katex {
   font-size: 1.04em;
+}
+
+/* The three terms of a quadratic, picked out so the prose can point at
+   them. They borrow the diagram palette rather than naming colors, so
+   they stay legible on both grounds. */
+.m-a {
+  color: var(--d-collide);
+}
+
+.m-b {
+  color: var(--d-clear);
+}
+
+.m-c {
+  color: var(--d-query);
 }
 
 /*---------------------------- Utilities -----------------------------*/
@@ -815,7 +830,7 @@ figcaption {
 .theme-toggle {
   background: transparent;
   border: 1px solid var(--soft);
-  color: var(--grey);
+  color: var(--gray);
   cursor: pointer;
   font-family: var(--mono);
   font-size: 10px;
@@ -831,7 +846,7 @@ figcaption {
 
 .colophon {
   border-top: 1px solid var(--soft);
-  color: var(--grey);
+  color: var(--gray);
   display: flex;
   flex-wrap: wrap;
   gap: 12px 24px;

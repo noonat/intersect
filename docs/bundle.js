@@ -14882,7 +14882,7 @@
       this.context.strokeStyle = color2;
       this.context.stroke();
     }
-    // The rejected state is hatched as well as coloured, so that it stays
+    // The rejected state is hatched as well as colored, so that it stays
     // distinguishable from the clear one without relying on hue.
     drawAABBHatched(box, color2, thickness = 1) {
       const x1 = Math.round(this.toX(box.pos.x - box.half.x));
@@ -15422,7 +15422,12 @@
     );
   }
   ready(() => {
-    renderMathInElement(document.body);
+    renderMathInElement(document.body, {
+      trust: (context) => context.command === "\\htmlClass",
+      // Trusting it is not enough on its own; strict mode warns about the
+      // extension separately, once per formula.
+      strict: (code) => code === "htmlExtension" ? "ignore" : "warn"
+    });
     const EXAMPLES = [
       {
         id: "aabb-vs-point",

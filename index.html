@@ -1265,9 +1265,12 @@
         <p>
           This collision test is one of the more complicated ones that we’ll
           have to talk about here. You can find another explanation of this
-          formula and algorithm in [Real-Time Collision Detection] section
-          5.3.2. If you’re not interested in the math behind the algorithm, you
-          can skip to the end of this section to see the code.
+          formula and algorithm in
+          <a href="http://realtimecollisiondetection.net/"
+            >Real-Time Collision Detection</a
+          >
+          section 5.3.2. If you’re not interested in the math behind the
+          algorithm, you can skip to the end of this section to see the code.
         </p>
         <p>
           Like we did in <a href="#aabb-vs-segment">AABB vs Segment</a>, we’re
@@ -1318,19 +1321,20 @@
         <p>
           It might not be immediately obvious, but this is a
           <em>quadratic equation</em>. A quadratic equation has the form
-          \({\color{red}a}x^2 + {\color{green}b}x + {\color{blue}c} = 0\). Here
-          is the same equation with the corresponding terms highlighted:
+          \(\htmlClass{m-a}{a}x^2 + \htmlClass{m-b}{b}x + \htmlClass{m-c}{c} =
+          0\). Here is the same equation with the corresponding terms
+          highlighted:
         </p>
         <p>
-          \[{\color{red}(D \cdot D)}t^2 + {\color{green}2(M \cdot D)}t +
-          {\color{blue}(M \cdot M) - r^2} = 0\]
+          \[\htmlClass{m-a}{(D \cdot D)}t^2 + \htmlClass{m-b}{2(M \cdot D)}t +
+          \htmlClass{m-c}{(M \cdot M) - r^2} = 0\]
         </p>
         <p>
           Why is it helpful to have it in this form? Because the
           <em>quadratic formula</em> can be used to solve a quadratic equation
           for \(x\) (or, in our case, \(t\)). The quadratic formula is:
         </p>
-        <p>\[x = \frac{-b \pm \sqrt{{\color{blue}b^2 - 4ac}}}{2a}\]</p>
+        <p>\[x = \frac{-b \pm \sqrt{\htmlClass{m-c}{b^2 - 4ac}}}{2a}\]</p>
         <p>
           The part highlighted in blue is important. It’s called the
           discriminant. The result of this portion of the formula tells us what
@@ -1580,8 +1584,8 @@
         <h3 id="circle-vs-swept-aabb">Circle vs Swept AABB</h3>
         <p>
           This is the same problem as
-          <a href="#aabb-vs-swept-circle">AABB vs Swept Circle</a> wearing a
-          different hat. The positions where a box touches a circle make a
+          <a href="#aabb-vs-swept-circle">AABB vs Swept Circle</a> from the
+          other side. The positions where a box touches a circle make a
           rectangle the size of the box, centered on the circle, with its
           corners rounded off by the circle’s radius. That’s the same shape, so
           build the stand-in box and hand the work over.

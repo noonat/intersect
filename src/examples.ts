@@ -195,7 +195,7 @@ class Example {
     thickness: number = 1
   ) {
     // Stop the shaft just inside the head, so it cannot show through the
-    // point when the two are the same colour.
+    // point when the two are the same color.
     const head = arrow ? Math.min(ARROW_LENGTH, length * this.zoom) : 0;
     const shaft = Math.max(0, length - (head * 0.8) / this.zoom);
     this.drawSegment(
@@ -229,7 +229,7 @@ class Example {
     this.context.stroke();
   }
 
-  // The rejected state is hatched as well as coloured, so that it stays
+  // The rejected state is hatched as well as colored, so that it stays
   // distinguishable from the clear one without relying on hue.
   public drawAABBHatched(box: AABB, color: string, thickness: number = 1) {
     const x1 = Math.round(this.toX(box.pos.x - box.half.x));
@@ -949,7 +949,16 @@ type ExampleConstructor = new (
 ) => Example;
 
 ready(() => {
-  renderMathInElement(document.body);
+  // The math colors a few terms to tie them to the prose. \color takes a
+  // literal, which would then be wrong in one theme or the other, so the
+  // highlights are class names resolved against the palette in the
+  // stylesheet instead. That command needs trust, granted only to itself.
+  renderMathInElement(document.body, {
+    trust: (context: { command: string }) => context.command === "\\htmlClass",
+    // Trusting it is not enough on its own; strict mode warns about the
+    // extension separately, once per formula.
+    strict: (code: string) => (code === "htmlExtension" ? "ignore" : "warn")
+  });
 
   // Each example declares the extent it actually draws into, so the view
   // can be scaled to fill its frame. Left at the canvas size, the first

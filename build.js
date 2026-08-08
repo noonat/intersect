@@ -82,7 +82,7 @@ async function inlineFigure(name) {
     .replace(/<rect[^>]*id="background"[^>]*\/>/g, "")
     .replace(/<svg[^>]*>/, "")
     .replace(/<\/svg>/, "")
-    // The palette lives in the stylesheet now, so any colour baked into
+    // The palette lives in the stylesheet now, so any color baked into
     // an attribute would silently override it.
     .replace(/\s(?:fill|stroke)="#[0-9a-fA-F]{3,6}"/g, "")
     .replace(/class="([^"]+)"/g, (_, names) =>
