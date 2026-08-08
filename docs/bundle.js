@@ -14978,7 +14978,8 @@
       pending = window.setTimeout(resize, 100);
     });
     resize();
-    if (typeof IntersectionObserver === "function") {
+    const animateAll = window.location.hash === "#animate-all";
+    if (!animateAll && typeof IntersectionObserver === "function") {
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {

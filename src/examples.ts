@@ -666,7 +666,15 @@ ready(() => {
 
   // Nothing is gained by animating a canvas that is not on screen, and
   // there are five of them.
-  if (typeof IntersectionObserver === "function") {
+  //
+  // Except when something is looking at the page without scrolling it, like
+  // a screenshot of a section further down, where the examples would sit
+  // there unstarted. Loading with #animate-all leaves them all running. It's
+  // read once, on load, because the point is to set it up front rather than
+  // to toggle it while reading.
+  const animateAll = window.location.hash === "#animate-all";
+
+  if (!animateAll && typeof IntersectionObserver === "function") {
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
