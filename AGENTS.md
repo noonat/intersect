@@ -77,15 +77,23 @@ non-empty. **If you touch anything that feeds the build, run `npm run build`
 and commit the result in the same commit.** A change to the Markdown, the
 template, the CSS, the examples, or the SVGs all qualify.
 
+The `visual` job in the same file runs the Playwright suite against the
+committed page. It installs with `--ignore-scripts` precisely so that it does
+not rebuild: the `build` job above is what checks the committed output matches
+its source, and this one is then testing the page the repository actually
+publishes.
+
 ### Commands
 
 ```
 npm run build     # regenerate everything
-npm test          # jest (66 tests) + eslint over src and test
+npm test          # jest (66 tests), eslint, and the visual tests' type check
+npm run test:visual   # Playwright — needs a browser, see "Visual tests"
 npm run clean     # remove generated files
 ```
 
-`npm test` is fast — under two seconds. There is no reason not to run it.
+`npm test` is a few seconds, needs neither a browser nor the network, and is
+the one to run by habit. The visual tests are deliberately not part of it.
 
 ## The page design
 
@@ -174,7 +182,9 @@ resolves to whichever it saw first.
 
 `build.js` throws if the number of figures it inlined does not match the number
 of distinct files it found, so a typo in a path fails the build rather than
-producing a broken page.
+producing a broken page. It does **not** notice a class it has no mapping for:
+that one passes through unrecognised, styled by nothing, while the build
+reports success. `visual/structure.spec.ts` is what catches it, by name.
 
 Note that `class="small"` on the `<img>` is vestigial: the whole element is
 replaced, so the class goes with it. Layout comes from `figure`, `figure.right`
@@ -230,7 +240,8 @@ Things worth knowing before editing this file:
 - **Only visible examples animate.** An `IntersectionObserver` with
   `rootMargin: "100px"` gates the per-example `tick()`. Loading the page with
   the `#animate-all` fragment disables that, which is what you want when
-  screenshotting a section further down the page.
+  screenshotting a section further down the page — the visual tests depend on
+  it, and assert both halves of the behaviour.
 - The rAF step is clamped to `1/15`s so returning to a backgrounded tab does
   not jump.
 
@@ -285,7 +296,84 @@ Grep `src/examples.ts` for the id before renaming a heading.
 - Verifying in headless Chrome has produced false alarms more than once —
   apparent horizontal overflow from a window/viewport mismatch, a stray
   compositing artifact in a tall capture, and duplicate SVG ids introduced by a
-  harness that cloned nodes. Check the harness before believing the bug.
+  harness that cloned nodes. Check the harness before believing the bug. This
+  is much of why the checks below exist as a committed suite rather than as an
+  ad hoc script written fresh each time.
+
+## Visual tests
+
+`visual/` holds a Playwright suite covering the built page, which nothing
+checked before it: the jest tests check the intersection maths, and the figures,
+the theme, the formulas and the examples were verified by eye. Run it with
+`npm run test:visual`. It is not part of `npm test`, which stays offline and
+browser-free. `visual/README.md` is the fuller version of what follows.
+
+Three layers, in descending order of how much they churn when the design
+changes:
+
+1. **`structure.spec.ts`** — assertions that can be named, keeping no images.
+   This is where most of the value is, and it costs nothing to maintain. It
+   catches the failures that are otherwise silent: a class falling through the
+   mapping in `build.js` (the build still prints "inlined 11 figures" and exits
+   0), a figure that stopped being inlined, a `\htmlClass` option that stopped
+   applying and left the quadratic terms uncoloured, a heading rename that
+   detached an example, the shared `#fig-*` ids appearing more than once.
+2. **`figures.spec.ts`** — one image per inlined figure, per theme, because the
+   figures follow the page.
+3. **`examples.spec.ts`** — the animated canvases at chosen frames, in one
+   theme only, because `.example` pins the dark palette in both. That last fact
+   is itself asserted in `structure.spec.ts`, so it stays true or something
+   says so.
+
+### Why screenshotting an animation works here
+
+There is no clock and no randomness anywhere in `src/examples.ts`: every
+example derives its state purely by accumulating `requestAnimationFrame`
+deltas. `visual/helpers.ts` replaces the frame queue with one the test pumps by
+hand, at the `1/60` the page already assumes, so "frame 240" is the same
+picture every time. **Keep it that way.** A `Math.random()` or a `Date.now()`
+in an example would make these untestable.
+
+Loading with `#animate-all` is what switches off the `IntersectionObserver`
+gating; without it every canvas below the fold records blank.
+
+The frame numbers were found by stepping each example through six hundred
+frames and classifying what it had drawn, then taking a frame from the middle
+of a long run in each state it reaches. Each is recorded alongside an assertion
+about which palette roles should be on screen, so an example that drifts into a
+different state fails by saying so rather than as a rectangle of changed
+pixels. Change an example's motion and those frames want recomputing.
+
+### Baselines
+
+`visual/__screenshots__` holds Linux images produced by the exact Chromium
+`@playwright/test` resolves to. The version matters: a different browser
+renders antialiased edges differently. CI runs in
+`mcr.microsoft.com/playwright:v1.56.0-noble` for that reason, and there is a
+0.2% per-image pixel tolerance to absorb edge noise without absorbing a
+regression.
+
+**`@playwright/test` is pinned exactly — `1.56.0`, no caret** — alone among the
+devDependencies. That release is the one that ships Chromium 1194, which is
+what the baselines were recorded with. A caret would let a routine bump swap
+the browser out and fail every image at once. If you do upgrade it, change the
+container image in `ci.yml` and the docker script in `package.json` to the same
+version, and regenerate the baselines in the same commit.
+
+Regenerate after an intended change with:
+
+```
+npm run test:visual:update:docker   # inside the pinned container
+```
+
+**If every figure baseline fails at once, suspect the environment, not the
+page** — that is the signature of a browser or font-stack mismatch, whereas a
+real regression moves one thing. The CI job uploads a `visual-report` artifact
+with the expected, actual and diff images, which is the only practical way to
+judge a difference from a log.
+
+Review the diff before committing it. A baseline updated without being looked
+at records a bug as the expected result.
 
 ## Repository layout
 
@@ -304,6 +392,12 @@ docs/[A-Z0-9]{8}.*      GENERATED KaTeX font assets
 index.html              GENERATED — the published page
 lib/                    GENERATED — the compiled npm package
 test/*.test.ts          jest tests against the library
+visual/*.spec.ts        Playwright tests against the built page
+visual/helpers.ts       page setup, deterministic frame stepping, palette probe
+visual/server.js        static server for the suite, dependency-free
+visual/__screenshots__  committed baselines — Linux, pinned browser
+playwright.config.ts    visual test config
+tsconfig.visual.json    type checks the above; Playwright does not
 ```
 
 `docs/public/` (Aller, Novecento, Roboto Black, the fleurons font, `gray.png`,
