@@ -143,7 +143,8 @@ Intersection tests will return a Hit object when a collision occurs:
   non-colliding state.
 - **hit.time** is only defined for segment and sweep intersections, and is a
   fraction from 0 to 1 indicating how far along the line the collision occurred.
-  (This is the \\(t\\) value for the line equation \\(L(t) = A + t(B - A)\\))
+  (This is the \\(t\\) value for the line segment equation
+  \\(S(t) = A + t(B - A)\\))
 
 ### Sweep Tests
 
@@ -164,7 +165,7 @@ where the collision isn't as easy to resolve.
 Our intersection tests can only determine what the best way to resolve a
 collision with an object is for that one object, independent of any other
 objects you want to collide with. This means that correcting for a collision
-with object B moves you into a state where are colliding with object C, and
+with object B moves you into a state where you are colliding with object C, and
 the same thing happens with object C.
 
 Instead, you can use a sweep test to take the path of movement into account,
@@ -195,8 +196,8 @@ Sweep tests return a `Sweep` object:
 Axis-aligned bounding boxes (AABBs) are bounding rectangles that do not rotate.
 This means that their edges are always aligned with the main X and Y axes, which
 makes collision detection much simpler. These examples specify an AABB via a
-center point and box's half size for each axis (that is, the box's "radius" on
-each axis).
+center point and the box's half size for each axis (that is, the box's
+"radius" on each axis).
 
     export class AABB {
       public pos: Point;
@@ -214,11 +215,11 @@ AABB vs segment (raycast), AABB vs AABB, and AABB vs swept AABB.
 
 This test is very simple, but I've included it for completeness. If a point is
 behind all of the edges of the box, it's colliding. The function returns a Hit
-object, or null if the two do not collide. `hit.pos` and `hit.delta` will be
-set to the nearest edge of the box.
+object, or null if the two do not collide. `hit.pos` will be the nearest point
+on the edge of the box, and `hit.delta` will push the point back out to it.
 
-This code first finds the overlap on the X and Y axis. If the overlap is less
-than zero for either, a collision is not possible. Otherwise, we find the
+This code first finds the overlap on the X and Y axis. If the overlap is zero
+or less for either, a collision is not possible. Otherwise, we find the
 axis with the smallest overlap and use that to create an intersection point
 on the edge of the box.
 
@@ -263,11 +264,11 @@ AABB. If they overlap, the segment is intersecting.
 <div class="figure-row right">
 <figure>
   <img src="./docs/svg/box-near-far-x.svg" class="small"/>
-  <figcaption>Near x is greater than far y</figcaption>
+  <figcaption>Near and far x</figcaption>
 </figure>
 <figure>
   <img src="./docs/svg/box-near-far-y.svg" class="small"/>
-  <figcaption>Near x is greater than far y</figcaption>
+  <figcaption>Near and far y</figcaption>
 </figure>
 </div>
 
@@ -305,9 +306,10 @@ the value of \\(B - A\\).
 Next, we need to find the linear time at which point the segment intersects
 with the box's near and far edges.
 
-We can calculate this by subtracting the position of the edge from the segment's
-start position, then dividing by the segment's delta. Scaling is done here using
-multiplication instead of division to deal with floating point issues.
+We can calculate this by subtracting the segment's start position from the
+position of the edge, then dividing by the segment's delta. Scaling is done
+here using multiplication instead of division to deal with floating point
+issues.
 
         const scaleX = 1.0 / delta.x;
         const scaleY = 1.0 / delta.y;
@@ -320,8 +322,10 @@ multiplication instead of division to deal with floating point issues.
 
 A segment that doesn't move on one of the axes needs some care here. Dividing
 by a delta of zero gives an infinite scale, which is usually exactly what we
-want: the segment never crosses that axis' edges, so its times come out as
-negative and positive infinity, and the axis rules nothing out.
+want: the segment never crosses that axis' edges, so if it starts between them
+its times come out as negative and positive infinity, and the axis rules
+nothing out. If it starts outside them, both times come out as the same
+infinity, and the axis rules everything out.
 
 But if the segment also starts exactly on one of those edges, the distance to
 that edge is zero, and zero multiplied by infinity is `NaN`. That `NaN` then
@@ -380,31 +384,31 @@ times to determine whether the collision occurred on the segment.
 
 <div class="figure-row right">
 <figure>
-  <img src="./docs/svg/box-behind.svg" class="small"/>
-  <figcaption>Behind the segment</figcaption>
-</figure>
-<figure>
   <img src="./docs/svg/box-front.svg" class="small"/>
   <figcaption>In front of the segment</figcaption>
 </figure>
+<figure>
+  <img src="./docs/svg/box-behind.svg" class="small"/>
+  <figcaption>Behind the segment</figcaption>
+</figure>
 </div>
 
-If the **near time is greater than or equal to 1**, the line starts in front
-of the nearest edge, but finishes before it reaches it. That is, it means it
-further than a whole segment length away. If the **far time is less than or
-equal to 0**, the line starts in front of the far side of the box, and points
-away from the box.
+If the **near time is greater than or equal to 1**, the segment stops before it
+reaches the nearest edge. That is, the near edge is at least a whole segment
+length away from where the segment starts. If the **far time is less than or
+equal to 0**, the segment starts past the far side of the box, and points away
+from it.
 
         if (nearTime >= 1 || farTime <= 0) {
           return null;
         }
 
-If we've gotten this far a collision of some sort is happening. If the near time
+If we've gotten this far, a collision of some sort is happening. If the near time
 is greater than zero, the segment starts outside and is entering the box.
 Otherwise, the segment starts inside the box, and is exiting it. If we're
 entering the box, we can set the hit time to the near time, since that's the
 point along the segment at which it collided. If it's inside, it's colliding at
-the very starting of the line, so just set the hit time to zero.
+the very start of the line, so just set the hit time to zero.
 
         const hit = new Hit(this);
         hit.time = clamp(nearTime, 0, 1);
@@ -477,7 +481,7 @@ This code is very similar to the `intersectPoint` function above.
 </figure>
 <figure>
   <img src="./docs/svg/box-sweep-padded-test.svg" class="small"/>
-  <figcaption>If B is padded with the size of A, this segment test is the same as sweeping A.</figcaption>
+  <figcaption>If B is padded with the size of A, this segment test is the same as sweeping A</figcaption>
 </figure>
 </div>
 
