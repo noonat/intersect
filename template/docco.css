@@ -827,6 +827,25 @@ figcaption {
   font-size: 1.04em;
 }
 
+/* A formula wider than the column has to scroll in its own box, the way
+   a long line of code does. Left to itself it widens the whole document
+   instead, and every other element on the page shifts with it. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Room for the scrollbar, where one is drawn, so it cannot sit on the
+     descenders of the line above it. */
+  padding-bottom: 4px;
+}
+
+/* Centering is right for a formula that fits, but it puts the left half
+   of an overflowing one out of reach. Safe centering falls back to the
+   start in that case. */
+.katex-display > .katex {
+  display: flex;
+  justify-content: safe center;
+}
+
 /* The three terms of a quadratic, picked out so the prose can point at
    them. They borrow the diagram palette rather than naming colors, so
    they stay legible on both grounds. */
