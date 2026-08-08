@@ -348,7 +348,7 @@ export class AABB {
     return sweep;
   }
 
-  public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
+  public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
     let nearest = new Sweep();
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;
@@ -500,5 +500,19 @@ export class Circle {
       sweep.hit.pos.y = this.pos.y + sweep.hit.normal.y * this.radius;
     }
     return sweep;
+  }
+
+  public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+    let nearest = new Sweep();
+    nearest.time = 1;
+    nearest.pos.x = this.pos.x + delta.x;
+    nearest.pos.y = this.pos.y + delta.y;
+    for (const collider of staticColliders) {
+      const sweep = collider.sweepCircle(this, delta);
+      if (sweep.time < nearest.time) {
+        nearest = sweep;
+      }
+    }
+    return nearest;
   }
 }

@@ -147,6 +147,11 @@
                 <li>
                   <a href="#circle-vs-swept-aabb">Circle vs Swept AABB</a>
                 </li>
+                <li>
+                  <a href="#sweeping-a-circle-through-multiple-objects"
+                    >Sweeping a Circle Through Multiple Objects</a
+                  >
+                </li>
               </ol>
             </li>
           </ol>
@@ -1155,14 +1160,16 @@
         </p>
         <p>
           So, let’s say we have an AABB we want to move from one point to
-          another, without allowing it to collide with a list of static AABBs.
+          another, without allowing it to collide with a list of static objects.
           To do this, we need to call <code>sweepAABB</code> on each static
           object, and keep track of the sweep that moved the least distance
-          &mdash; that is, the nearest collision to the start of the path.
+          &mdash; that is, the nearest collision to the start of the path. Boxes
+          and circles both know how to sweep a box through themselves, so the
+          list can hold either.
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-variable constant_">AABB</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
     <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
     nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
@@ -1601,6 +1608,34 @@
       sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + sweep.<span class="hljs-property">hit</span>.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
     }
     <span class="hljs-keyword">return</span> sweep;
+  }</pre>
+        </div>
+
+        <h3 id="sweeping-a-circle-through-multiple-objects">
+          Sweeping a Circle Through Multiple Objects
+        </h3>
+        <p>
+          The same idea as
+          <a href="#sweeping-an-aabb-through-multiple-objects"
+            >sweeping a box through many</a
+          >, and the same caveat about broad and narrow phases applies. The only
+          difference is which sweep gets called on each static object, since
+          it’s a circle moving now.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+    <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
+    nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
+    nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
+    nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + delta.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> collider <span class="hljs-keyword">of</span> staticColliders) {
+      <span class="hljs-keyword">const</span> sweep = collider.<span class="hljs-title function_">sweepCircle</span>(<span class="hljs-variable language_">this</span>, delta);
+      <span class="hljs-keyword">if</span> (sweep.<span class="hljs-property">time</span> &lt; nearest.<span class="hljs-property">time</span>) {
+        nearest = sweep;
+      }
+    }
+    <span class="hljs-keyword">return</span> nearest;
   }
 }</pre>
         </div>

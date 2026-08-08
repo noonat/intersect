@@ -33,6 +33,7 @@ on this page are also written in TypeScript, using the library.
    4. [Circle vs Swept Circle](#circle-vs-swept-circle)
    5. [Circle vs AABB](#circle-vs-aabb)
    6. [Circle vs Swept AABB](#circle-vs-swept-aabb)
+   7. [Sweeping a Circle Through Multiple Objects](#sweeping-a-circle-through-multiple-objects)
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -691,11 +692,13 @@ solving the narrow phase. You can usually get away without a broad phase for
 simple games, however, if you aren't colliding against a huge number of objects.
 
 So, let's say we have an AABB we want to move from one point to another, without
-allowing it to collide with a list of static AABBs. To do this, we need to call
+allowing it to collide with a list of static objects. To do this, we need to call
 `sweepAABB` on each static object, and keep track of the sweep that moved the
 least distance &mdash; that is, the nearest collision to the start of the path.
+Boxes and circles both know how to sweep a box through themselves, so the list
+can hold either.
 
-      public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
+      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
@@ -1043,5 +1046,26 @@ just that normal on the edge of this circle.
           sweep.hit.pos.y = this.pos.y + sweep.hit.normal.y * this.radius;
         }
         return sweep;
+      }
+
+### Sweeping a Circle Through Multiple Objects
+
+The same idea as [sweeping a box through
+many](#sweeping-an-aabb-through-multiple-objects), and the same caveat about
+broad and narrow phases applies. The only difference is which sweep gets
+called on each static object, since it's a circle moving now.
+
+      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+        let nearest = new Sweep();
+        nearest.time = 1;
+        nearest.pos.x = this.pos.x + delta.x;
+        nearest.pos.y = this.pos.y + delta.y;
+        for (const collider of staticColliders) {
+          const sweep = collider.sweepCircle(this, delta);
+          if (sweep.time < nearest.time) {
+            nearest = sweep;
+          }
+        }
+        return nearest;
       }
     }

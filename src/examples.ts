@@ -876,6 +876,57 @@ class CircleSweptAABBExample extends Example {
   }
 }
 
+class MultipleColliderSweptCircleExample extends Example {
+  public delta: Point;
+  public velocity: Point;
+  public movingCircle: Circle;
+  public staticColliders: (AABB | Circle)[];
+
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
+    super(context, width, height);
+    this.delta = new Point();
+    this.velocity = new Point(48, 48);
+    this.movingCircle = new Circle(new Point(-56, -32), 8);
+    this.staticColliders = [
+      new AABB(new Point(-96, 0), new Point(8, 48)),
+      new AABB(new Point(96, 0), new Point(8, 48)),
+      new AABB(new Point(0, -56), new Point(104, 8)),
+      new AABB(new Point(0, 56), new Point(104, 8)),
+      new Circle(new Point(0, 0), 16)
+    ];
+  }
+
+  public override tick(elapsed: number) {
+    super.tick(elapsed);
+    this.delta.x = this.velocity.x * elapsed;
+    this.delta.y = this.velocity.y * elapsed;
+    const sweep = this.movingCircle.sweepInto(this.staticColliders, this.delta);
+    if (sweep.hit) {
+      // Same caveat as the box version: a real game would slide along the
+      // normal and spend the rest of the velocity.
+      reflect(this.velocity, sweep.hit.normal, this.velocity);
+    }
+    this.staticColliders.forEach(collider => {
+      const hit = sweep.hit && sweep.hit.collider === collider;
+      const stroke = hit ? color("world") : color("edge");
+      if (collider instanceof Circle) {
+        this.drawCircle(collider, stroke);
+      } else {
+        this.drawAABB(collider, stroke);
+      }
+    });
+    this.movingCircle.pos = sweep.pos;
+    this.drawCircle(
+      this.movingCircle,
+      sweep.hit ? color("correct") : color("clear")
+    );
+  }
+}
+
 function ready(callback: () => void) {
   if (document.readyState === "complete") {
     setTimeout(callback, 1);
@@ -1012,6 +1063,14 @@ ready(() => {
       caption:
         "The same test from the other side: the box stops against the " +
         "circle, on its faces and on its corners alike."
+    },
+    {
+      id: "sweeping-a-circle-through-multiple-objects",
+      constructor: MultipleColliderSweptCircleExample,
+      content: [208, 128],
+      caption:
+        "The list of static objects can mix shapes; the circle is swept " +
+        "against the walls and the pillar alike."
     }
   ];
 

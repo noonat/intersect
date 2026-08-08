@@ -222,6 +222,44 @@ describe("Circle", () => {
       almostEqual(sweep.time, 1);
     });
   });
+
+  describe("sweepInto", () => {
+    test("should return the full move when nothing is in the way", () => {
+      const circle = new Circle(new Point(0, 0), 8);
+      const delta = new Point(32, 0);
+      const sweep = circle.sweepInto(
+        [new AABB(new Point(0, 128), new Point(8, 8))],
+        delta
+      );
+      assert.equal(sweep.hit, null);
+      almostEqual(sweep.time, 1);
+      almostEqual(sweep.pos.x, delta.x);
+      almostEqual(sweep.pos.y, 0);
+    });
+
+    test("should return the nearest of several hits", () => {
+      // Both boxes are on the path; only the first one should stop it.
+      const circle = new Circle(new Point(0, 0), 8);
+      const near = new AABB(new Point(64, 0), new Point(8, 8));
+      const far = new AABB(new Point(128, 0), new Point(8, 8));
+      const sweep = circle.sweepInto([far, near], new Point(256, 0));
+      const hit = assertNotNull(sweep.hit);
+      assert.equal(hit.collider, near);
+      // Contact is at 64 - 8 - 8 = 48 units out of 256.
+      almostEqual(sweep.time, 48 / 256 - EPSILON);
+    });
+
+    test("should sweep against boxes and circles alike", () => {
+      const circle = new Circle(new Point(0, 0), 8);
+      const box = new AABB(new Point(128, 0), new Point(8, 8));
+      const pillar = new Circle(new Point(64, 0), 16);
+      const sweep = circle.sweepInto([box, pillar], new Point(256, 0));
+      const hit = assertNotNull(sweep.hit);
+      assert.equal(hit.collider, pillar);
+      // Contact is when the centers are 16 + 8 apart, so 40 units out.
+      almostEqual(sweep.time, 40 / 256 - EPSILON);
+    });
+  });
 });
 
 describe("AABB vs Circle", () => {
@@ -324,6 +362,19 @@ describe("AABB vs Circle", () => {
       assert.ok(sweep.hit instanceof Hit);
       almostEqual(sweep.time, 0);
       almostEqual(sweep.pos.x, circle.pos.x);
+    });
+  });
+
+  describe("sweepInto", () => {
+    test("should stop a moving box against a static circle", () => {
+      const mover = new AABB(new Point(0, 0), new Point(8, 8));
+      const wall = new AABB(new Point(128, 0), new Point(8, 8));
+      const pillar = new Circle(new Point(64, 0), 16);
+      const sweep = mover.sweepInto([wall, pillar], new Point(256, 0));
+      const hit = assertNotNull(sweep.hit);
+      assert.equal(hit.collider, pillar);
+      // The box's face meets the circle 64 - 16 - 8 = 40 units out.
+      almostEqual(sweep.time, 40 / 256 - EPSILON);
     });
   });
 });

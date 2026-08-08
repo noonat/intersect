@@ -14718,6 +14718,19 @@
       }
       return sweep;
     }
+    sweepInto(staticColliders, delta) {
+      let nearest = new Sweep();
+      nearest.time = 1;
+      nearest.pos.x = this.pos.x + delta.x;
+      nearest.pos.y = this.pos.y + delta.y;
+      for (const collider of staticColliders) {
+        const sweep = collider.sweepCircle(this, delta);
+        if (sweep.time < nearest.time) {
+          nearest = sweep;
+        }
+      }
+      return nearest;
+    }
   };
 
   // src/examples.ts
@@ -15356,6 +15369,44 @@
       });
     }
   };
+  var MultipleColliderSweptCircleExample = class extends Example {
+    constructor(context, width, height) {
+      super(context, width, height);
+      this.delta = new Point();
+      this.velocity = new Point(48, 48);
+      this.movingCircle = new Circle(new Point(-56, -32), 8);
+      this.staticColliders = [
+        new AABB(new Point(-96, 0), new Point(8, 48)),
+        new AABB(new Point(96, 0), new Point(8, 48)),
+        new AABB(new Point(0, -56), new Point(104, 8)),
+        new AABB(new Point(0, 56), new Point(104, 8)),
+        new Circle(new Point(0, 0), 16)
+      ];
+    }
+    tick(elapsed) {
+      super.tick(elapsed);
+      this.delta.x = this.velocity.x * elapsed;
+      this.delta.y = this.velocity.y * elapsed;
+      const sweep = this.movingCircle.sweepInto(this.staticColliders, this.delta);
+      if (sweep.hit) {
+        reflect(this.velocity, sweep.hit.normal, this.velocity);
+      }
+      this.staticColliders.forEach((collider) => {
+        const hit = sweep.hit && sweep.hit.collider === collider;
+        const stroke = hit ? color("world") : color("edge");
+        if (collider instanceof Circle) {
+          this.drawCircle(collider, stroke);
+        } else {
+          this.drawAABB(collider, stroke);
+        }
+      });
+      this.movingCircle.pos = sweep.pos;
+      this.drawCircle(
+        this.movingCircle,
+        sweep.hit ? color("correct") : color("clear")
+      );
+    }
+  };
   function ready(callback) {
     if (document.readyState === "complete") {
       setTimeout(callback, 1);
@@ -15450,6 +15501,12 @@
         constructor: CircleSweptAABBExample,
         content: [312, 128],
         caption: "The same test from the other side: the box stops against the circle, on its faces and on its corners alike."
+      },
+      {
+        id: "sweeping-a-circle-through-multiple-objects",
+        constructor: MultipleColliderSweptCircleExample,
+        content: [208, 128],
+        caption: "The list of static objects can mix shapes; the circle is swept against the walls and the pillar alike."
       }
     ];
     const PLATE_ASPECT = 3;
