@@ -25,13 +25,13 @@ on this page are also written in TypeScript, using the library.
    4. [AABB vs Swept AABB](#aabb-vs-swept-aabb)
    5. [AABB vs Circle](#aabb-vs-circle)
    6. [AABB vs Swept Circle](#aabb-vs-swept-circle)
-4. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
-5. [Circles](#circles)
+   7. [Sweeping an AABB Through Multiple Objects](#sweeping-an-aabb-through-multiple-objects)
+4. [Circles](#circles)
    1. [Circle vs Point](#circle-vs-point)
    2. [Circle vs Segment](#circle-vs-segment)
-   3. [Circle vs AABB](#circle-vs-aabb)
-   4. [Circle vs Circle](#circle-vs-circle)
-   5. [Circle vs Swept Circle](#circle-vs-swept-circle)
+   3. [Circle vs Circle](#circle-vs-circle)
+   4. [Circle vs Swept Circle](#circle-vs-swept-circle)
+   5. [Circle vs AABB](#circle-vs-aabb)
    6. [Circle vs Swept AABB](#circle-vs-swept-aabb)
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
@@ -549,32 +549,11 @@ of the box, as close to the segment of movement as possible.
         return sweep;
       }
 
-### Sweeping an AABB Through Multiple Objects
-
-So, let's say we have an AABB we want to move from one point to another, without
-allowing it to collide with a list of static AABBs. To do this, we need to call
-`sweepAABB` on each static object, and keep track of the sweep that moved the
-least distance &mdash; that is, the nearest collision to the start of the path.
-
-      public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
-        let nearest = new Sweep();
-        nearest.time = 1;
-        nearest.pos.x = this.pos.x + delta.x;
-        nearest.pos.y = this.pos.y + delta.y;
-        for (const collider of staticColliders) {
-          const sweep = collider.sweepAABB(this, delta);
-          if (sweep.time < nearest.time) {
-            nearest = sweep;
-          }
-        }
-        return nearest;
-      }
-
 ### AABB vs Circle
 
 This one and the next belong to the box, because the box is the static object
-in both, but they need circles, which are covered in the [next
-section](#circles). Feel free to read that first and come back.
+in both, but they need circles, which are covered in [their own
+section](#circles) below. Feel free to read that first and come back.
 
 To find out whether a circle overlaps a box, take the point on the box nearest
 to the circle's center. If that point is closer than the radius, they overlap.
@@ -692,7 +671,8 @@ back along the normal to put it on the surface of the box.
         }
         return sweep;
       }
-    }
+
+### Sweeping an AABB Through Multiple Objects
 
 It's a common use case to have a single object that needs to move through a
 world, colliding with many other objects. Note that solving this problem
@@ -709,6 +689,26 @@ efficiently requires two steps:
 The first step is out of scope for this library, but these tests are great for
 solving the narrow phase. You can usually get away without a broad phase for
 simple games, however, if you aren't colliding against a huge number of objects.
+
+So, let's say we have an AABB we want to move from one point to another, without
+allowing it to collide with a list of static AABBs. To do this, we need to call
+`sweepAABB` on each static object, and keep track of the sweep that moved the
+least distance &mdash; that is, the nearest collision to the start of the path.
+
+      public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
+        let nearest = new Sweep();
+        nearest.time = 1;
+        nearest.pos.x = this.pos.x + delta.x;
+        nearest.pos.y = this.pos.y + delta.y;
+        for (const collider of staticColliders) {
+          const sweep = collider.sweepAABB(this, delta);
+          if (sweep.time < nearest.time) {
+            nearest = sweep;
+          }
+        }
+        return nearest;
+      }
+    }
 
 ## Circles
 
@@ -918,53 +918,6 @@ calculate and return a hit.
         return hit;
       }
 
-### Circle vs AABB
-
-To test for a collision between a circle and an AABB, we can simplify it to
-a test of the distance of the of the center of the circle from the closest
-point on the edge of the AABB. We can calculate the closest point by clamping
-the circle's position to the edges of the box:
-
-      public intersectAABB(box: AABB): Hit | null {
-        let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
-        let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
-
-Once we have the nearest point, we need to convert it into the circle's
-coordinate space -- that is, make the point relative to the circle's center:
-
-        dx -= this.pos.x;
-        dy -= this.pos.y;
-
-Then we can calculate the length of that vector, and if it's greater than the
-radius of the circle, the circle isn't colliding with the box:
-
-        const distanceSquared = dx * dx + dy * dy;
-        if (distanceSquared >= this.radius * this.radius) {
-          return null;
-        }
-
-Otherwise, they're colliding, and we need to create a hit.
-
-        const hit = new Hit(this);
-        hit.normal.x = box.pos.x - this.pos.x;
-        hit.normal.y = box.pos.y - this.pos.y;
-        hit.normal.normalize();
-        hit.pos.x = this.pos.x + hit.normal.x * this.radius;
-        hit.pos.y = this.pos.y + hit.normal.y * this.radius;
-        let px: number;
-        let py: number;
-        if (abs(hit.normal.x) > abs(hit.normal.y)) {
-          px = box.half.x * sign(hit.normal.x);
-          py = (px * hit.normal.y) / hit.normal.x;
-        } else {
-          py = box.half.y * sign(hit.normal.y);
-          px = (py * hit.normal.x) / hit.normal.y;
-        }
-        hit.delta.x = hit.pos.x + px - box.pos.x;
-        hit.delta.y = hit.pos.y + py - box.pos.y;
-        return hit;
-      }
-
 ### Circle vs Circle
 
 The last few tests were a little complicated, so here's an easy one for you.
@@ -1017,6 +970,53 @@ on the surface of this one.
           sweep.pos.y = circle.pos.y + delta.y;
         }
         return sweep;
+      }
+
+### Circle vs AABB
+
+To test for a collision between a circle and an AABB, we can simplify it to
+a test of the distance of the of the center of the circle from the closest
+point on the edge of the AABB. We can calculate the closest point by clamping
+the circle's position to the edges of the box:
+
+      public intersectAABB(box: AABB): Hit | null {
+        let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+        let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
+
+Once we have the nearest point, we need to convert it into the circle's
+coordinate space -- that is, make the point relative to the circle's center:
+
+        dx -= this.pos.x;
+        dy -= this.pos.y;
+
+Then we can calculate the length of that vector, and if it's greater than the
+radius of the circle, the circle isn't colliding with the box:
+
+        const distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared >= this.radius * this.radius) {
+          return null;
+        }
+
+Otherwise, they're colliding, and we need to create a hit.
+
+        const hit = new Hit(this);
+        hit.normal.x = box.pos.x - this.pos.x;
+        hit.normal.y = box.pos.y - this.pos.y;
+        hit.normal.normalize();
+        hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+        hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+        let px: number;
+        let py: number;
+        if (abs(hit.normal.x) > abs(hit.normal.y)) {
+          px = box.half.x * sign(hit.normal.x);
+          py = (px * hit.normal.y) / hit.normal.x;
+        } else {
+          py = box.half.y * sign(hit.normal.y);
+          px = (py * hit.normal.x) / hit.normal.y;
+        }
+        hit.delta.x = hit.pos.x + px - box.pos.x;
+        hit.delta.y = hit.pos.y + py - box.pos.y;
+        return hit;
       }
 
 ### Circle vs Swept AABB

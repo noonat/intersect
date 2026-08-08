@@ -248,20 +248,6 @@ export class AABB {
     return sweep;
   }
 
-  public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
-    let nearest = new Sweep();
-    nearest.time = 1;
-    nearest.pos.x = this.pos.x + delta.x;
-    nearest.pos.y = this.pos.y + delta.y;
-    for (const collider of staticColliders) {
-      const sweep = collider.sweepAABB(this, delta);
-      if (sweep.time < nearest.time) {
-        nearest = sweep;
-      }
-    }
-    return nearest;
-  }
-
   public intersectCircle(circle: Circle): Hit | null {
     const nearestX = clamp(
       circle.pos.x,
@@ -361,6 +347,20 @@ export class AABB {
     }
     return sweep;
   }
+
+  public sweepInto(staticColliders: AABB[], delta: Point): Sweep {
+    let nearest = new Sweep();
+    nearest.time = 1;
+    nearest.pos.x = this.pos.x + delta.x;
+    nearest.pos.y = this.pos.y + delta.y;
+    for (const collider of staticColliders) {
+      const sweep = collider.sweepAABB(this, delta);
+      if (sweep.time < nearest.time) {
+        nearest = sweep;
+      }
+    }
+    return nearest;
+  }
 }
 
 export class Circle {
@@ -428,36 +428,6 @@ export class Circle {
     return hit;
   }
 
-  public intersectAABB(box: AABB): Hit | null {
-    let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
-    let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
-    dx -= this.pos.x;
-    dy -= this.pos.y;
-    const distanceSquared = dx * dx + dy * dy;
-    if (distanceSquared >= this.radius * this.radius) {
-      return null;
-    }
-
-    const hit = new Hit(this);
-    hit.normal.x = box.pos.x - this.pos.x;
-    hit.normal.y = box.pos.y - this.pos.y;
-    hit.normal.normalize();
-    hit.pos.x = this.pos.x + hit.normal.x * this.radius;
-    hit.pos.y = this.pos.y + hit.normal.y * this.radius;
-    let px: number;
-    let py: number;
-    if (abs(hit.normal.x) > abs(hit.normal.y)) {
-      px = box.half.x * sign(hit.normal.x);
-      py = (px * hit.normal.y) / hit.normal.x;
-    } else {
-      py = box.half.y * sign(hit.normal.y);
-      px = (py * hit.normal.x) / hit.normal.y;
-    }
-    hit.delta.x = hit.pos.x + px - box.pos.x;
-    hit.delta.y = hit.pos.y + py - box.pos.y;
-    return hit;
-  }
-
   public intersectCircle(circle: Circle): Hit | null {
     return this.intersectPoint(circle.pos, circle.radius);
   }
@@ -488,6 +458,36 @@ export class Circle {
       sweep.pos.y = circle.pos.y + delta.y;
     }
     return sweep;
+  }
+
+  public intersectAABB(box: AABB): Hit | null {
+    let dx = clamp(this.pos.x, box.pos.x - box.half.x, box.pos.x + box.half.x);
+    let dy = clamp(this.pos.y, box.pos.y - box.half.y, box.pos.y + box.half.y);
+    dx -= this.pos.x;
+    dy -= this.pos.y;
+    const distanceSquared = dx * dx + dy * dy;
+    if (distanceSquared >= this.radius * this.radius) {
+      return null;
+    }
+
+    const hit = new Hit(this);
+    hit.normal.x = box.pos.x - this.pos.x;
+    hit.normal.y = box.pos.y - this.pos.y;
+    hit.normal.normalize();
+    hit.pos.x = this.pos.x + hit.normal.x * this.radius;
+    hit.pos.y = this.pos.y + hit.normal.y * this.radius;
+    let px: number;
+    let py: number;
+    if (abs(hit.normal.x) > abs(hit.normal.y)) {
+      px = box.half.x * sign(hit.normal.x);
+      py = (px * hit.normal.y) / hit.normal.x;
+    } else {
+      py = box.half.y * sign(hit.normal.y);
+      px = (py * hit.normal.x) / hit.normal.y;
+    }
+    hit.delta.x = hit.pos.x + px - box.pos.x;
+    hit.delta.y = hit.pos.y + py - box.pos.y;
+    return hit;
   }
 
   public sweepAABB(box: AABB, delta: Point): Sweep {

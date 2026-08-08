@@ -500,6 +500,68 @@ class AABBCircleExample extends Example {
   }
 }
 
+class AABBSweptCircleExample extends Example {
+  public angle: number;
+  public staticBox: AABB;
+  public sweepCircles: Circle[];
+  public sweepDeltas: Point[];
+  public tempCircle: Circle;
+
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
+    super(context, width, height);
+    this.angle = 0;
+    this.staticBox = new AABB(new Point(0, 0), new Point(112, 16));
+    this.sweepCircles = [
+      new Circle(new Point(-152, 24), 16),
+      new Circle(new Point(128, -48), 16)
+    ];
+    this.sweepDeltas = [new Point(64, -12), new Point(-32, 96)];
+    this.tempCircle = new Circle(new Point(0, 0), 16);
+  }
+
+  public override tick(elapsed: number) {
+    super.tick(elapsed);
+    this.angle += 0.5 * Math.PI * elapsed;
+    this.drawAABB(this.staticBox, color("edge"));
+    const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
+    this.sweepCircles.forEach((circle, i) => {
+      const sweepDelta = this.sweepDeltas[i];
+      if (!sweepDelta) {
+        return;
+      }
+      const delta = sweepDelta.clone();
+      delta.x *= factor;
+      delta.y *= factor;
+      const sweep = this.staticBox.sweepCircle(circle, delta);
+      const dir = delta.clone();
+      const length = dir.normalize();
+      this.drawCircle(circle, color("edge"));
+      if (sweep.hit) {
+        // Draw a red circle at the point where it was trying to move to
+        this.drawRay(circle.pos, dir, length, color("collide"));
+        this.tempCircle.pos.x = circle.pos.x + delta.x;
+        this.tempCircle.pos.y = circle.pos.y + delta.y;
+        this.drawCircleHatched(this.tempCircle, color("collide"));
+        // Draw a yellow circle at the point it actually got to
+        this.tempCircle.pos.x = sweep.pos.x;
+        this.tempCircle.pos.y = sweep.pos.y;
+        this.drawCircle(this.tempCircle, color("correct"));
+        this.drawPoint(sweep.hit.pos, color("correct"));
+        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, color("correct"), false);
+      } else {
+        this.tempCircle.pos.x = sweep.pos.x;
+        this.tempCircle.pos.y = sweep.pos.y;
+        this.drawCircle(this.tempCircle, color("clear"));
+        this.drawRay(circle.pos, dir, length, color("clear"));
+      }
+    });
+  }
+}
+
 class MultipleAABBSweptAABBExample extends Example {
   public delta: Point;
   public velocity: Point;
@@ -544,7 +606,6 @@ class MultipleAABBSweptAABBExample extends Example {
     this.drawAABB(this.movingBox, sweep.hit ? color("correct") : color("clear"));
   }
 }
-
 
 class CirclePointExample extends Example {
   public angle: number;
@@ -615,42 +676,6 @@ class CircleSegmentExample extends Example {
       this.drawRay(hit.pos, hit.normal, 6, color("correct"), false);
     } else {
       this.drawRay(pos1, dir, length, color("clear"));
-    }
-  }
-}
-
-class CircleAABBExample extends Example {
-  public angle: number;
-  public circle: Circle;
-  public box: AABB;
-
-  constructor(
-    context: CanvasRenderingContext2D,
-    width: number,
-    height: number
-  ) {
-    super(context, width, height);
-    this.angle = 0;
-    this.circle = new Circle(new Point(0, 0), 32);
-    this.box = new AABB(new Point(0, 0), new Point(16, 16));
-  }
-
-  public override tick(elapsed: number) {
-    super.tick(elapsed);
-    this.angle += 0.2 * Math.PI * elapsed;
-    this.box.pos.x = Math.cos(this.angle) * 96;
-    this.box.pos.y = Math.sin(this.angle * 2.4) * 24;
-    const hit = this.circle.intersectAABB(this.box);
-    this.drawCircle(this.circle, color("edge"));
-    if (hit) {
-      this.drawAABBHatched(this.box, color("collide"));
-      this.box.pos.x += hit.delta.x;
-      this.box.pos.y += hit.delta.y;
-      this.drawAABB(this.box, color("correct"));
-      this.drawPoint(hit.pos, color("correct"));
-      this.drawRay(hit.pos, hit.normal, 4, color("correct"), false);
-    } else {
-      this.drawAABB(this.box, color("clear"));
     }
   }
 }
@@ -753,14 +778,10 @@ class CircleSweptCircleExample extends Example {
   }
 }
 
-
-
-class AABBSweptCircleExample extends Example {
+class CircleAABBExample extends Example {
   public angle: number;
-  public staticBox: AABB;
-  public sweepCircles: Circle[];
-  public sweepDeltas: Point[];
-  public tempCircle: Circle;
+  public circle: Circle;
+  public box: AABB;
 
   constructor(
     context: CanvasRenderingContext2D,
@@ -769,51 +790,27 @@ class AABBSweptCircleExample extends Example {
   ) {
     super(context, width, height);
     this.angle = 0;
-    this.staticBox = new AABB(new Point(0, 0), new Point(112, 16));
-    this.sweepCircles = [
-      new Circle(new Point(-152, 24), 16),
-      new Circle(new Point(128, -48), 16)
-    ];
-    this.sweepDeltas = [new Point(64, -12), new Point(-32, 96)];
-    this.tempCircle = new Circle(new Point(0, 0), 16);
+    this.circle = new Circle(new Point(0, 0), 32);
+    this.box = new AABB(new Point(0, 0), new Point(16, 16));
   }
 
   public override tick(elapsed: number) {
     super.tick(elapsed);
-    this.angle += 0.5 * Math.PI * elapsed;
-    this.drawAABB(this.staticBox, color("edge"));
-    const factor = (Math.cos(this.angle) + 1) * 0.5 || 1e-8;
-    this.sweepCircles.forEach((circle, i) => {
-      const sweepDelta = this.sweepDeltas[i];
-      if (!sweepDelta) {
-        return;
-      }
-      const delta = sweepDelta.clone();
-      delta.x *= factor;
-      delta.y *= factor;
-      const sweep = this.staticBox.sweepCircle(circle, delta);
-      const dir = delta.clone();
-      const length = dir.normalize();
-      this.drawCircle(circle, color("edge"));
-      if (sweep.hit) {
-        // Draw a red circle at the point where it was trying to move to
-        this.drawRay(circle.pos, dir, length, color("collide"));
-        this.tempCircle.pos.x = circle.pos.x + delta.x;
-        this.tempCircle.pos.y = circle.pos.y + delta.y;
-        this.drawCircleHatched(this.tempCircle, color("collide"));
-        // Draw a yellow circle at the point it actually got to
-        this.tempCircle.pos.x = sweep.pos.x;
-        this.tempCircle.pos.y = sweep.pos.y;
-        this.drawCircle(this.tempCircle, color("correct"));
-        this.drawPoint(sweep.hit.pos, color("correct"));
-        this.drawRay(sweep.hit.pos, sweep.hit.normal, 4, color("correct"), false);
-      } else {
-        this.tempCircle.pos.x = sweep.pos.x;
-        this.tempCircle.pos.y = sweep.pos.y;
-        this.drawCircle(this.tempCircle, color("clear"));
-        this.drawRay(circle.pos, dir, length, color("clear"));
-      }
-    });
+    this.angle += 0.2 * Math.PI * elapsed;
+    this.box.pos.x = Math.cos(this.angle) * 96;
+    this.box.pos.y = Math.sin(this.angle * 2.4) * 24;
+    const hit = this.circle.intersectAABB(this.box);
+    this.drawCircle(this.circle, color("edge"));
+    if (hit) {
+      this.drawAABBHatched(this.box, color("collide"));
+      this.box.pos.x += hit.delta.x;
+      this.box.pos.y += hit.delta.y;
+      this.drawAABB(this.box, color("correct"));
+      this.drawPoint(hit.pos, color("correct"));
+      this.drawRay(hit.pos, hit.normal, 4, color("correct"), false);
+    } else {
+      this.drawAABB(this.box, color("clear"));
+    }
   }
 }
 
@@ -878,7 +875,6 @@ class CircleSweptAABBExample extends Example {
     });
   }
 }
-
 
 function ready(callback: () => void) {
   if (document.readyState === "complete") {
@@ -954,6 +950,14 @@ ready(() => {
         "corrected position beside it in amber."
     },
     {
+      id: "aabb-vs-swept-circle",
+      constructor: AABBSweptCircleExample,
+      content: [312, 128],
+      caption:
+        "Inflating the box by the circle rounds off its corners, so the " +
+        "circle rolls around them instead of catching on a square edge."
+    },
+    {
       id: "sweeping-an-aabb-through-multiple-objects",
       constructor: MultipleAABBSweptAABBExample,
       content: [208, 128],
@@ -978,14 +982,6 @@ ready(() => {
         "surface normal there."
     },
     {
-      id: "circle-vs-aabb",
-      constructor: CircleAABBExample,
-      content: [224, 80],
-      caption:
-        "Where the box overlaps the circle it is hatched, with the " +
-        "corrected position beside it in amber."
-    },
-    {
       id: "circle-vs-circle",
       constructor: CircleCircleExample,
       content: [224, 80],
@@ -1002,12 +998,12 @@ ready(() => {
         "reach the hatched position it was aiming for."
     },
     {
-      id: "aabb-vs-swept-circle",
-      constructor: AABBSweptCircleExample,
-      content: [312, 128],
+      id: "circle-vs-aabb",
+      constructor: CircleAABBExample,
+      content: [224, 80],
       caption:
-        "Inflating the box by the circle rounds off its corners, so the " +
-        "circle rolls around them instead of catching on a square edge."
+        "Where the box overlaps the circle it is hatched, with the " +
+        "corrected position beside it in amber."
     },
     {
       id: "circle-vs-swept-aabb",
