@@ -3,7 +3,7 @@
 import "katex";
 import renderMathInElement from "katex/contrib/auto-render";
 import "katex/dist/katex.min.css";
-import { AABB, Circle, Point } from "./intersect";
+import { AABB, Capsule, Circle, Point } from "./intersect";
 
 // The diagram palette lives in template/docco.css so that the figures,
 // the canvases and the page itself cannot drift apart. A canvas can't
@@ -139,6 +139,42 @@ class Example {
     this.context.closePath();
     this.context.lineWidth = thickness;
     this.context.strokeStyle = color;
+    this.context.stroke();
+  }
+
+  // Two end caps and the two sides between them. The sides are offset
+  // along the axis normal, so they meet the caps at their widest point.
+  public drawCapsule(
+    capsule: Capsule,
+    color: string = "#fff",
+    thickness: number = 1
+  ) {
+    const x1 = this.toX(capsule.pos.x);
+    const y1 = this.toY(capsule.pos.y);
+    const x2 = this.toX(capsule.pos.x + capsule.delta.x);
+    const y2 = this.toY(capsule.pos.y + capsule.delta.y);
+    const radius = capsule.radius * this.zoom;
+    const dir = new Point(capsule.delta.y, -capsule.delta.x);
+    dir.normalize();
+
+    this.context.lineWidth = thickness;
+    this.context.strokeStyle = color;
+
+    this.context.beginPath();
+    this.context.arc(x1, y1, radius, 0, 2 * Math.PI, true);
+    this.context.closePath();
+    this.context.stroke();
+
+    this.context.beginPath();
+    this.context.arc(x2, y2, radius, 0, 2 * Math.PI, true);
+    this.context.closePath();
+    this.context.stroke();
+
+    this.context.beginPath();
+    this.context.moveTo(x1 + dir.x * radius, y1 + dir.y * radius);
+    this.context.lineTo(x2 + dir.x * radius, y2 + dir.y * radius);
+    this.context.moveTo(x2 - dir.x * radius, y2 - dir.y * radius);
+    this.context.lineTo(x1 - dir.x * radius, y1 - dir.y * radius);
     this.context.stroke();
   }
 
@@ -927,6 +963,47 @@ class MultipleColliderSweptCircleExample extends Example {
   }
 }
 
+class CapsuleSegmentExample extends Example {
+  public angle: number;
+  public capsule: Capsule;
+
+  constructor(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number
+  ) {
+    super(context, width, height);
+    this.angle = 0;
+    this.capsule = new Capsule(new Point(-24, 0), new Point(48, 16), 16);
+  }
+
+  public override tick(elapsed: number) {
+    super.tick(elapsed);
+    this.angle += 0.1 * Math.PI * elapsed;
+    const pos1 = new Point(
+      Math.cos(this.angle) * 64,
+      Math.sin(this.angle) * 64
+    );
+    const pos2 = new Point(
+      Math.sin(this.angle) * 32,
+      Math.cos(this.angle) * 32
+    );
+    const delta = new Point(pos2.x - pos1.x, pos2.y - pos1.y);
+    const hit = this.capsule.intersectSegment(pos1, delta);
+    const dir = delta.clone();
+    const length = dir.normalize();
+    this.drawCapsule(this.capsule, color("edge"));
+    if (hit) {
+      this.drawRay(pos1, dir, length, color("collide"));
+      this.drawSegment(pos1, hit.pos, color("correct"));
+      this.drawPoint(hit.pos, color("correct"));
+      this.drawRay(hit.pos, hit.normal, 6, color("correct"), false);
+    } else {
+      this.drawRay(pos1, dir, length, color("clear"));
+    }
+  }
+}
+
 function ready(callback: () => void) {
   if (document.readyState === "complete") {
     setTimeout(callback, 1);
@@ -1080,6 +1157,14 @@ ready(() => {
       caption:
         "The list of static objects can mix shapes; the circle is swept " +
         "against the walls and the pillar alike."
+    },
+    {
+      id: "capsule-vs-segment",
+      constructor: CapsuleSegmentExample,
+      content: [128, 128],
+      caption:
+        "The ray is red when it hits. The normal drawn at the contact point " +
+        "is not right yet; this test is unfinished."
     }
   ];
 

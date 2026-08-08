@@ -34,6 +34,8 @@ on this page are also written in TypeScript, using the library.
    5. [Circle vs AABB](#circle-vs-aabb)
    6. [Circle vs Swept AABB](#circle-vs-swept-aabb)
    7. [Sweeping a Circle Through Multiple Objects](#sweeping-a-circle-through-multiple-objects)
+5. [Capsules](#capsules)
+   1. [Capsule vs Segment](#capsule-vs-segment)
 
 [real-time collision detection]: http://realtimecollisiondetection.net/
 [algorithms]: http://www.realtimerendering.com/intersections.html
@@ -127,7 +129,7 @@ overlapping.
 
 Intersection tests will return a Hit object when a collision occurs:
 
-    type Collider = AABB | Circle;
+    type Collider = AABB | Circle | Capsule;
 
     export class Hit {
       public collider: Collider;
@@ -709,7 +711,9 @@ least distance &mdash; that is, the nearest collision to the start of the path.
 Boxes and circles both know how to sweep a box through themselves, so the list
 can hold either.
 
-      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+      public sweepInto(
+        staticColliders: (AABB | Circle)[], delta: Point
+      ): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
@@ -1067,7 +1071,9 @@ many](#sweeping-an-aabb-through-multiple-objects), and the same caveat about
 broad and narrow phases applies. The only difference is which sweep gets
 called on each static object, since it's a circle moving now.
 
-      public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+      public sweepInto(
+        staticColliders: (AABB | Circle)[], delta: Point
+      ): Sweep {
         let nearest = new Sweep();
         nearest.time = 1;
         nearest.pos.x = this.pos.x + delta.x;
@@ -1079,5 +1085,142 @@ called on each static object, since it's a circle moving now.
           }
         }
         return nearest;
+      }
+    }
+
+## Capsules
+
+**This one is unfinished.** The segment test below works, but it does not
+produce a `hit.delta` to push out with, and its normal is not right yet. It
+is carried here because a swept circle is a capsule, so this is where that
+test would eventually live.
+
+Capsules are a segment with a radius. You can imagine it as a pill shape, or a
+bounding box with a half circle on each end.
+
+    export class Capsule {
+      public pos: Point;
+      public delta: Point;
+      public radius: number;
+
+The two ends are circles, and the tests below fall back to them whenever the
+segment passes the end of the axis. One scratch circle is moved to whichever
+end is being asked about, rather than allocating a new one each time.
+
+      private circle: Circle;
+
+      constructor(pos: Point, delta: Point, radius: number) {
+        this.pos = pos;
+        this.delta = delta;
+        this.radius = radius;
+        this.circle = new Circle(new Point(0, 0), 0);
+      }
+
+      private intersectSegmentStart(pos: Point, delta: Point): Hit | null {
+        this.circle.pos.x = this.pos.x;
+        this.circle.pos.y = this.pos.y;
+        this.circle.radius = this.radius;
+        return this.circle.intersectSegment(pos, delta);
+      }
+
+      private intersectSegmentEnd(pos: Point, delta: Point): Hit | null {
+        this.circle.pos.x = this.pos.x + this.delta.x;
+        this.circle.pos.y = this.pos.y + this.delta.y;
+        this.circle.radius = this.radius;
+        return this.circle.intersectSegment(pos, delta);
+      }
+
+### Capsule vs Segment
+
+      public intersectSegment(pos: Point, delta: Point): Hit | null {
+        const mx = pos.x - this.pos.x;
+        const my = pos.y - this.pos.y;
+        const md = mx * this.delta.x + my * this.delta.y;
+        const nd = delta.x * this.delta.x + delta.y * this.delta.y;
+        if (md < 0 && md + nd < 0) {
+
+Segment is outside the start end of the capsule's box. Intersect it with the
+circle at that end of the capsule.
+
+          return this.intersectSegmentStart(pos, delta);
+        }
+        const dd = this.delta.x * this.delta.x + this.delta.y * this.delta.y;
+        if (md > dd && md + nd > dd) {
+
+Segment is outside the other end of the capsule's box. Intersect it with the
+circle at that end of the capsule.
+
+          return this.intersectSegmentEnd(pos, delta);
+        }
+        const nn = delta.x * delta.x + delta.y * delta.y;
+        const mn = mx * delta.x + my * delta.y;
+        const a = dd * nn - nd * nd;
+        const k = mx * mx + my * my - this.radius * this.radius;
+        const c = dd * k - md * md;
+        if (abs(a) < EPSILON) {
+
+The segment runs parallel to the capsule axis. If `c` is positive it lies
+outside the capsule entirely; otherwise it starts inside one of the ends, or
+inside the middle.
+
+          if (c > 0) {
+            return null;
+          }
+          if (md < 0) {
+            return this.intersectSegmentStart(pos, delta);
+          } else if (md > dd) {
+            return this.intersectSegmentEnd(pos, delta);
+          }
+          const center = new Point(
+            this.pos.x + this.delta.x / 2, this.pos.y + this.delta.y / 2);
+          const normal = new Point(this.delta.x, this.delta.y);
+          normal.normalize();
+          const hit = new Hit(this);
+          hit.time = 0;
+          hit.normal.x = (pos.x - center.x) * normal.y;
+          hit.normal.y = (pos.y - center.y) * normal.x;
+          hit.normal.normalize();
+          hit.pos.x = pos.x;
+          hit.pos.y = pos.y;
+          hit.delta.x = 0;
+          hit.delta.y = 0;
+          return hit;
+        }
+
+Otherwise it's a quadratic again, the same shape as the circle tests. A
+negative discriminant means no real roots, and so no intersection.
+
+        const b = dd * mn - nd * md;
+        const discriminant = b * b - a * c;
+        if (discriminant < 0) {
+          return null;
+        }
+
+The root is the time at which the segment meets the infinite cylinder around
+the axis. If the contact lies past either end of the axis, the real contact is
+with that end's circle instead.
+
+        const time = (-b - Math.sqrt(discriminant)) / a;
+        if (md + time * nd < 0) {
+          return this.intersectSegmentStart(pos, delta);
+        } else if (md + time * nd > dd) {
+          return this.intersectSegmentEnd(pos, delta);
+        } else if (time >= 0 && time <= 1) {
+          const center = new Point(
+            this.pos.x + this.delta.x / 2, this.pos.y + this.delta.y / 2);
+          const normal = new Point(this.delta.x, this.delta.y);
+          normal.normalize();
+          const hit = new Hit(this);
+          hit.time = time;
+          hit.normal.x = (pos.x - center.x) * normal.y;
+          hit.normal.y = (pos.y - center.y) * normal.x;
+          hit.normal.normalize();
+          hit.pos.x = pos.x + time * delta.x;
+          hit.pos.y = pos.y + time * delta.y;
+          hit.delta.x = 0; // FIXME
+          hit.delta.y = 0;
+          return hit;
+        }
+        return null;
       }
     }

@@ -165,6 +165,12 @@
                 </li>
               </ol>
             </li>
+            <li>
+              <a href="#capsules">Capsules</a>
+              <ol>
+                <li><a href="#capsule-vs-segment">Capsule vs Segment</a></li>
+              </ol>
+            </li>
           </ol>
           <h2 id="helpers">Helpers</h2>
           <p>Let’s define a couple helpers that we’ll use through the code.</p>
@@ -283,7 +289,7 @@
         </p>
 
         <div class="highlight">
-          <pre><span class="hljs-keyword">type</span> <span class="hljs-title class_">Collider</span> = <span class="hljs-variable constant_">AABB</span> | <span class="hljs-title class_">Circle</span>;
+          <pre><span class="hljs-keyword">type</span> <span class="hljs-title class_">Collider</span> = <span class="hljs-variable constant_">AABB</span> | <span class="hljs-title class_">Circle</span> | <span class="hljs-title class_">Capsule</span>;
 
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Hit</span> {
   <span class="hljs-keyword">public</span> <span class="hljs-attr">collider</span>: <span class="hljs-title class_">Collider</span>;
@@ -1269,7 +1275,9 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(
+    <span class="hljs-attr">staticColliders</span>: (<span class="hljs-variable constant_">AABB</span> | <span class="hljs-title class_">Circle</span>)[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>
+  ): <span class="hljs-title class_">Sweep</span> {
     <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
     nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
@@ -1728,7 +1736,9 @@
         </p>
 
         <div class="highlight">
-          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(<span class="hljs-attr">staticColliders</span>: <span class="hljs-title class_">Collider</span>[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Sweep</span> {
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">sweepInto</span>(
+    <span class="hljs-attr">staticColliders</span>: (<span class="hljs-variable constant_">AABB</span> | <span class="hljs-title class_">Circle</span>)[], <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>
+  ): <span class="hljs-title class_">Sweep</span> {
     <span class="hljs-keyword">let</span> nearest = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Sweep</span>();
     nearest.<span class="hljs-property">time</span> = <span class="hljs-number">1</span>;
     nearest.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">x</span>;
@@ -1740,6 +1750,174 @@
       }
     }
     <span class="hljs-keyword">return</span> nearest;
+  }
+}</pre>
+        </div>
+
+        <h2 id="capsules">Capsules</h2>
+        <p>
+          <strong>This one is unfinished.</strong> The segment test below works,
+          but it does not produce a <code>hit.delta</code> to push out with, and
+          its normal is not right yet. It is carried here because a swept circle
+          is a capsule, so this is where that test would eventually live.
+        </p>
+        <p>
+          Capsules are a segment with a radius. You can imagine it as a pill
+          shape, or a bounding box with a half circle on each end.
+        </p>
+
+        <div class="highlight">
+          <pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Capsule</span> {
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>;
+  <span class="hljs-keyword">public</span> <span class="hljs-attr">radius</span>: <span class="hljs-built_in">number</span>;</pre>
+        </div>
+
+        <p>
+          The two ends are circles, and the tests below fall back to them
+          whenever the segment passes the end of the axis. One scratch circle is
+          moved to whichever end is being asked about, rather than allocating a
+          new one each time.
+        </p>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">private</span> <span class="hljs-attr">circle</span>: <span class="hljs-title class_">Circle</span>;
+
+  <span class="hljs-title function_">constructor</span>(<span class="hljs-params">pos: Point, delta: Point, radius: <span class="hljs-built_in">number</span></span>) {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span> = pos;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span> = delta;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> = radius;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Circle</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>), <span class="hljs-number">0</span>);
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">intersectSegmentStart</span>(<span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">radius</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-title function_">intersectSegment</span>(pos, delta);
+  }
+
+  <span class="hljs-keyword">private</span> <span class="hljs-title function_">intersectSegmentEnd</span>(<span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-property">radius</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">circle</span>.<span class="hljs-title function_">intersectSegment</span>(pos, delta);
+  }</pre>
+        </div>
+
+        <h3 id="capsule-vs-segment">Capsule vs Segment</h3>
+
+        <div class="highlight">
+          <pre>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">intersectSegment</span>(<span class="hljs-attr">pos</span>: <span class="hljs-title class_">Point</span>, <span class="hljs-attr">delta</span>: <span class="hljs-title class_">Point</span>): <span class="hljs-title class_">Hit</span> | <span class="hljs-literal">null</span> {
+    <span class="hljs-keyword">const</span> mx = pos.<span class="hljs-property">x</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span>;
+    <span class="hljs-keyword">const</span> my = pos.<span class="hljs-property">y</span> - <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> md = mx * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> + my * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> nd = delta.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> + delta.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">if</span> (md &lt; <span class="hljs-number">0</span> &amp;&amp; md + nd &lt; <span class="hljs-number">0</span>) {</pre>
+        </div>
+
+        <p>
+          Segment is outside the start end of the capsule’s box. Intersect it
+          with the circle at that end of the capsule.
+        </p>
+
+        <div class="highlight">
+          <pre>      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentStart</span>(pos, delta);
+    }
+    <span class="hljs-keyword">const</span> dd = <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">if</span> (md &gt; dd &amp;&amp; md + nd &gt; dd) {</pre>
+        </div>
+
+        <p>
+          Segment is outside the other end of the capsule’s box. Intersect it
+          with the circle at that end of the capsule.
+        </p>
+
+        <div class="highlight">
+          <pre>      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentEnd</span>(pos, delta);
+    }
+    <span class="hljs-keyword">const</span> nn = delta.<span class="hljs-property">x</span> * delta.<span class="hljs-property">x</span> + delta.<span class="hljs-property">y</span> * delta.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> mn = mx * delta.<span class="hljs-property">x</span> + my * delta.<span class="hljs-property">y</span>;
+    <span class="hljs-keyword">const</span> a = dd * nn - nd * nd;
+    <span class="hljs-keyword">const</span> k = mx * mx + my * my - <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span> * <span class="hljs-variable language_">this</span>.<span class="hljs-property">radius</span>;
+    <span class="hljs-keyword">const</span> c = dd * k - md * md;
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">abs</span>(a) &lt; <span class="hljs-variable constant_">EPSILON</span>) {</pre>
+        </div>
+
+        <p>
+          The segment runs parallel to the capsule axis. If <code>c</code> is
+          positive it lies outside the capsule entirely; otherwise it starts
+          inside one of the ends, or inside the middle.
+        </p>
+
+        <div class="highlight">
+          <pre>      <span class="hljs-keyword">if</span> (c &gt; <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+      }
+      <span class="hljs-keyword">if</span> (md &lt; <span class="hljs-number">0</span>) {
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentStart</span>(pos, delta);
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (md &gt; dd) {
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentEnd</span>(pos, delta);
+      }
+      <span class="hljs-keyword">const</span> center = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> / <span class="hljs-number">2</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> / <span class="hljs-number">2</span>);
+      <span class="hljs-keyword">const</span> normal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>);
+      normal.<span class="hljs-title function_">normalize</span>();
+      <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+      hit.<span class="hljs-property">time</span> = <span class="hljs-number">0</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = (pos.<span class="hljs-property">x</span> - center.<span class="hljs-property">x</span>) * normal.<span class="hljs-property">y</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = (pos.<span class="hljs-property">y</span> - center.<span class="hljs-property">y</span>) * normal.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-title function_">normalize</span>();
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = pos.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = pos.<span class="hljs-property">y</span>;
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = <span class="hljs-number">0</span>;
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = <span class="hljs-number">0</span>;
+      <span class="hljs-keyword">return</span> hit;
+    }</pre>
+        </div>
+
+        <p>
+          Otherwise it’s a quadratic again, the same shape as the circle tests.
+          A negative discriminant means no real roots, and so no intersection.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> b = dd * mn - nd * md;
+    <span class="hljs-keyword">const</span> discriminant = b * b - a * c;
+    <span class="hljs-keyword">if</span> (discriminant &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    }</pre>
+        </div>
+
+        <p>
+          The root is the time at which the segment meets the infinite cylinder
+          around the axis. If the contact lies past either end of the axis, the
+          real contact is with that end’s circle instead.
+        </p>
+
+        <div class="highlight">
+          <pre>    <span class="hljs-keyword">const</span> time = (-b - <span class="hljs-title class_">Math</span>.<span class="hljs-title function_">sqrt</span>(discriminant)) / a;
+    <span class="hljs-keyword">if</span> (md + time * nd &lt; <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentStart</span>(pos, delta);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (md + time * nd &gt; dd) {
+      <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">intersectSegmentEnd</span>(pos, delta);
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (time &gt;= <span class="hljs-number">0</span> &amp;&amp; time &lt;= <span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">const</span> center = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> / <span class="hljs-number">2</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> + <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> / <span class="hljs-number">2</span>);
+      <span class="hljs-keyword">const</span> normal = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Point</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span>);
+      normal.<span class="hljs-title function_">normalize</span>();
+      <span class="hljs-keyword">const</span> hit = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Hit</span>(<span class="hljs-variable language_">this</span>);
+      hit.<span class="hljs-property">time</span> = time;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">x</span> = (pos.<span class="hljs-property">x</span> - center.<span class="hljs-property">x</span>) * normal.<span class="hljs-property">y</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-property">y</span> = (pos.<span class="hljs-property">y</span> - center.<span class="hljs-property">y</span>) * normal.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">normal</span>.<span class="hljs-title function_">normalize</span>();
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">x</span> = pos.<span class="hljs-property">x</span> + time * delta.<span class="hljs-property">x</span>;
+      hit.<span class="hljs-property">pos</span>.<span class="hljs-property">y</span> = pos.<span class="hljs-property">y</span> + time * delta.<span class="hljs-property">y</span>;
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">x</span> = <span class="hljs-number">0</span>; <span class="hljs-comment">// FIXME</span>
+      hit.<span class="hljs-property">delta</span>.<span class="hljs-property">y</span> = <span class="hljs-number">0</span>;
+      <span class="hljs-keyword">return</span> hit;
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
   }
 }</pre>
         </div>

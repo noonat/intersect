@@ -48,7 +48,7 @@ export class Point {
   }
 }
 
-type Collider = AABB | Circle;
+type Collider = AABB | Circle | Capsule;
 
 export class Hit {
   public collider: Collider;
@@ -348,7 +348,7 @@ export class AABB {
     return sweep;
   }
 
-  public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+  public sweepInto(staticColliders: (AABB | Circle)[], delta: Point): Sweep {
     let nearest = new Sweep();
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;
@@ -502,7 +502,7 @@ export class Circle {
     return sweep;
   }
 
-  public sweepInto(staticColliders: Collider[], delta: Point): Sweep {
+  public sweepInto(staticColliders: (AABB | Circle)[], delta: Point): Sweep {
     let nearest = new Sweep();
     nearest.time = 1;
     nearest.pos.x = this.pos.x + delta.x;
@@ -514,5 +514,109 @@ export class Circle {
       }
     }
     return nearest;
+  }
+}
+
+export class Capsule {
+  public pos: Point;
+  public delta: Point;
+  public radius: number;
+  private circle: Circle;
+
+  constructor(pos: Point, delta: Point, radius: number) {
+    this.pos = pos;
+    this.delta = delta;
+    this.radius = radius;
+    this.circle = new Circle(new Point(0, 0), 0);
+  }
+
+  private intersectSegmentStart(pos: Point, delta: Point): Hit | null {
+    this.circle.pos.x = this.pos.x;
+    this.circle.pos.y = this.pos.y;
+    this.circle.radius = this.radius;
+    return this.circle.intersectSegment(pos, delta);
+  }
+
+  private intersectSegmentEnd(pos: Point, delta: Point): Hit | null {
+    this.circle.pos.x = this.pos.x + this.delta.x;
+    this.circle.pos.y = this.pos.y + this.delta.y;
+    this.circle.radius = this.radius;
+    return this.circle.intersectSegment(pos, delta);
+  }
+
+  public intersectSegment(pos: Point, delta: Point): Hit | null {
+    const mx = pos.x - this.pos.x;
+    const my = pos.y - this.pos.y;
+    const md = mx * this.delta.x + my * this.delta.y;
+    const nd = delta.x * this.delta.x + delta.y * this.delta.y;
+    if (md < 0 && md + nd < 0) {
+      return this.intersectSegmentStart(pos, delta);
+    }
+    const dd = this.delta.x * this.delta.x + this.delta.y * this.delta.y;
+    if (md > dd && md + nd > dd) {
+      return this.intersectSegmentEnd(pos, delta);
+    }
+    const nn = delta.x * delta.x + delta.y * delta.y;
+    const mn = mx * delta.x + my * delta.y;
+    const a = dd * nn - nd * nd;
+    const k = mx * mx + my * my - this.radius * this.radius;
+    const c = dd * k - md * md;
+    if (abs(a) < EPSILON) {
+      if (c > 0) {
+        return null;
+      }
+      if (md < 0) {
+        return this.intersectSegmentStart(pos, delta);
+      } else if (md > dd) {
+        return this.intersectSegmentEnd(pos, delta);
+      }
+      const center = new Point(
+        this.pos.x + this.delta.x / 2,
+        this.pos.y + this.delta.y / 2,
+      );
+      const normal = new Point(this.delta.x, this.delta.y);
+      normal.normalize();
+      const hit = new Hit(this);
+      hit.time = 0;
+      hit.normal.x = (pos.x - center.x) * normal.y;
+      hit.normal.y = (pos.y - center.y) * normal.x;
+      hit.normal.normalize();
+      hit.pos.x = pos.x;
+      hit.pos.y = pos.y;
+      hit.delta.x = 0;
+      hit.delta.y = 0;
+      return hit;
+    }
+
+    const b = dd * mn - nd * md;
+    const discriminant = b * b - a * c;
+    if (discriminant < 0) {
+      return null;
+    }
+
+    const time = (-b - Math.sqrt(discriminant)) / a;
+    if (md + time * nd < 0) {
+      return this.intersectSegmentStart(pos, delta);
+    } else if (md + time * nd > dd) {
+      return this.intersectSegmentEnd(pos, delta);
+    } else if (time >= 0 && time <= 1) {
+      const center = new Point(
+        this.pos.x + this.delta.x / 2,
+        this.pos.y + this.delta.y / 2,
+      );
+      const normal = new Point(this.delta.x, this.delta.y);
+      normal.normalize();
+      const hit = new Hit(this);
+      hit.time = time;
+      hit.normal.x = (pos.x - center.x) * normal.y;
+      hit.normal.y = (pos.y - center.y) * normal.x;
+      hit.normal.normalize();
+      hit.pos.x = pos.x + time * delta.x;
+      hit.pos.y = pos.y + time * delta.y;
+      hit.delta.x = 0; // FIXME
+      hit.delta.y = 0;
+      return hit;
+    }
+    return null;
   }
 }

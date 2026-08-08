@@ -14732,6 +14732,99 @@
       return nearest;
     }
   };
+  var Capsule = class {
+    constructor(pos, delta, radius) {
+      this.pos = pos;
+      this.delta = delta;
+      this.radius = radius;
+      this.circle = new Circle(new Point(0, 0), 0);
+    }
+    intersectSegmentStart(pos, delta) {
+      this.circle.pos.x = this.pos.x;
+      this.circle.pos.y = this.pos.y;
+      this.circle.radius = this.radius;
+      return this.circle.intersectSegment(pos, delta);
+    }
+    intersectSegmentEnd(pos, delta) {
+      this.circle.pos.x = this.pos.x + this.delta.x;
+      this.circle.pos.y = this.pos.y + this.delta.y;
+      this.circle.radius = this.radius;
+      return this.circle.intersectSegment(pos, delta);
+    }
+    intersectSegment(pos, delta) {
+      const mx = pos.x - this.pos.x;
+      const my = pos.y - this.pos.y;
+      const md = mx * this.delta.x + my * this.delta.y;
+      const nd = delta.x * this.delta.x + delta.y * this.delta.y;
+      if (md < 0 && md + nd < 0) {
+        return this.intersectSegmentStart(pos, delta);
+      }
+      const dd = this.delta.x * this.delta.x + this.delta.y * this.delta.y;
+      if (md > dd && md + nd > dd) {
+        return this.intersectSegmentEnd(pos, delta);
+      }
+      const nn = delta.x * delta.x + delta.y * delta.y;
+      const mn = mx * delta.x + my * delta.y;
+      const a = dd * nn - nd * nd;
+      const k = mx * mx + my * my - this.radius * this.radius;
+      const c = dd * k - md * md;
+      if (abs(a) < EPSILON) {
+        if (c > 0) {
+          return null;
+        }
+        if (md < 0) {
+          return this.intersectSegmentStart(pos, delta);
+        } else if (md > dd) {
+          return this.intersectSegmentEnd(pos, delta);
+        }
+        const center = new Point(
+          this.pos.x + this.delta.x / 2,
+          this.pos.y + this.delta.y / 2
+        );
+        const normal = new Point(this.delta.x, this.delta.y);
+        normal.normalize();
+        const hit = new Hit(this);
+        hit.time = 0;
+        hit.normal.x = (pos.x - center.x) * normal.y;
+        hit.normal.y = (pos.y - center.y) * normal.x;
+        hit.normal.normalize();
+        hit.pos.x = pos.x;
+        hit.pos.y = pos.y;
+        hit.delta.x = 0;
+        hit.delta.y = 0;
+        return hit;
+      }
+      const b = dd * mn - nd * md;
+      const discriminant = b * b - a * c;
+      if (discriminant < 0) {
+        return null;
+      }
+      const time = (-b - Math.sqrt(discriminant)) / a;
+      if (md + time * nd < 0) {
+        return this.intersectSegmentStart(pos, delta);
+      } else if (md + time * nd > dd) {
+        return this.intersectSegmentEnd(pos, delta);
+      } else if (time >= 0 && time <= 1) {
+        const center = new Point(
+          this.pos.x + this.delta.x / 2,
+          this.pos.y + this.delta.y / 2
+        );
+        const normal = new Point(this.delta.x, this.delta.y);
+        normal.normalize();
+        const hit = new Hit(this);
+        hit.time = time;
+        hit.normal.x = (pos.x - center.x) * normal.y;
+        hit.normal.y = (pos.y - center.y) * normal.x;
+        hit.normal.normalize();
+        hit.pos.x = pos.x + time * delta.x;
+        hit.pos.y = pos.y + time * delta.y;
+        hit.delta.x = 0;
+        hit.delta.y = 0;
+        return hit;
+      }
+      return null;
+    }
+  };
 
   // src/examples.ts
   var PROPERTIES = {
@@ -14822,6 +14915,33 @@
       this.context.closePath();
       this.context.lineWidth = thickness;
       this.context.strokeStyle = color2;
+      this.context.stroke();
+    }
+    // Two end caps and the two sides between them. The sides are offset
+    // along the axis normal, so they meet the caps at their widest point.
+    drawCapsule(capsule, color2 = "#fff", thickness = 1) {
+      const x1 = this.toX(capsule.pos.x);
+      const y1 = this.toY(capsule.pos.y);
+      const x2 = this.toX(capsule.pos.x + capsule.delta.x);
+      const y2 = this.toY(capsule.pos.y + capsule.delta.y);
+      const radius = capsule.radius * this.zoom;
+      const dir = new Point(capsule.delta.y, -capsule.delta.x);
+      dir.normalize();
+      this.context.lineWidth = thickness;
+      this.context.strokeStyle = color2;
+      this.context.beginPath();
+      this.context.arc(x1, y1, radius, 0, 2 * Math.PI, true);
+      this.context.closePath();
+      this.context.stroke();
+      this.context.beginPath();
+      this.context.arc(x2, y2, radius, 0, 2 * Math.PI, true);
+      this.context.closePath();
+      this.context.stroke();
+      this.context.beginPath();
+      this.context.moveTo(x1 + dir.x * radius, y1 + dir.y * radius);
+      this.context.lineTo(x2 + dir.x * radius, y2 + dir.y * radius);
+      this.context.moveTo(x2 - dir.x * radius, y2 - dir.y * radius);
+      this.context.lineTo(x1 - dir.x * radius, y1 - dir.y * radius);
       this.context.stroke();
     }
     drawPoint(point, color2 = "#fff", text2 = "", thickness = 1) {
@@ -15407,6 +15527,38 @@
       );
     }
   };
+  var CapsuleSegmentExample = class extends Example {
+    constructor(context, width, height) {
+      super(context, width, height);
+      this.angle = 0;
+      this.capsule = new Capsule(new Point(-24, 0), new Point(48, 16), 16);
+    }
+    tick(elapsed) {
+      super.tick(elapsed);
+      this.angle += 0.1 * Math.PI * elapsed;
+      const pos1 = new Point(
+        Math.cos(this.angle) * 64,
+        Math.sin(this.angle) * 64
+      );
+      const pos2 = new Point(
+        Math.sin(this.angle) * 32,
+        Math.cos(this.angle) * 32
+      );
+      const delta = new Point(pos2.x - pos1.x, pos2.y - pos1.y);
+      const hit = this.capsule.intersectSegment(pos1, delta);
+      const dir = delta.clone();
+      const length = dir.normalize();
+      this.drawCapsule(this.capsule, color("edge"));
+      if (hit) {
+        this.drawRay(pos1, dir, length, color("collide"));
+        this.drawSegment(pos1, hit.pos, color("correct"));
+        this.drawPoint(hit.pos, color("correct"));
+        this.drawRay(hit.pos, hit.normal, 6, color("correct"), false);
+      } else {
+        this.drawRay(pos1, dir, length, color("clear"));
+      }
+    }
+  };
   function ready(callback) {
     if (document.readyState === "complete") {
       setTimeout(callback, 1);
@@ -15512,6 +15664,12 @@
         constructor: MultipleColliderSweptCircleExample,
         content: [208, 128],
         caption: "The list of static objects can mix shapes; the circle is swept against the walls and the pillar alike."
+      },
+      {
+        id: "capsule-vs-segment",
+        constructor: CapsuleSegmentExample,
+        content: [128, 128],
+        caption: "The ray is red when it hits. The normal drawn at the contact point is not right yet; this test is unfinished."
       }
     ];
     const PLATE_ASPECT = 3;

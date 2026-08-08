@@ -9,7 +9,7 @@ export declare class Point {
     clone(): Point;
     normalize(): number;
 }
-type Collider = AABB | Circle;
+type Collider = AABB | Circle | Capsule;
 export declare class Hit {
     collider: Collider;
     pos: Point;
@@ -34,7 +34,7 @@ export declare class AABB {
     sweepAABB(box: AABB, delta: Point): Sweep;
     intersectCircle(circle: Circle): Hit | null;
     sweepCircle(circle: Circle, delta: Point): Sweep;
-    sweepInto(staticColliders: Collider[], delta: Point): Sweep;
+    sweepInto(staticColliders: (AABB | Circle)[], delta: Point): Sweep;
 }
 export declare class Circle {
     pos: Point;
@@ -46,6 +46,16 @@ export declare class Circle {
     sweepCircle(circle: Circle, delta: Point): Sweep;
     intersectAABB(box: AABB): Hit | null;
     sweepAABB(box: AABB, delta: Point): Sweep;
-    sweepInto(staticColliders: Collider[], delta: Point): Sweep;
+    sweepInto(staticColliders: (AABB | Circle)[], delta: Point): Sweep;
+}
+export declare class Capsule {
+    pos: Point;
+    delta: Point;
+    radius: number;
+    private circle;
+    constructor(pos: Point, delta: Point, radius: number);
+    private intersectSegmentStart;
+    private intersectSegmentEnd;
+    intersectSegment(pos: Point, delta: Point): Hit | null;
 }
 export {};
