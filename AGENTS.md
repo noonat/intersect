@@ -184,7 +184,7 @@ resolves to whichever it saw first.
 of distinct files it found, so a typo in a path fails the build rather than
 producing a broken page. It does **not** notice a class it has no mapping for:
 that one passes through unrecognised, styled by nothing, while the build
-reports success. `visual/structure.spec.ts` is what catches it, by name.
+reports success. `test/visual/structure.spec.ts` is what catches it, by name.
 
 Note that `class="small"` on the `<img>` is vestigial: the whole element is
 replaced, so the class goes with it. Layout comes from `figure`, `figure.right`
@@ -302,11 +302,11 @@ Grep `src/examples.ts` for the id before renaming a heading.
 
 ## Visual tests
 
-`visual/` holds a Playwright suite covering the built page, which nothing
+`test/visual/` holds a Playwright suite covering the built page, which nothing
 checked before it: the jest tests check the intersection maths, and the figures,
 the theme, the formulas and the examples were verified by eye. Run it with
 `npm run test:visual`. It is not part of `npm test`, which stays offline and
-browser-free. `visual/README.md` is the fuller version of what follows.
+browser-free. `test/visual/README.md` is the fuller version of what follows.
 
 Three layers, in descending order of how much they churn when the design
 changes:
@@ -329,7 +329,7 @@ changes:
 
 There is no clock and no randomness anywhere in `src/examples.ts`: every
 example derives its state purely by accumulating `requestAnimationFrame`
-deltas. `visual/helpers.ts` replaces the frame queue with one the test pumps by
+deltas. `test/visual/helpers.ts` replaces the frame queue with one the test pumps by
 hand, at the `1/60` the page already assumes, so "frame 240" is the same
 picture every time. **Keep it that way.** A `Math.random()` or a `Date.now()`
 in an example would make these untestable.
@@ -346,7 +346,7 @@ pixels. Change an example's motion and those frames want recomputing.
 
 ### Baselines
 
-`visual/__screenshots__` holds Linux images produced by the exact Chromium
+`test/visual/__screenshots__` holds Linux images produced by the exact Chromium
 `@playwright/test` resolves to. The version matters: a different browser
 renders antialiased edges differently. CI runs in
 `mcr.microsoft.com/playwright:v1.56.0-noble` for that reason, and there is a
@@ -392,13 +392,17 @@ docs/[A-Z0-9]{8}.*      GENERATED KaTeX font assets
 index.html              GENERATED — the published page
 lib/                    GENERATED — the compiled npm package
 test/*.test.ts          jest tests against the library
-visual/*.spec.ts        Playwright tests against the built page
-visual/helpers.ts       page setup, deterministic frame stepping, palette probe
-visual/server.js        static server for the suite, dependency-free
-visual/__screenshots__  committed baselines — Linux, pinned browser
+test/visual/*.spec.ts   Playwright tests against the built page
+test/visual/helpers.ts  page setup, deterministic frame stepping, palette probe
+test/visual/server.js   static server for the suite, dependency-free
+test/visual/__screenshots__   committed baselines — Linux, pinned browser
 playwright.config.ts    visual test config
 tsconfig.visual.json    type checks the above; Playwright does not
 ```
+
+`test/visual/` sits under `test/` because it is part of the tests, but jest
+does not run it: `testPathIgnorePatterns` excludes the directory, or jest's
+`testRegex` would match the specs and try to run them as unit tests.
 
 `docs/public/` (Aller, Novecento, Roboto Black, the fleurons font, `gray.png`,
 `normalize.css`) is left over from docco's original theme and is no longer

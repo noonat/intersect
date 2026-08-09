@@ -12,7 +12,7 @@ const path = require("path");
 const { createReadStream } = require("fs");
 const { stat } = require("fs").promises;
 
-const ROOT = path.resolve(__dirname, "..");
+const ROOT = path.resolve(__dirname, "..", "..");
 
 const TYPES = {
   ".css": "text/css; charset=utf-8",

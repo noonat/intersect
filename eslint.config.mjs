@@ -18,7 +18,7 @@ export default tseslint.config(
   // not part of the bundle, so it has node's globals rather than the
   // browser's and requires its way to them.
   {
-    files: ["visual/*.js"],
+    files: ["test/visual/*.js"],
     languageOptions: {
       globals: {
         URL: "readonly",
@@ -35,7 +35,7 @@ export default tseslint.config(
   },
 
   {
-    files: ["src/**/*.ts", "test/**/*.ts", "visual/**/*.ts"],
+    files: ["src/**/*.ts", "test/**/*.ts"],
     rules: {
       // Match the compiler, which treats a leading underscore as "this
       // argument is here to satisfy the signature, not to be used".

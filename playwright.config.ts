@@ -7,9 +7,9 @@ import { defineConfig, devices } from "@playwright/test";
 // but "does the page still look like the page".
 //
 // Baselines are Linux images, produced by the pinned Playwright container.
-// See visual/README.md before regenerating them anywhere else.
+// See test/visual/README.md before regenerating them anywhere else.
 export default defineConfig({
-  testDir: "./visual",
+  testDir: "./test/visual",
 
   // A stale baseline is a failure to look at, not something to paper over
   // with a second attempt, and none of this touches the network.
@@ -22,14 +22,14 @@ export default defineConfig({
   reporter: process.env["CI"]
     ? [
         ["github"] as const,
-        ["html", { open: "never", outputFolder: "visual/.report" }] as const
+        ["html", { open: "never", outputFolder: "test/visual/.report" }] as const
       ]
     : [["list"] as const],
 
   // Both kept out of docs/, which is published, and out of the repository.
-  outputDir: "visual/.results",
+  outputDir: "test/visual/.results",
 
-  snapshotPathTemplate: "visual/__screenshots__/{testFileName}/{arg}{ext}",
+  snapshotPathTemplate: "test/visual/__screenshots__/{testFileName}/{arg}{ext}",
 
   expect: {
     toHaveScreenshot: {
@@ -77,7 +77,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "node visual/server.js",
+    command: "node test/visual/server.js",
     url: "http://127.0.0.1:4173/index.html",
     reuseExistingServer: !process.env["CI"],
     stdout: "ignore",

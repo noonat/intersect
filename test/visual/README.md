@@ -1,13 +1,15 @@
 # Visual tests
 
-These answer a different question from the tests in `test/`. Those check that
-the intersection maths is right. These check that the page built from
+These answer a different question from the jest tests beside them. Those check
+that the intersection maths is right. These check that the page built from
 `src/intersect.ts.md` still looks like the page: that the figures are inlined
 and wired to the palette, that the theme, contents and formulas still work,
 and that the examples still draw what they are supposed to draw.
 
-They are deliberately not part of `npm test`, which is jest and eslint and
-runs offline in a couple of seconds. Run them with:
+They live under `test/` because they are part of the tests, but jest does not
+run them — `testPathIgnorePatterns` in `package.json` excludes this directory,
+which jest's `testRegex` would otherwise match. They need a browser and a
+server, so they are deliberately not part of `npm test`. Run them with:
 
     npm run test:visual
 

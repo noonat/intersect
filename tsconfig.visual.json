@@ -16,6 +16,6 @@
     // import what they use.
     "types": ["node"]
   },
-  "include": ["visual/**/*.ts", "playwright.config.ts"],
+  "include": ["test/visual/**/*.ts", "playwright.config.ts"],
   "files": []
 }
